@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+ * See the NOTICE file distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see http://www.gnu.org/licenses/
+-->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>org.phenotips</groupId>
+  <artifactId>phenotips-hpo-request</artifactId>
+  <version>1.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
+
+  <prerequisites>
+    <maven>3.0</maven>
+  </prerequisites>
+
+  <!-- TODO Remember the right name and type it in here -->
+  <name>PhenoTips - HPO Requester</name>
+  <description>Requests new HPO terms, keeps track of such requests, and allows for them to be queried</description>
+
+  <licenses>
+    <license>
+      <name>AGPL 3.0</name>
+      <url>https://www.gnu.org/licenses/agpl-3.0.html</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <!-- Lock down plugin version for build reproducibility -->
+        <version>3.3</version>
+        <!-- Java 1.7 is required -->
+        <configuration>
+          <source>1.7</source>
+          <target>1.7</target>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <!-- Lock down plugin version for build reproducibility -->
+        <version>2.19</version>
+        <!-- Rule is to put tests in *Test classes -->
+        <configuration>
+          <includes>
+            <include>**/*Test.class</include>
+          </includes>
+          <parallel>classesAndMethods</parallel>
+          <threadCount>2</threadCount>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+  <modules>
+    <module>backend</module>
+    <module>api</module>
+    <module>war-packaging</module>
+  </modules>
+  <dependencies>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-all</artifactId>
+      <version>1.10.19</version>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.12</version>
+    </dependency>
+  </dependencies>
+  <profiles>
+    <profile>
+      <!-- Use this ( mvn install -Pquick ) when trying to get a quicker test build, without running any quality control checks. -->
+      <id>quick</id>
+      <properties>
+        <enforcer.skip>true</enforcer.skip>
+        <checkstyle.skip>true</checkstyle.skip>
+        <clirr.skip>true</clirr.skip>
+        <jacoco.skip>true</jacoco.skip>
+        <skipTests>true</skipTests>
+        <license.skip>true</license.skip>
+        <xar.verify.skip>true</xar.verify.skip>
+      </properties>
+    </profile>
+  </profiles>
+</project>
