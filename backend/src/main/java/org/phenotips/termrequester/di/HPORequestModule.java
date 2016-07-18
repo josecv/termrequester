@@ -17,6 +17,10 @@
  */
 package org.phenotips.termrequester.di;
 
+import org.phenotips.termrequester.PhenotypeManager;
+import org.phenotips.termrequester.PhenotypeManagerImpl;
+import org.phenotips.termrequester.db.DatabaseService;
+import org.phenotips.termrequester.db.solr.SolrDatabaseService;
 import org.phenotips.termrequester.github.GithubAPIFactory;
 import org.phenotips.termrequester.github.GithubAPIFactoryImpl;
 
@@ -39,6 +43,8 @@ public class HPORequestModule extends AbstractModule
     public void configure()
     {
         bind(GithubAPIFactory.class).to(GithubAPIFactoryImpl.class);
+        bind(DatabaseService.class).to(SolrDatabaseService.class);
+        bind(PhenotypeManager.class).to(PhenotypeManagerImpl.class);
     }
 
     /**

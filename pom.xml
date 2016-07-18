@@ -42,6 +42,7 @@
   </licenses>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <solr.version>5.5.2</solr.version>
   </properties>
   <build>
     <plugins>
