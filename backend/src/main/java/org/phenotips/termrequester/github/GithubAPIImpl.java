@@ -65,7 +65,6 @@ class GithubAPIImpl implements GithubAPI
 
     /**
      * Our object mapper to deserialize from JSON.
-     * TODO This may be better off elsewhere. Consider dependency injection here.
      */
     private ObjectMapper mapper;
 

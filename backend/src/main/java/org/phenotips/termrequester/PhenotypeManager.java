@@ -32,6 +32,12 @@ import com.google.common.base.Optional;
 public interface PhenotypeManager
 {
     /**
+     * Initialize this manager.
+     * @param repo the repository in use.
+     */
+    void init(GithubAPI.Repository repo);
+
+    /**
      * Request a new phenotype in the HPO.
      * @param name the name of the phenotype to request
      * @param synonyms a list of synonyms for the phenotype
@@ -52,8 +58,9 @@ public interface PhenotypeManager
     Phenotype getPhenotypeById(String id) throws TermRequesterBackendException;
 
     /**
-     * Initialize this manager.
-     * @param repo the repository in use.
+     * Fuzzily search for phenotypes matching the text given.
+     * @param text the text to search for
+     * @return the list of phenotypes
      */
-    void init(GithubAPI.Repository repo);
+    List<Phenotype> search(String text) throws TermRequesterBackendException;
 }

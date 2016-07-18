@@ -43,7 +43,9 @@ import static org.junit.Assert.assertTrue;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.refEq;
+import static org.mockito.Matchers.same;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -81,8 +83,19 @@ public class PhenotypeManagerTest
      */
     private PhenotypeManager client;
 
+    /**
+     * A small example phenotype.
+     */
+    private Phenotype pt;
+
+    /**
+     * The name of the test phenotype.
+     */
     private static String PT_NAME = "Test Phenotype";
 
+    /**
+     * The description of the test phenotype.
+     */
     private static String PT_DESC = "Description";
 
     /**
@@ -97,6 +110,11 @@ public class PhenotypeManagerTest
                 with(new TestModule(databaseService, githubApi)));
         client = injector.getInstance(PhenotypeManager.class);
         client.init(new GithubAPI.Repository(OWNER, REPOSITORY, TOKEN));
+        pt = new Phenotype();
+        pt.setName(PT_NAME);
+        pt.setDescription(PT_DESC);
+        when(databaseService.getPhenotypeById(any(String.class))).thenReturn(Phenotype.NULL);
+        when(databaseService.getPhenotype(any(Phenotype.class))).thenReturn(Phenotype.NULL);
     }
 
     /**
@@ -107,13 +125,8 @@ public class PhenotypeManagerTest
     {
         @SuppressWarnings("unchecked")
         Future<Phenotype> f = mock(Future.class);
-        Phenotype pt = new Phenotype();
-        pt.setName(PT_NAME);
-        pt.setDescription(PT_DESC);
         when(f.get()).thenReturn(pt);
         when(databaseService.savePhenotype(refEq(pt))).thenReturn(f);
-        when(databaseService.getPhenotypeById(any(String.class))).thenReturn(Phenotype.NULL);
-        when(databaseService.getPhenotype(any(Phenotype.class))).thenReturn(Phenotype.NULL);
         when(githubApi.hasIssue(refEq(pt))).thenReturn(false);
         doNothing().when(githubApi).openIssue(refEq(pt));
         Phenotype pt2 = client.createRequest(PT_NAME, new ArrayList<String>(), Optional.<String>absent(),
@@ -123,6 +136,46 @@ public class PhenotypeManagerTest
         assertEquals(PT_DESC, pt2.getDescription());
         verify(databaseService).savePhenotype(refEq(pt, "parent"));
         verify(githubApi).openIssue(refEq(pt, "parent"));
+    }
+
+    /**
+     * Test the getPhenotypeById method.
+     */
+    @Test
+    public void testGetById() throws TermRequesterBackendException, IOException
+    {
+        String id = "NONHPO_123";
+        pt = mock(Phenotype.class);
+        when(pt.getStatus()).thenReturn(Phenotype.Status.SUBMITTED);
+        when(databaseService.getPhenotypeById(id)).thenReturn(pt);
+        when(githubApi.getStatus(same(pt))).thenReturn(Phenotype.Status.ACCEPTED);
+        when(githubApi.hasIssue(same(pt))).thenReturn(true);
+        Phenotype pt2 = client.getPhenotypeById(id);
+        assertEquals(pt, pt2);
+        verify(githubApi).getStatus(same(pt));
+        verify(pt).setStatus(Phenotype.Status.ACCEPTED);
+        verify(databaseService).getPhenotypeById(id);
+        verify(databaseService).savePhenotype(same(pt));
+    }
+
+    /**
+     * Test the getPhenotypeById method when no status update is needed.
+     */
+    @Test
+    public void testGetByIdNoStatus() throws TermRequesterBackendException, IOException
+    {
+        String id = "NONHPO_123";
+        pt = mock(Phenotype.class);
+        when(pt.getStatus()).thenReturn(Phenotype.Status.ACCEPTED);
+        when(databaseService.getPhenotypeById(id)).thenReturn(pt);
+        when(githubApi.getStatus(same(pt))).thenReturn(Phenotype.Status.ACCEPTED);
+        when(githubApi.hasIssue(same(pt))).thenReturn(true);
+        Phenotype pt2 = client.getPhenotypeById(id);
+        assertEquals(pt, pt2);
+        verify(githubApi).getStatus(same(pt));
+        verify(pt, never()).setStatus(Phenotype.Status.ACCEPTED);
+        verify(databaseService).getPhenotypeById(id);
+        verify(databaseService, never()).savePhenotype(same(pt));
     }
 
     /**

@@ -78,7 +78,7 @@ public class PhenotypeManagerImpl implements PhenotypeManager
             pt.addSynonym(synonym);
         }
         pt.setDescription(description.or(""));
-        /* TODO FIX FIX FIX */
+        /* TODO USE PROPER DEFAULT PARENT */
         Phenotype parent = db.getPhenotypeById(parentId.or("wat"));
         pt.setParent(parent);
         Phenotype existing = db.getPhenotype(pt);
@@ -101,6 +101,24 @@ public class PhenotypeManagerImpl implements PhenotypeManager
 
     @Override
     public Phenotype getPhenotypeById(String id) throws TermRequesterBackendException
+    {
+        Phenotype pt = db.getPhenotypeById(id);
+        try {
+            if (github.hasIssue(pt)) {
+                Phenotype.Status status = github.getStatus(pt);
+                if (status != pt.getStatus()) {
+                    pt.setStatus(status);
+                    db.savePhenotype(pt);
+                }
+            }
+        } catch (IOException e) {
+            throw new TermRequesterBackendException("Github API threw exception", e);
+        }
+        return pt;
+    }
+
+    @Override
+    public List<Phenotype> search(String text) throws TermRequesterBackendException
     {
         return null;
     }
