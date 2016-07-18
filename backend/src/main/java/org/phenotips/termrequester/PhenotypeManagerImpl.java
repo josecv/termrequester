@@ -79,11 +79,11 @@ public class PhenotypeManagerImpl implements PhenotypeManager
         }
         pt.setDescription(description.or(""));
         /* TODO FIX FIX FIX */
-        Phenotype parent = db.getPhenotypeById(parentId.or("wat")).or(new Phenotype());
+        Phenotype parent = db.getPhenotypeById(parentId.or("wat"));
         pt.setParent(parent);
-        Optional<Phenotype> existing = db.getPhenotype(pt);
-        if (existing.isPresent()) {
-            return existing.get();
+        Phenotype existing = db.getPhenotype(pt);
+        if (!Phenotype.NULL.equals(existing)) {
+            return existing;
         }
         try {
             if (github.hasIssue(pt)) {
@@ -100,7 +100,7 @@ public class PhenotypeManagerImpl implements PhenotypeManager
     }
 
     @Override
-    public Optional<Phenotype> getPhenotypeById(String id) throws TermRequesterBackendException
+    public Phenotype getPhenotypeById(String id) throws TermRequesterBackendException
     {
         return null;
     }

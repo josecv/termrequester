@@ -69,6 +69,8 @@
           </includes>
           <parallel>classesAndMethods</parallel>
           <threadCount>2</threadCount>
+          <useFile>false</useFile>
+          <trimStackTrace>false</trimStackTrace>
         </configuration>
       </plugin>
     </plugins>

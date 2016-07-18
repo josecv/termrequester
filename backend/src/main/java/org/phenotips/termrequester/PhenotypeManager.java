@@ -46,10 +46,10 @@ public interface PhenotypeManager
     /**
      * Get the phenotype with the id given. This might be an HPO or a termrequester id.
      * @param id the id of the phenotype.
-     * @return the phenotype, if it's there
+     * @return the phenotype, if it's there. The null phenotype if it is not.
      * @throws TermRequesterBackendException if something goes wrong in the backend.
      */
-    Optional<Phenotype> getPhenotypeById(String id) throws TermRequesterBackendException;
+    Phenotype getPhenotypeById(String id) throws TermRequesterBackendException;
 
     /**
      * Initialize this manager.

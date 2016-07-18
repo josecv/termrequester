@@ -103,13 +103,13 @@ public class SolrDatabaseService implements DatabaseService
     }
 
     @Override
-    public Optional<Phenotype> getPhenotypeById(String id)
+    public Phenotype getPhenotypeById(String id)
     {
         return null;
     }
 
     @Override
-    public Optional<Phenotype> getPhenotype(Phenotype other)
+    public Phenotype getPhenotype(Phenotype other)
     {
         return null;
     }

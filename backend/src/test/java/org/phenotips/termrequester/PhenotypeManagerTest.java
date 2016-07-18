@@ -112,8 +112,8 @@ public class PhenotypeManagerTest
         pt.setDescription(PT_DESC);
         when(f.get()).thenReturn(pt);
         when(databaseService.savePhenotype(refEq(pt))).thenReturn(f);
-        when(databaseService.getPhenotypeById(any(String.class))).thenReturn(Optional.<Phenotype>absent());
-        when(databaseService.getPhenotype(any(Phenotype.class))).thenReturn(Optional.<Phenotype>absent());
+        when(databaseService.getPhenotypeById(any(String.class))).thenReturn(Phenotype.NULL);
+        when(databaseService.getPhenotype(any(Phenotype.class))).thenReturn(Phenotype.NULL);
         when(githubApi.hasIssue(refEq(pt))).thenReturn(false);
         doNothing().when(githubApi).openIssue(refEq(pt));
         Phenotype pt2 = client.createRequest(PT_NAME, new ArrayList<String>(), Optional.<String>absent(),

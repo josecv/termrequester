@@ -24,6 +24,8 @@ import java.util.Set;
 
 /**
  * Represents a given phenotype request.
+ * Uses a null-object pattern, so instead of using the value "null", use Phenotype.NULL to denote
+ * absence.
  *
  * @version $Id$
  */
@@ -33,6 +35,12 @@ public class Phenotype implements Serializable
      * The serial version uid.
      */
     private static final long serialVersionUID = 1789L;
+
+    /**
+     * A null phenotype.
+     * To be used in the absence of data, instead of just using null.
+     */
+    public static final Phenotype NULL = new NullPhenotype();
 
     /**
      * The internal id of this phenotype.
@@ -67,7 +75,7 @@ public class Phenotype implements Serializable
     /**
      * This phenotype's parent.
      */
-    private Phenotype parent;
+    private Phenotype parent = NULL;
 
     /**
      * CTOR.
@@ -241,10 +249,9 @@ public class Phenotype implements Serializable
      */
     public String issueDescribe()
     {
-        String parentString = parent == null ? "" : "\nParent: " + parent.asParent();
         return "Term: " + this.name +
             "\nSynonyms: " + String.join(",", this.synonyms) +
-            parentString +
+            "\nParent" + parent.asParent() +
             "\nDescription: " + this.description
             ;
     }
@@ -283,5 +290,89 @@ public class Phenotype implements Serializable
     {
         return "#" + issueNumber;
     }
-    
+
+    /**
+     * A null phenotype object that does nothing and returns sensible defaults.
+     *
+     * @version $Id : $
+     */
+    private static final class NullPhenotype extends Phenotype
+    {
+        private static final long serialVersionUID = 1450L;
+
+        @Override
+        public String getName()
+        {
+            return "NULL";
+        }
+
+        @Override
+        public String getDescription()
+        {
+            return "NULL";
+        }
+
+        @Override
+        public String getIssueNumber()
+        {
+            return "NULL";
+        }
+
+        @Override
+        public String getId()
+        {
+            return "NULL";
+        }
+
+        @Override
+        public String asParent()
+        {
+            /* TODO IS THIS REASONABLE */
+            return "NO PARENT";
+        }
+
+        @Override
+        public String toString()
+        {
+            return "NULL PHENOTYPE";
+        }
+
+        @Override
+        public boolean equals(Object o)
+        {
+            /* This class is finals and there should only ever be one instance,
+             * so this is probably okay */
+            return this == o;
+        }
+
+        @Override
+        public int hashCode()
+        {
+            return "NULL PHENOTYPE".hashCode();
+        }
+
+        @Override
+        public Set<String> getSynonyms()
+        {
+            return new HashSet<>();
+        }
+
+        @Override
+        public String issueDescribe()
+        {
+            return "NULL PHENOTYPE. YOU SHOULD NOT BE SEEING THIS IN YOUR ISSUE TRACKER. PLEASE REPORT BUG TO PHENOTIPS";
+        }
+
+        @Override
+        public Status getStatus()
+        {
+            return Status.REJECTED;
+        }
+
+        @Override
+        public Phenotype getParent()
+        {
+            return this;
+        }
+    }
 }

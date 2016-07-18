@@ -122,6 +122,10 @@ class GithubAPIImpl implements GithubAPI
     @Override
     public boolean hasIssue(Phenotype phenotype) throws IOException
     {
+        /* This would still work without the check, but it's two wasted requests for a null, so just return */
+        if (Phenotype.NULL.equals(phenotype)) {
+            return false;
+        }
         String issueNumber = phenotype.getIssueNumber();
         /* TODO THIS SHOULDN'T BE A NULL CHECK... */
         if (issueNumber != null) {

@@ -64,16 +64,16 @@ public interface DatabaseService
     /**
      * Get a phenotype matching the id given.
      * @param id
-     * @return the new phenotype
+     * @return the phenotype - might be the null phenotype if nothing matches
      */
-    Optional<Phenotype> getPhenotypeById(String id);
+    Phenotype getPhenotypeById(String id);
 
     /**
      * Get a phenotype that's equivalent to the one given (this may include ids, names or synonyms).
      * @param phenotype the phenotype to look for
-     * @return the existing phenotype, if it's there
+     * @return the existing phenotype, if it's there, or the null phenotype if not
      */
-    Optional<Phenotype> getPhenotype(Phenotype phenotype);
+    Phenotype getPhenotype(Phenotype phenotype);
 
     /**
      * Search the database for the text given.
