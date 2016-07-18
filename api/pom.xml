@@ -23,13 +23,13 @@
 
   <parent>
     <groupId>org.phenotips</groupId>
-    <artifactId>phenotips-hpo-request</artifactId>
+    <artifactId>phenotips-term-requester</artifactId>
     <version>1.0-SNAPSHOT</version>
   </parent>
-  <artifactId>phenotips-hpo-request-api</artifactId>
+  <artifactId>phenotips-term-requester-api</artifactId>
 
-  <name>PhenoTips - HPO Requester API</name>
-  <description>Sets up the restlet api for the HPO requester</description>
+  <name>PhenoTips - Term Requester API</name>
+  <description>Sets up the restlet api for the Term requester</description>
   <packaging>jar</packaging>
 
 </project>

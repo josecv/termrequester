@@ -15,10 +15,10 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see http://www.gnu.org/licenses/
  */
-package org.phenotips.hporequest.di;
+package org.phenotips.termrequester.di;
 
-import org.phenotips.hporequest.github.GithubAPIFactory;
-import org.phenotips.hporequest.github.GithubAPIFactoryImpl;
+import org.phenotips.termrequester.github.GithubAPIFactory;
+import org.phenotips.termrequester.github.GithubAPIFactoryImpl;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;

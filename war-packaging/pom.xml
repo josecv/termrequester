@@ -23,12 +23,12 @@
 
   <parent>
     <groupId>org.phenotips</groupId>
-    <artifactId>phenotips-hpo-request</artifactId>
+    <artifactId>phenotips-term-requester</artifactId>
     <version>1.0-SNAPSHOT</version>
   </parent>
-  <artifactId>phenotips-hpo-request-war-packaging</artifactId>
+  <artifactId>phenotips-term-requester-war-packaging</artifactId>
 
-  <name>PhenoTips - HPO Requester War</name>
+  <name>PhenoTips - Term Requester War</name>
   <description>Packages the HPO requester into a War</description>
   <packaging>war</packaging>
 

@@ -1,5 +1,5 @@
-TODO REMEMBER MY NAME
-=====================
+Phenotips HPO TermRequester
+===========================
 
 This service is designed to request that new phenotypes be added to the HPO and give a handle
 to requested phenotypes whilst they're being considered for inclusion.

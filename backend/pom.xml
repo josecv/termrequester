@@ -23,12 +23,12 @@
 
   <parent>
     <groupId>org.phenotips</groupId>
-    <artifactId>phenotips-hpo-request</artifactId>
+    <artifactId>phenotips-term-requester</artifactId>
     <version>1.0-SNAPSHOT</version>
   </parent>
-  <artifactId>phenotips-hpo-request-backend</artifactId>
+  <artifactId>phenotips-term-requester-backend</artifactId>
 
-  <name>PhenoTips - HPO Requester Backend</name>
+  <name>PhenoTips - Term Requester Backend</name>
   <description>Contains the backend to request new terms from the HPO</description>
   <packaging>jar</packaging>
 
