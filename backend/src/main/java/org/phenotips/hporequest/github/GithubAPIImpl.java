@@ -39,7 +39,6 @@ import org.phenotips.hporequest.Phenotype;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 
 
 /**
@@ -50,7 +49,6 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
  */
 class GithubAPIImpl implements GithubAPI
 {
-
     /**
      * The repository to bind to.
      */
@@ -82,13 +80,13 @@ class GithubAPIImpl implements GithubAPI
 
     /**
      * CTOR.
+     * @param mapper the object mapper in use
      * @param repository the repo to use
      */
-    public GithubAPIImpl(Repository repository)
+    public GithubAPIImpl(ObjectMapper mapper, Repository repository)
     {
         this.repository = repository;
-        mapper = new ObjectMapper();
-        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        this.mapper = mapper;
     }
 
     @Override

@@ -17,6 +17,9 @@
  */
 package org.phenotips.hporequest.github;
 
+import com.google.inject.Inject;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 
 /**
  * Constructs GithubAPI objects.
@@ -25,16 +28,24 @@ package org.phenotips.hporequest.github;
  */
 public class GithubAPIFactoryImpl implements GithubAPIFactory
 {
+    private ObjectMapper mapper;
+
+    @Inject
+    public GithubAPIFactoryImpl(ObjectMapper mapper)
+    {
+        this.mapper = mapper;
+    }
+
     @Override
     public GithubAPI create(GithubAPI.Repository repo)
     {
-        return new GithubAPIImpl(repo);
+        return new GithubAPIImpl(mapper, repo);
     }
 
     @Override
     public GithubAPI create(String user, String repository, String oauthToken)
     {
         GithubAPI.Repository repo = new GithubAPI.Repository(user, repository, oauthToken);
-        return new GithubAPIImpl(repo);
+        return create(repo);
     }
 }
