@@ -12,7 +12,7 @@ Github interaction
 ------------------
 
 #### `org.phenotips.termrequester.github.GithubAPIFactory`
-##### `GithubAPI create(String repository)`
+##### `GithubAPI create(String owner, String repository, String oauthToken)`
 
 #### `org.phenotips.termrequester.github.GithubAPI`
 ##### `createIssue(Phenotype pt)`
