@@ -93,30 +93,36 @@ public class SolrDatabaseService implements DatabaseService
     @Override
     public Future<Phenotype> savePhenotype(Phenotype pt)
     {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public Future<Boolean> deletePhenotype(Phenotype pt)
     {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public Phenotype getPhenotypeById(String id)
     {
-        return null;
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Phenotype getPhenotypeByIssueNumber(String issueNumber)
+    {
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public Phenotype getPhenotype(Phenotype other)
     {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public List<Phenotype> searchPhenotypes(String text)
     {
-        return null;
+        throw new UnsupportedOperationException();
     }
 }

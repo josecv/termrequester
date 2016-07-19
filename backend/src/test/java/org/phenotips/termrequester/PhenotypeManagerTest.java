@@ -57,10 +57,19 @@ import static org.mockito.Mockito.when;
  */
 public class PhenotypeManagerTest
 {
+    /**
+     * The owner of our mock repo
+     */
     private static final String OWNER = "";
 
+    /**
+     * The mock repo.
+     */
     private static final String REPOSITORY = "";
 
+    /**
+     * The token to access the mock repo.
+     */
     private static final String TOKEN = "";
 
     /**
@@ -91,12 +100,17 @@ public class PhenotypeManagerTest
     /**
      * The name of the test phenotype.
      */
-    private static String PT_NAME = "Test Phenotype";
+    private static final String PT_NAME = "Test Phenotype";
 
     /**
      * The description of the test phenotype.
      */
-    private static String PT_DESC = "Description";
+    private static final String PT_DESC = "Description";
+
+    /**
+     * The issue number for the test phenotype.
+     */
+    private static final String PT_NUM = "123";
 
     /**
      * Set up the test case.
@@ -110,15 +124,14 @@ public class PhenotypeManagerTest
                 with(new TestModule(databaseService, githubApi)));
         client = injector.getInstance(PhenotypeManager.class);
         client.init(new GithubAPI.Repository(OWNER, REPOSITORY, TOKEN));
-        pt = new Phenotype();
-        pt.setName(PT_NAME);
-        pt.setDescription(PT_DESC);
+        pt = new Phenotype(PT_NAME, PT_DESC);
         when(databaseService.getPhenotypeById(any(String.class))).thenReturn(Phenotype.NULL);
         when(databaseService.getPhenotype(any(Phenotype.class))).thenReturn(Phenotype.NULL);
     }
 
     /**
      * Test that a new phenotype can be created.
+     * TODO So very many cases are missing. Need more test cases.
      */
     @Test
     public void testCreation() throws InterruptedException, ExecutionException, IOException, TermRequesterBackendException
@@ -127,7 +140,7 @@ public class PhenotypeManagerTest
         Future<Phenotype> f = mock(Future.class);
         when(f.get()).thenReturn(pt);
         when(databaseService.savePhenotype(refEq(pt))).thenReturn(f);
-        when(githubApi.hasIssue(refEq(pt))).thenReturn(false);
+        when(githubApi.searchForIssue(refEq(pt))).thenReturn(Optional.<String>absent());
         doNothing().when(githubApi).openIssue(refEq(pt));
         Phenotype pt2 = client.createRequest(PT_NAME, new ArrayList<String>(), Optional.<String>absent(),
                                              Optional.of(PT_DESC));
@@ -149,7 +162,7 @@ public class PhenotypeManagerTest
         when(pt.getStatus()).thenReturn(Phenotype.Status.SUBMITTED);
         when(databaseService.getPhenotypeById(id)).thenReturn(pt);
         when(githubApi.getStatus(same(pt))).thenReturn(Phenotype.Status.ACCEPTED);
-        when(githubApi.hasIssue(same(pt))).thenReturn(true);
+        when(pt.getIssueNumber()).thenReturn(Optional.of(PT_NUM));
         Phenotype pt2 = client.getPhenotypeById(id);
         assertEquals(pt, pt2);
         verify(githubApi).getStatus(same(pt));
@@ -169,7 +182,7 @@ public class PhenotypeManagerTest
         when(pt.getStatus()).thenReturn(Phenotype.Status.ACCEPTED);
         when(databaseService.getPhenotypeById(id)).thenReturn(pt);
         when(githubApi.getStatus(same(pt))).thenReturn(Phenotype.Status.ACCEPTED);
-        when(githubApi.hasIssue(same(pt))).thenReturn(true);
+        when(pt.getIssueNumber()).thenReturn(Optional.of(PT_NUM));
         Phenotype pt2 = client.getPhenotypeById(id);
         assertEquals(pt, pt2);
         verify(githubApi).getStatus(same(pt));

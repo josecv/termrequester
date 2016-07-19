@@ -19,8 +19,11 @@ package org.phenotips.termrequester;
 
 import java.io.Serializable;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+
+import com.google.common.base.Optional;
 
 /**
  * Represents a given phenotype request.
@@ -45,7 +48,7 @@ public class Phenotype implements Serializable
     /**
      * The internal id of this phenotype.
      */
-    private String id;
+    private String id = "NONHPO_NULLID";
 
     /**
      * The github issue number.
@@ -70,7 +73,7 @@ public class Phenotype implements Serializable
     /**
      * The issue status.
      */
-    private Status status;
+    private Status status = Status.UNSUBMITTED;
 
     /**
      * This phenotype's parent.
@@ -79,21 +82,17 @@ public class Phenotype implements Serializable
 
     /**
      * CTOR.
+     *
+     * @param name the name
+     * @param description the description
      */
-    public Phenotype()
+    public Phenotype(String name, String description)
     {
+        this.name = name;
+        this.description = description;
         synonyms = new HashSet<>();
     }
     
-    /**
-     * Represents the status of a new phenotype issue in the HPO.
-     */
-    public static enum Status {
-        SUBMITTED,
-        REJECTED,
-        ACCEPTED
-    }
-
     /**
      * Get the list of synonyms for this phenotype.
      *
@@ -111,7 +110,20 @@ public class Phenotype implements Serializable
      */
     public void addSynonym(String synonym)
     {
-        synonyms.add(synonym);
+        /* We need to make sure we don't define something as a synonym of itself */
+        if (!name.equals(synonym)) {
+            synonyms.add(synonym);
+        }
+    }
+
+    /**
+     * Add all the synonyms given to this phenotype's set of synonyms.
+     * @param synonyms the new syonyms to add
+     */
+    public void addAllSynonyms(Collection<String> synonyms)
+    {
+        synonyms.addAll(synonyms);
+        synonyms.remove(name);
     }
 
     /**
@@ -144,13 +156,18 @@ public class Phenotype implements Serializable
         this.id = id;
     }
     
-    /** * Get issueNumber.
+    /**
+     * Get issueNumber.
      *
      * @return issueNumber as String.
      */
-    public String getIssueNumber()
+    public Optional<String> getIssueNumber()
     {
-        return issueNumber;
+        if (status == Status.UNSUBMITTED) {
+            return Optional.<String>absent();
+        } else {
+            return Optional.of(issueNumber);
+        }
     }
     
     /**
@@ -249,10 +266,11 @@ public class Phenotype implements Serializable
      */
     public String issueDescribe()
     {
-        return "Term: " + this.name +
-            "\nSynonyms: " + String.join(",", this.synonyms) +
-            "\nParent" + parent.asParent() +
-            "\nDescription: " + this.description
+        return "TERM: " + this.name +
+            "\nSYNONYMS: " + String.join(",", this.synonyms) +
+            "\nPARENT: " + parent.asParent() +
+            "\nPT_INTERNAL_ID: " + this.id +
+            "\nDESCRIPTION: " + this.description.replace("\n", ". ")
             ;
     }
 
@@ -292,6 +310,36 @@ public class Phenotype implements Serializable
     }
 
     /**
+     * Return whether it's okay to submit this phenotype.
+     * @return whether this phenotype should be a candidate for issue submission
+     */
+    public boolean submittable()
+    {
+        return status == Status.UNSUBMITTED;
+    }
+
+    /**
+     * Consume the phenotype given, merging it with this one.
+     * @param other the phenotype to merge this one to. Will be left unchanged
+     */
+    public void mergeWith(Phenotype other)
+    {
+        addAllSynonyms(other.getSynonyms());
+        addSynonym(other.getName());
+        /* TODO Merge description sensibly */
+    }
+
+    /**
+     * Represents the status of a new phenotype issue in the HPO.
+     */
+    public static enum Status {
+        UNSUBMITTED,
+        SUBMITTED,
+        REJECTED,
+        ACCEPTED
+    }
+
+    /**
      * A null phenotype object that does nothing and returns sensible defaults.
      *
      * @version $Id : $
@@ -299,6 +347,14 @@ public class Phenotype implements Serializable
     private static final class NullPhenotype extends Phenotype
     {
         private static final long serialVersionUID = 1450L;
+
+        /**
+         * CTOR.
+         */
+        public NullPhenotype()
+        {
+            super("NULL", "NULL");
+        }
 
         @Override
         public String getName()
@@ -313,9 +369,9 @@ public class Phenotype implements Serializable
         }
 
         @Override
-        public String getIssueNumber()
+        public Optional<String> getIssueNumber()
         {
-            return "NULL";
+            return Optional.<String>absent();
         }
 
         @Override
@@ -373,6 +429,12 @@ public class Phenotype implements Serializable
         public Phenotype getParent()
         {
             return this;
+        }
+
+        @Override
+        public boolean submittable()
+        {
+            return false;
         }
     }
 }

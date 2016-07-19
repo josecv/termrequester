@@ -17,6 +17,8 @@
  */
 package org.phenotips.termrequester;
 
+import com.google.common.base.Optional;
+
 
 /**
  * A phenotype that has been added to the HPO.
@@ -30,9 +32,34 @@ public class HPOPhenotype extends Phenotype
      */
     public static final long serialVersionUID = 1848L;
 
+    public HPOPhenotype(String name, String description)
+    {
+        super(name, description);
+    }
+
     @Override
     public String asParent()
     {
         return getId();
+    }
+
+    @Override
+    public boolean submittable()
+    {
+        /* Forbid submission of something already there, for obvious reasons */
+        return false;
+    }
+
+    @Override
+    public Optional<String> getIssueNumber()
+    {
+        return Optional.<String>absent();
+    }
+
+    @Override
+    public Status getStatus()
+    {
+        /* It's already in the HPO, so it's been accepted */
+        return Status.ACCEPTED;
     }
 }

@@ -39,6 +39,8 @@ import org.phenotips.termrequester.Phenotype;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import com.google.common.base.Optional;
+
 
 /**
  * Connects to the github rest api.
@@ -90,7 +92,10 @@ class GithubAPIImpl implements GithubAPI
     @Override
     public void openIssue(Phenotype phenotype) throws IOException
     {
-        if (hasIssue(phenotype)) {
+        if (!phenotype.submittable()) {
+            throw new IllegalArgumentException("Phenotype " + phenotype + " is not submittable");
+        }
+        if (searchForIssue(phenotype).isPresent()) {
             throw new IllegalArgumentException("Issue for " + phenotype + " already exists");
         }
         Map<String, String> params = new HashMap<>();
@@ -104,11 +109,21 @@ class GithubAPIImpl implements GithubAPI
             returnContent().asStream();
         DataTypes.Issue result = mapper.readValue(is, DataTypes.Issue.class);
         phenotype.setIssueNumber(Integer.toString(result.number));
+        phenotype.setStatus(Phenotype.Status.SUBMITTED);
+    }
+
+    @Override
+    public void patchIssue(Phenotype phenotype) throws IOException
+    {
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public Phenotype.Status getStatus(Phenotype pt) throws IOException
     {
+        if (!pt.getIssueNumber().isPresent()) {
+            throw new IllegalArgumentException("Phenotype " + pt + " has no issue number");
+        }
         /* TODO We're assuming no rejection here! Un-assume that */
         InputStream is = issueEndpoint(pt).returnContent().asStream();
         DataTypes.Issue issue = mapper.readValue(is, DataTypes.Issue.class);
@@ -119,20 +134,17 @@ class GithubAPIImpl implements GithubAPI
     }
 
     @Override
-    public boolean hasIssue(Phenotype phenotype) throws IOException
+    public Optional<String> searchForIssue(Phenotype candidate) throws IOException
     {
-        /* This would still work without the check, but it's two wasted requests for a null, so just return */
-        if (Phenotype.NULL.equals(phenotype)) {
-            return false;
+        /* Don't waste any time if it's null */
+        if (Phenotype.NULL.equals(candidate)) {
+            return Optional.<String>absent();
         }
-        String issueNumber = phenotype.getIssueNumber();
-        /* TODO THIS SHOULDN'T BE A NULL CHECK... */
-        if (issueNumber != null) {
-            if (issueEndpoint(phenotype).returnResponse().getStatusLine().getStatusCode() == 200) {
-                return true;
-            }
+        /* Short circuit. If there's a known issue number, return it */
+        if (candidate.getIssueNumber().isPresent()) {
+            return candidate.getIssueNumber();
         }
-        String q = buildSearch(phenotype);
+        String q = buildSearch(candidate);
         URIBuilder builder = new URIBuilder(getURI("/search/issues"));
         builder.addParameter("q", q);
         InputStream is;
@@ -145,11 +157,11 @@ class GithubAPIImpl implements GithubAPI
                 new TypeReference<DataTypes.SearchResults<DataTypes.Issue>> () { });
         for (DataTypes.Issue issue : results) {
             /* TODO This needs to check the synonyms as well. */
-            if (issue.title.equals(issueTitle(phenotype))) {
-                return true;
+            if (issue.title.equals(issueTitle(candidate))) {
+                return Optional.of(Integer.toString(issue.number));
             }
         }
-        return false;
+        return Optional.<String>absent();
     }
 
     @Override
@@ -166,7 +178,7 @@ class GithubAPIImpl implements GithubAPI
      */
     private Response issueEndpoint(Phenotype phenotype) throws IOException
     {
-        String method = getRepoMethod("/issues/" + phenotype.getIssueNumber());
+        String method = getRepoMethod("/issues/" + phenotype.getIssueNumber().get());
         return execute(Request.Get(getURI(method)));
     }
 

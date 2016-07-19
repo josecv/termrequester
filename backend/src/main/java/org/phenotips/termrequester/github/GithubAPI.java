@@ -20,6 +20,8 @@ package org.phenotips.termrequester.github;
 import org.phenotips.termrequester.Phenotype;
 import java.io.IOException;
 
+import com.google.common.base.Optional;
+
 
 /**
  * Connects to github to get the status of a given phenotype, etc.
@@ -48,12 +50,21 @@ public interface GithubAPI
     public void openIssue(Phenotype phenotype) throws IOException;
 
     /**
-     * Return whether the phenotype given has an issue.
-     * @param phenotype the phenotype to check
-     * @return whether it has an issue
+     * Patch the issue for the given phenotype.
+     * @param phenotype the phenotype to patch the issue for.
      * @throws IOException on network failure
      */
-    public boolean hasIssue(Phenotype phenotype) throws IOException;
+    public void patchIssue(Phenotype phenotype) throws IOException;
+
+    /**
+     * Search the github repository for an issue equivalent to this phenotype's, and return
+     * its issue number.
+     * A new issue should *only* be submitted if this method returns absent.
+     * @param phenotype the phenotype we're looking for.
+     * @return the issue number for an equivalent issue, if it exists
+     * @throws IOException on network failure
+     */
+    public Optional<String> searchForIssue(Phenotype phenotype) throws IOException;
 
     /**
      * Get the repository that this instance connects to.

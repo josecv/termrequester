@@ -76,6 +76,13 @@ public interface DatabaseService
     Phenotype getPhenotype(Phenotype phenotype);
 
     /**
+     * Get a phenotype by issue number.
+     * @param number the issue number
+     * @return the phenotype, or null if there's nothing there.
+     */
+    Phenotype getPhenotypeByIssueNumber(String number);
+
+    /**
      * Search the database for the text given.
      * @param text the text to search for.
      * @return the list of results.

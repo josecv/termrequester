@@ -18,6 +18,7 @@
 package org.phenotips.termrequester;
 
 import java.util.List;
+import java.util.Collection;
 
 import org.phenotips.termrequester.github.GithubAPI;
 
@@ -46,7 +47,7 @@ public interface PhenotypeManager
      * @return the newly created request.
      * @throws TermRequesterBackendException if something goes wrong in the backend.
      */
-    Phenotype createRequest(String name, List<String> synonyms, Optional<String> parentId,
+    Phenotype createRequest(String name, Collection<String> synonyms, Optional<String> parentId,
                             Optional<String> description) throws TermRequesterBackendException;
 
     /**
