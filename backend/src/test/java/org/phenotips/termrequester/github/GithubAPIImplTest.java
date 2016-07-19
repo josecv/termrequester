@@ -68,8 +68,10 @@ public class GithubAPIImplTest
 
     /**
      * The OAuth Token we're using for auth.
+     * TODO How can we fill this in when testing?
+     * github revokes it when it makes its way into a commit (for obvious security reasons)
      */
-    private static final String TEST_TOKEN = "d7768d2daa184cac2b1ea1d99978a330e8deccaa";
+    private static final String TEST_TOKEN = "";
 
     /**
      * The guice injector to use.
