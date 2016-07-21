@@ -17,12 +17,13 @@
  */
 package org.phenotips.termrequester.db;
 
-import java.util.concurrent.Future;
-
-import org.phenotips.termrequester.Phenotype;
+import java.io.IOException;
 
 import java.nio.file.Path;
+
 import java.util.List;
+
+import org.phenotips.termrequester.Phenotype;
 
 import com.google.common.base.Optional;
 
@@ -37,29 +38,32 @@ public interface DatabaseService
 
     /**
      * Initialize this service.
+     * @throws IOException if initialization fails
      */
-    void init(Path path);
+    void init(Path path) throws IOException;
 
     /**
      * Shut the service down.
+     * @throws IOException if shutdown fails
      */
-    void shutdown();
+    void shutdown() throws IOException;
 
     /**
      * Save the phenotype given, whether by creating a new one or updating an existing
      * record.
      *
      * @param phenotype the phenotype
-     * @return a future containing the saved phenotype.
+     * @return the saved phenotype
+     * @throws IOException on io failure
      */
-    Future<Phenotype> savePhenotype(Phenotype phenotype);
+    Phenotype savePhenotype(Phenotype phenotype) throws IOException;
 
     /**
      * Delete a phenotype from the db.
      * @param phenotype the phenotype to delete
      * @return whether it worked
      */
-    Future<Boolean> deletePhenotype(Phenotype phenotype);
+    boolean deletePhenotype(Phenotype phenotype);
 
     /**
      * Get a phenotype matching the id given.

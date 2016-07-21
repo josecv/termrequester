@@ -136,10 +136,7 @@ public class PhenotypeManagerTest
     @Test
     public void testCreation() throws InterruptedException, ExecutionException, IOException, TermRequesterBackendException
     {
-        @SuppressWarnings("unchecked")
-        Future<Phenotype> f = mock(Future.class);
-        when(f.get()).thenReturn(pt);
-        when(databaseService.savePhenotype(refEq(pt))).thenReturn(f);
+        when(databaseService.savePhenotype(refEq(pt))).thenReturn(pt);
         when(githubApi.searchForIssue(refEq(pt))).thenReturn(Optional.<String>absent());
         doNothing().when(githubApi).openIssue(refEq(pt));
         Phenotype pt2 = client.createRequest(PT_NAME, new ArrayList<String>(), Optional.<String>absent(),

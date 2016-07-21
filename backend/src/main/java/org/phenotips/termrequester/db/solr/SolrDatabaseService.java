@@ -17,22 +17,39 @@
  */
 package org.phenotips.termrequester.db.solr;
 
+import java.io.File;
+import java.io.IOException;
+
+import java.net.URISyntaxException;
+
 import java.nio.file.Path;
 
-import java.util.concurrent.Future;
+import java.util.Date;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.embedded.EmbeddedSolrServer;
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.client.solrj.util.ClientUtils;
+import org.apache.solr.common.SolrDocument;
+import org.apache.solr.common.SolrInputDocument;
 import org.apache.solr.core.CoreContainer;
 
 import org.phenotips.termrequester.Phenotype;
 import org.phenotips.termrequester.db.DatabaseService;
-import com.google.inject.Singleton;
-import com.google.common.base.Optional;
 
-import java.util.concurrent.Executors;
-import java.util.concurrent.ExecutorService;
+import com.google.common.base.Optional;
+import com.google.inject.Singleton;
 
 /**
  * Manages a solr instance as a database.
@@ -42,15 +59,41 @@ import java.util.concurrent.ExecutorService;
 @Singleton
 public class SolrDatabaseService implements DatabaseService
 {
-    /* Lots of this came from org.phenotips.variantstore.db.solr.SolrController
-     * TODO Consider whether it's possible to pull both into the same hierarchy */
+    /* Lots of this came from org.phenotips.variantstore.db.solr.SolrController */
+
+    /**
+     * A pattern to parse our IDs.
+     */
+    private static final Pattern ID_PATTERN = Pattern.compile("NONHPO_(\\d{6})");
+
+    /**
+     * The very fist id to use.
+     */
+    private static final String INITIAL_ID = "NONHPO_000001";
+
+    /**
+     * A query string to match all docuemnts.
+     */
+    private static final String WILDCARD_QSTRING = "*:*";
+
+    /**
+     * The name of the solr core.
+     */
+    public static final String CORE_NAME = "termrequester";
+
     /**
      * The path where the database is.
      */
     private Path path;
 
+    /**
+     * The solr core container.
+     */
     private CoreContainer cores;
 
+    /**
+     * The solr client.
+     */
     private SolrClient server;
 
     /**
@@ -63,10 +106,13 @@ public class SolrDatabaseService implements DatabaseService
      */
     private boolean down = false;
 
-    private ExecutorService executor;
+    /**
+     * The solr mapper to use to turn phenotypes to documents and vice-versa.
+     */
+    private SolrMapper mapper;
 
     @Override
-    public void init(Path path)
+    public void init(Path path) throws IOException
     {
         if (down) {
             throw new RuntimeException("Trying to initialize shutdown component");
@@ -74,30 +120,56 @@ public class SolrDatabaseService implements DatabaseService
         /* Make sure initialization is idempotent */
         if (!up) {
             up = true;
-            this.path = path;
-            cores = new CoreContainer(path.toString());
+            File resources;
+            try {
+                resources = new File(this.getClass().getResource("/solr").toURI());
+            } catch (URISyntaxException e) {
+                throw new RuntimeException(e);
+            }
+            FileUtils.copyDirectoryToDirectory(resources, new File(path.toUri()));
+            this.path = path.resolve("solr");
+            cores = new CoreContainer(this.path.toString());
             cores.load();
-            server = new EmbeddedSolrServer(cores, "termrequester");
-            executor = Executors.newFixedThreadPool(1);
+            server = new EmbeddedSolrServer(cores, CORE_NAME);
+            mapper = new SolrMapper();
         }
     }
 
     @Override
-    public void shutdown()
+    public void shutdown() throws IOException
     {
-        down = true;
-        cores.shutdown();
-        executor.shutdown();
+        if (!down) {
+            try {
+                server.commit();
+            } catch(SolrServerException e) {
+                throw new IOException(e);
+            }
+            down = true;
+            cores.shutdown();
+        }
     }
 
     @Override
-    public Future<Phenotype> savePhenotype(Phenotype pt)
+    public Phenotype savePhenotype(Phenotype pt) throws IOException
     {
-        throw new UnsupportedOperationException();
+        if (pt.getId().isPresent()) {
+            throw new UnsupportedOperationException("later");
+        }
+        String nextId = getNextId();
+        pt.setId(nextId);
+        SolrInputDocument doc = mapper.toDoc(pt);
+        pt.setTimeCreated((Date) doc.getFieldValue(Schema.TIME_CREATED));
+        pt.setTimeModified((Date) doc.getFieldValue(Schema.TIME_MODIFIED));
+        try {
+            server.add(doc);
+        } catch (SolrServerException e) {
+            throw new IOException(e);
+        }
+        return pt;
     }
 
     @Override
-    public Future<Boolean> deletePhenotype(Phenotype pt)
+    public boolean deletePhenotype(Phenotype pt)
     {
         throw new UnsupportedOperationException();
     }
@@ -124,5 +196,35 @@ public class SolrDatabaseService implements DatabaseService
     public List<Phenotype> searchPhenotypes(String text)
     {
         throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Get the next available id.
+     */
+    private String getNextId() throws IOException
+    {
+        SolrQuery q = new SolrQuery().
+            setQuery(WILDCARD_QSTRING).
+            setRows(1).
+            setSort(Schema.TIME_CREATED, SolrQuery.ORDER.desc);
+        QueryResponse resp;
+        try {
+            resp = server.query(q);
+        } catch (SolrServerException e) {
+            throw new IOException(e);
+        }
+        List<SolrDocument> results = resp.getResults();
+        if (results.size() == 0) {
+            return INITIAL_ID;
+        }
+        String latestId = (String) results.get(0).getFieldValue(Schema.ID);
+        Matcher m = ID_PATTERN.matcher(latestId);
+        if (!m.matches()) {
+            throw new IllegalStateException("id " + latestId + " does not look like it should");
+        }
+        int number = Integer.parseInt(m.group(1));
+        number++;
+        String newId = String.format("NONHPO_%06d", number);
+        return newId;
     }
 }
