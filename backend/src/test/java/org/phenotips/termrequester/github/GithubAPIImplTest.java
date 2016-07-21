@@ -111,7 +111,7 @@ public class GithubAPIImplTest
     {
         injector = Guice.createInjector(new HPORequestModule());
         mapper = injector.getInstance(ObjectMapper.class);
-        factory = injector.getInstance(GithubAPIFactory.class);
+        factory = injector.getInstance(GithubAPIFactoryImpl.class);
     }
 
     /**
