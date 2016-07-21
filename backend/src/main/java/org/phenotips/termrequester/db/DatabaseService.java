@@ -49,6 +49,11 @@ public interface DatabaseService
     void shutdown() throws IOException;
 
     /**
+     * Write any changes made since the last commit. Will block while doing so.
+     */
+    void commit() throws IOException;
+
+    /**
      * Save the phenotype given, whether by creating a new one or updating an existing
      * record.
      *

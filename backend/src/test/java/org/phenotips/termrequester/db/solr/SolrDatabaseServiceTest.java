@@ -46,6 +46,7 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -112,7 +113,7 @@ public class SolrDatabaseServiceTest
     }
 
     @After
-    public void tearDown() throws IOException
+    public void tearDown() throws IOException, InterruptedException
     {
         client.shutdown();
     }
@@ -132,7 +133,7 @@ public class SolrDatabaseServiceTest
         assertEquals(result.getTimeCreated(), result.getTimeModified());
         client.shutdown();
         startUpSolr();
-        SolrQuery q = new SolrQuery().setQuery("*:*");
+        SolrQuery q = new SolrQuery().setQuery(SolrDatabaseService.WILDCARD_QSTRING);
         QueryResponse resp = solr.query(q);
         List<SolrDocument> results = resp.getResults();
         assertEquals(1, results.size());
@@ -140,6 +141,40 @@ public class SolrDatabaseServiceTest
         assertEquals(result.getId().get(), doc.getFieldValue(Schema.ID));
         assertEquals(result.getName(), doc.getFieldValue(Schema.NAME));
         assertEquals(result.getDescription(), doc.getFieldValue(Schema.DEFINITION));
+    }
+
+    /**
+     * Test that we can create more than one new document.
+     */
+    @Test
+    public void testMultiCreate() throws IOException, SolrServerException
+    {
+        Phenotype pt1 = new Phenotype(PT_NAME, PT_DESC);
+        Phenotype pt2 = new Phenotype(PT_NAME + PT_NAME, PT_DESC);
+        Phenotype pt3 = new Phenotype(PT_NAME + PT_NAME + PT_NAME, PT_DESC);
+        assertTrue(pt1 == client.savePhenotype(pt1));
+        assertTrue(pt2 == client.savePhenotype(pt2));
+        assertTrue(pt3 == client.savePhenotype(pt3));
+        assertTrue(pt1.getId().isPresent());
+        assertTrue(pt2.getId().isPresent());
+        assertTrue(pt3.getId().isPresent());
+        assertNotEquals(pt1.getId().get(), pt2.getId().get());
+        assertNotEquals(pt1.getId().get(), pt3.getId().get());
+        assertNotEquals(pt2.getId().get(), pt3.getId().get());
+        client.shutdown();
+        startUpSolr();
+        SolrQuery q = new SolrQuery().
+            setQuery(SolrDatabaseService.WILDCARD_QSTRING).
+            setSort(Schema.TIME_CREATED, SolrQuery.ORDER.asc);
+        QueryResponse resp = solr.query(q);
+        List<SolrDocument> results = resp.getResults();
+        assertEquals(3, results.size());
+        SolrDocument doc1 = results.get(0);
+        SolrDocument doc2 = results.get(1);
+        SolrDocument doc3 = results.get(2);
+        assertEquals(pt1.getId().get(), doc1.getFieldValue(Schema.ID));
+        assertEquals(pt2.getId().get(), doc2.getFieldValue(Schema.ID));
+        assertEquals(pt3.getId().get(), doc3.getFieldValue(Schema.ID));
     }
 
     /**

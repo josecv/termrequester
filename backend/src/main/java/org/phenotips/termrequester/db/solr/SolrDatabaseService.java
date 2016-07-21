@@ -74,7 +74,7 @@ public class SolrDatabaseService implements DatabaseService
     /**
      * A query string to match all docuemnts.
      */
-    private static final String WILDCARD_QSTRING = "*:*";
+    public static final String WILDCARD_QSTRING = "*:*";
 
     /**
      * The name of the solr core.
@@ -102,11 +102,6 @@ public class SolrDatabaseService implements DatabaseService
     private boolean up = false;
 
     /**
-     * Whether we've been shutdown.
-     */
-    private boolean down = false;
-
-    /**
      * The solr mapper to use to turn phenotypes to documents and vice-versa.
      */
     private SolrMapper mapper;
@@ -114,9 +109,6 @@ public class SolrDatabaseService implements DatabaseService
     @Override
     public void init(Path path) throws IOException
     {
-        if (down) {
-            throw new RuntimeException("Trying to initialize shutdown component");
-        }
         /* Make sure initialization is idempotent */
         if (!up) {
             up = true;
@@ -138,14 +130,24 @@ public class SolrDatabaseService implements DatabaseService
     @Override
     public void shutdown() throws IOException
     {
-        if (!down) {
+        if (up) {
             try {
                 server.commit();
             } catch(SolrServerException e) {
                 throw new IOException(e);
             }
-            down = true;
             cores.shutdown();
+            up = false;
+        }
+    }
+
+    @Override
+    public void commit() throws IOException
+    {
+        try {
+            server.commit();
+        } catch (SolrServerException e) {
+            throw new IOException(e);
         }
     }
 
