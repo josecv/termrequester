@@ -20,6 +20,7 @@ package org.phenotips.termrequester;
 import java.io.Serializable;
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -29,6 +30,8 @@ import com.google.common.base.Optional;
  * Represents a given phenotype request.
  * Uses a null-object pattern, so instead of using the value "null", use Phenotype.NULL to denote
  * absence.
+ * Once stored in the database, will have an id (accessible via getId()). If accepted into the HPO,
+ * an hpo id will be set (accessible via getHpoId())
  *
  * @version $Id$
  */
@@ -43,12 +46,27 @@ public class Phenotype implements Serializable
      * A null phenotype.
      * To be used in the absence of data, instead of just using null.
      */
-    public static final Phenotype NULL = new NullPhenotype();
+    public static final Phenotype NULL = NullPhenotype.INSTANCE;
 
     /**
      * The internal id of this phenotype.
      */
-    private String id = "NONHPO_NULLID";
+    private String id = null;
+
+    /**
+     * The hpo id of this phenotype.
+     */
+    private String hpoId = null;
+
+    /**
+     * The time when this was created.
+     */
+    private Date timeCreated = null;
+
+    /**
+     * The time when this was modified.
+     */
+    private Date timeModified = null;
 
     /**
      * The github issue number.
@@ -141,9 +159,9 @@ public class Phenotype implements Serializable
      *
      * @return id as String.
      */
-    public String getId()
+    public Optional<String> getId()
     {
-        return id;
+        return Optional.fromNullable(id);
     }
     
     /**
@@ -154,6 +172,26 @@ public class Phenotype implements Serializable
     public void setId(String id)
     {
         this.id = id;
+    }
+
+    /**
+     * Get the hpoId.
+     *
+     * @return the hpo id.
+     */
+    public Optional<String> getHpoId()
+    {
+        return Optional.fromNullable(hpoId);
+    }
+
+    /**
+     * Set the hpoId.
+     *
+     * @param hpoId the value to set.
+     */
+    public void setHpoId(String hpoId)
+    {
+        this.hpoId = hpoId;
     }
     
     /**
@@ -169,7 +207,7 @@ public class Phenotype implements Serializable
             return Optional.of(issueNumber);
         }
     }
-    
+
     /**
      * Set issueNumber.
      *
@@ -261,6 +299,46 @@ public class Phenotype implements Serializable
     }
 
     /**
+     * Get timeCreated.
+     *
+     * @return timeCreated as Date.
+     */
+    public Optional<Date> getTimeCreated()
+    {
+        return Optional.fromNullable(timeCreated);
+    }
+
+    /**
+     * Set timeCreated.
+     *
+     * @param timeCreated the value to set.
+     */
+    public void setTimeCreated(Date timeCreated)
+    {
+        this.timeCreated = timeCreated;
+    }
+
+    /**
+     * Get timeModified.
+     *
+     * @return timeModified as Date.
+     */
+    public Optional<Date> getTimeModified()
+    {
+        return Optional.fromNullable(timeModified);
+    }
+
+    /**
+     * Set timeModified.
+     *
+     * @param timeModified the value to set.
+     */
+    public void setTimeModified(Date timeModified)
+    {
+        this.timeModified = timeModified;
+    }
+
+    /**
      * Get a long form description of this phenotype, suitable for an issue tracker.
      * @return a description.
      */
@@ -337,104 +415,5 @@ public class Phenotype implements Serializable
         SUBMITTED,
         REJECTED,
         ACCEPTED
-    }
-
-    /**
-     * A null phenotype object that does nothing and returns sensible defaults.
-     *
-     * @version $Id : $
-     */
-    private static final class NullPhenotype extends Phenotype
-    {
-        private static final long serialVersionUID = 1450L;
-
-        /**
-         * CTOR.
-         */
-        public NullPhenotype()
-        {
-            super("NULL", "NULL");
-        }
-
-        @Override
-        public String getName()
-        {
-            return "NULL";
-        }
-
-        @Override
-        public String getDescription()
-        {
-            return "NULL";
-        }
-
-        @Override
-        public Optional<String> getIssueNumber()
-        {
-            return Optional.<String>absent();
-        }
-
-        @Override
-        public String getId()
-        {
-            return "NULL";
-        }
-
-        @Override
-        public String asParent()
-        {
-            /* TODO IS THIS REASONABLE */
-            return "NO PARENT";
-        }
-
-        @Override
-        public String toString()
-        {
-            return "NULL PHENOTYPE";
-        }
-
-        @Override
-        public boolean equals(Object o)
-        {
-            /* This class is finals and there should only ever be one instance,
-             * so this is probably okay */
-            return this == o;
-        }
-
-        @Override
-        public int hashCode()
-        {
-            return "NULL PHENOTYPE".hashCode();
-        }
-
-        @Override
-        public Set<String> getSynonyms()
-        {
-            return new HashSet<>();
-        }
-
-        @Override
-        public String issueDescribe()
-        {
-            return "NULL PHENOTYPE. YOU SHOULD NOT BE SEEING THIS IN YOUR ISSUE TRACKER. PLEASE REPORT BUG TO PHENOTIPS";
-        }
-
-        @Override
-        public Status getStatus()
-        {
-            return Status.REJECTED;
-        }
-
-        @Override
-        public Phenotype getParent()
-        {
-            return this;
-        }
-
-        @Override
-        public boolean submittable()
-        {
-            return false;
-        }
     }
 }
