@@ -116,7 +116,7 @@ public class PhenotypeManagerTest
      * Set up the test case.
      */
     @Before
-    public void setUp()
+    public void setUp() throws IOException
     {
         databaseService = mock(DatabaseService.class);
         githubApi = mock(GithubAPI.class);

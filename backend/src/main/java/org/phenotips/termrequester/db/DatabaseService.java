@@ -75,7 +75,7 @@ public interface DatabaseService
      * @param id
      * @return the phenotype - might be the null phenotype if nothing matches
      */
-    Phenotype getPhenotypeById(String id);
+    Phenotype getPhenotypeById(String id) throws IOException;
 
     /**
      * Get a phenotype that's equivalent to the one given (this may include ids, names or synonyms).

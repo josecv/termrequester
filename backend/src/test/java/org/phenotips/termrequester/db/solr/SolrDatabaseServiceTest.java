@@ -206,6 +206,17 @@ public class SolrDatabaseServiceTest
         assertEquals(newName, doc.getFieldValue(Schema.NAME));
 
     }
+    
+    @Test
+    public void testGetById() throws IOException
+    {
+        Phenotype pt = new Phenotype(PT_NAME, PT_DESC);
+        client.savePhenotype(pt);
+        Phenotype result = client.getPhenotypeById(pt.getId().get());
+        assertEquals(pt.getId().get(), result.getId().get());
+        assertEquals(pt.getName(), result.getName());
+        assertEquals(pt.getDescription(), result.getDescription());
+    }
 
     /**
      * Start up our own solr client. This is separate from usual start up to

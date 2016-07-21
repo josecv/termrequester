@@ -183,9 +183,21 @@ public class SolrDatabaseService implements DatabaseService
     }
 
     @Override
-    public Phenotype getPhenotypeById(String id)
+    public Phenotype getPhenotypeById(String id) throws IOException
     {
-        throw new UnsupportedOperationException();
+        try {
+            SolrDocument doc = server.getById(id);
+            if (doc == null) {
+                return Phenotype.NULL;
+            }
+            Phenotype pt = mapper.fromDoc(doc);
+            String parentId = (String) doc.getFieldValue(Schema.PARENT);
+            SolrDocument parentDoc = server.getById(parentId);
+            pt.setParent(parentDoc == null ? Phenotype.NULL : mapper.fromDoc(parentDoc));
+            return pt;
+        } catch (SolrServerException e) {
+            throw new IOException(e);
+        }
     }
 
     @Override

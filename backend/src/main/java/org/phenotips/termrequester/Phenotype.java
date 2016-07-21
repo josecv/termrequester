@@ -33,6 +33,8 @@ import com.google.common.base.Optional;
  * Once stored in the database, will have an id (accessible via getId()). If accepted into the HPO,
  * an hpo id will be set (accessible via getHpoId())
  *
+ * TODO NEED TO SUPPORT MULTIPLE PARENTS
+ *
  * @version $Id$
  */
 public class Phenotype implements Serializable

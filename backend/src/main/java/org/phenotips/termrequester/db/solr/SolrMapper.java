@@ -17,15 +17,18 @@
  */
 package org.phenotips.termrequester.db.solr;
 
+import java.util.Collection;
 import java.util.Date;
 import java.util.Set;
 
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrInputDocument;
 
+import org.phenotips.termrequester.HPOPhenotype;
 import org.phenotips.termrequester.Phenotype;
 
 import com.google.common.base.Joiner;
+
 import static com.google.common.base.Preconditions.checkArgument;
 
 /**
@@ -63,5 +66,37 @@ class SolrMapper
         }
         doc.setField(Schema.TIME_MODIFIED, now);
         return doc;
+    }
+
+    /**
+     * Turn the document given into a Phenotype instance.
+     * Note that the parent will not be populated.
+     * @param doc the document
+     * @return the instance
+     */
+    public Phenotype fromDoc(SolrDocument doc)
+    {
+        String name = (String) doc.getFieldValue(Schema.NAME);
+        String description = (String) doc.getFieldValue(Schema.DEFINITION);
+        Phenotype.Status status = Phenotype.Status.valueOf((String) doc.getFieldValue(Schema.STATUS));
+        Phenotype pt;
+        if (status == Phenotype.Status.ACCEPTED) {
+            pt = new HPOPhenotype(name, description);
+            pt.setHpoId((String) doc.getFieldValue(Schema.HPO_ID));
+        } else {
+            pt = new Phenotype(name, description);
+        }
+        pt.setStatus(status);
+        pt.setId((String) doc.getFieldValue(Schema.ID));
+        Collection<Object> synonyms = doc.getFieldValues(Schema.SYNONYM);
+        if (synonyms != null) {
+            for (Object synonym : synonyms) {
+                pt.addSynonym((String) synonym);
+            }
+        }
+        pt.setIssueNumber((String) doc.getFieldValue(Schema.ISSUE_NUMBER));
+        pt.setTimeCreated((Date) doc.getFieldValue(Schema.TIME_CREATED));
+        pt.setTimeModified((Date) doc.getFieldValue(Schema.TIME_MODIFIED));
+        return pt;
     }
 }
