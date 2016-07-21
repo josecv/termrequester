@@ -136,7 +136,6 @@ public class SolrDatabaseServiceTest
         assertTrue(result.getTimeCreated().isPresent());
         assertTrue(result.getTimeModified().isPresent());
         assertEquals(result.getTimeCreated(), result.getTimeModified());
-        client.shutdown();
         startUpSolr();
         SolrQuery q = new SolrQuery().setQuery(SolrDatabaseService.WILDCARD_QSTRING);
         QueryResponse resp = solr.query(q);
@@ -166,7 +165,6 @@ public class SolrDatabaseServiceTest
         assertNotEquals(pt1.getId().get(), pt2.getId().get());
         assertNotEquals(pt1.getId().get(), pt3.getId().get());
         assertNotEquals(pt2.getId().get(), pt3.getId().get());
-        client.shutdown();
         startUpSolr();
         SolrQuery q = new SolrQuery().
             setQuery(SolrDatabaseService.WILDCARD_QSTRING).
@@ -199,7 +197,6 @@ public class SolrDatabaseServiceTest
         assertEquals(id, pt.getId().get());
         assertEquals(timeCreated, pt.getTimeCreated().get());
         assertNotEquals(timeModified, pt.getTimeModified().get());
-        client.shutdown();
         startUpSolr();
         SolrQuery q = new SolrQuery().setQuery(SolrDatabaseService.WILDCARD_QSTRING);
         List<SolrDocument> results = solr.query(q).getResults();
@@ -213,11 +210,11 @@ public class SolrDatabaseServiceTest
     /**
      * Start up our own solr client. This is separate from usual start up to
      * make sure that our solr client doesn't mess with the instance being tested.
-     * In other words, should be called _after_ the instance has been shutdown() (to
-     * check it did what it was supposed to).
+     * Will therefore shutdown the instance for the remainder of the test.
      */
     private void startUpSolr() throws IOException
     {
+        client.shutdown();
         if (cores == null) {
             cores = new CoreContainer(folder.getRoot().toPath().resolve("solr").toString());
             cores.load();
