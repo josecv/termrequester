@@ -19,6 +19,7 @@ package org.phenotips.termrequester.db.solr;
 
 import java.io.IOException;
 
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -80,7 +81,7 @@ public class SolrDatabaseServiceTest
     /**
      * The solr core container we're gonna be using.
      */
-    private CoreContainer cores;
+    private CoreContainer cores = null;
 
     /**
      * The solr client we'll use to verify the databaseservice did its job.
@@ -116,6 +117,10 @@ public class SolrDatabaseServiceTest
     public void tearDown() throws IOException, InterruptedException
     {
         client.shutdown();
+        if (cores != null) {
+            cores.shutdown();
+            cores = null;
+        }
     }
 
     /**
@@ -178,6 +183,34 @@ public class SolrDatabaseServiceTest
     }
 
     /**
+     * Test that we can save and overwrite an existing document.
+     */
+    @Test
+    public void testSaveExisting() throws IOException, SolrServerException
+    {
+        Phenotype pt = new Phenotype(PT_NAME, PT_DESC);
+        assertTrue(pt == client.savePhenotype(pt));
+        String id = pt.getId().get();
+        Date timeCreated = pt.getTimeCreated().get();
+        Date timeModified = pt.getTimeModified().get();
+        String newName = "Name2";
+        pt.setName(newName);
+        assertTrue(pt == client.savePhenotype(pt));
+        assertEquals(id, pt.getId().get());
+        assertEquals(timeCreated, pt.getTimeCreated().get());
+        assertNotEquals(timeModified, pt.getTimeModified().get());
+        client.shutdown();
+        startUpSolr();
+        SolrQuery q = new SolrQuery().setQuery(SolrDatabaseService.WILDCARD_QSTRING);
+        List<SolrDocument> results = solr.query(q).getResults();
+        assertEquals(1, results.size());
+        SolrDocument doc = results.get(0);
+        assertEquals(pt.getId().get(), doc.getFieldValue(Schema.ID));
+        assertEquals(newName, doc.getFieldValue(Schema.NAME));
+
+    }
+
+    /**
      * Start up our own solr client. This is separate from usual start up to
      * make sure that our solr client doesn't mess with the instance being tested.
      * In other words, should be called _after_ the instance has been shutdown() (to
@@ -185,8 +218,10 @@ public class SolrDatabaseServiceTest
      */
     private void startUpSolr() throws IOException
     {
-        cores = new CoreContainer(folder.getRoot().toPath().resolve("solr").toString());
-        cores.load();
-        solr = new EmbeddedSolrServer(cores, SolrDatabaseService.CORE_NAME);
+        if (cores == null) {
+            cores = new CoreContainer(folder.getRoot().toPath().resolve("solr").toString());
+            cores.load();
+            solr = new EmbeddedSolrServer(cores, SolrDatabaseService.CORE_NAME);
+        }
     }
 }

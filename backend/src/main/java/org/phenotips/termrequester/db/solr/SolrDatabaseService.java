@@ -51,6 +51,8 @@ import org.phenotips.termrequester.db.DatabaseService;
 import com.google.common.base.Optional;
 import com.google.inject.Singleton;
 
+import static com.google.common.base.Preconditions.checkState;
+
 /**
  * Manages a solr instance as a database.
  *
@@ -131,11 +133,7 @@ public class SolrDatabaseService implements DatabaseService
     public void shutdown() throws IOException
     {
         if (up) {
-            try {
-                server.commit();
-            } catch(SolrServerException e) {
-                throw new IOException(e);
-            }
+            commit();
             cores.shutdown();
             up = false;
         }
@@ -155,10 +153,17 @@ public class SolrDatabaseService implements DatabaseService
     public Phenotype savePhenotype(Phenotype pt) throws IOException
     {
         if (pt.getId().isPresent()) {
-            throw new UnsupportedOperationException("later");
+            try {
+                String id = pt.getId().get();
+                checkState(server.getById(id) != null, "ID " + id + " does not exist on server when expected to");
+                server.deleteById(pt.getId().get());
+            } catch(SolrServerException e) {
+                throw new IOException(e);
+            }
+        } else {
+            String nextId = getNextId();
+            pt.setId(nextId);
         }
-        String nextId = getNextId();
-        pt.setId(nextId);
         SolrInputDocument doc = mapper.toDoc(pt);
         pt.setTimeCreated((Date) doc.getFieldValue(Schema.TIME_CREATED));
         pt.setTimeModified((Date) doc.getFieldValue(Schema.TIME_MODIFIED));
@@ -167,6 +172,7 @@ public class SolrDatabaseService implements DatabaseService
         } catch (SolrServerException e) {
             throw new IOException(e);
         }
+        commit();
         return pt;
     }
 
