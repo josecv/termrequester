@@ -81,4 +81,14 @@ final class Schema
      * The time that this document was last changed.
      */
     public static final String TIME_MODIFIED = "time_modified";
+
+    /**
+     * The field for exact matches on the name.
+     */
+    public static final String NAME_EXACT = "nameExact";
+
+    /**
+     * The field for exact matches on the synonym.
+     */
+    public static final String SYNONYM_EXACT = "synonymExact";
 }

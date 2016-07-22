@@ -24,8 +24,10 @@ import java.net.URISyntaxException;
 
 import java.nio.file.Path;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -48,9 +50,11 @@ import org.apache.solr.core.CoreContainer;
 import org.phenotips.termrequester.Phenotype;
 import org.phenotips.termrequester.db.DatabaseService;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.inject.Singleton;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 
 /**
@@ -72,6 +76,11 @@ public class SolrDatabaseService implements DatabaseService
      * The very fist id to use.
      */
     private static final String INITIAL_ID = "NONHPO_000001";
+
+    /**
+     * A joiner to join different parts of a Solr query with an OR.
+     */
+    private static final Joiner OR_QUERY_JOINER = Joiner.on(' ').skipNulls();
 
     /**
      * A query string to match all docuemnts.
@@ -102,6 +111,11 @@ public class SolrDatabaseService implements DatabaseService
      * Whether we've been initialized.
      */
     private boolean up = false;
+
+    /**
+     * Whether we should commit at the end of every write.
+     */
+    private boolean autocommit = false;
 
     /**
      * The solr mapper to use to turn phenotypes to documents and vice-versa.
@@ -155,8 +169,11 @@ public class SolrDatabaseService implements DatabaseService
         if (pt.getId().isPresent()) {
             try {
                 String id = pt.getId().get();
-                checkState(server.getById(id) != null, "ID " + id + " does not exist on server when expected to");
+                checkState(server.getById(id) != null, "ID %s does not exist when expected to", id);
                 server.deleteById(pt.getId().get());
+                /* We don't wanna trigger anything (two versions of the same document co-existing) a
+                 * little later when saving, so just commit now */
+                commit();
             } catch(SolrServerException e) {
                 throw new IOException(e);
             }
@@ -172,14 +189,29 @@ public class SolrDatabaseService implements DatabaseService
         } catch (SolrServerException e) {
             throw new IOException(e);
         }
-        commit();
+        if (autocommit) {
+            commit();
+        }
         return pt;
     }
 
     @Override
-    public boolean deletePhenotype(Phenotype pt)
+    public boolean deletePhenotype(Phenotype pt) throws IOException
     {
-        throw new UnsupportedOperationException();
+        checkArgument(pt.getId().isPresent(), "Phenotype %s cannot be deleted without an id", pt);
+        try {
+            SolrDocument doc = server.getById(pt.getId().get());
+            if (doc == null) {
+                return false;
+            }
+            server.deleteById(pt.getId().get());
+            if (autocommit) {
+                commit();
+            }
+            return true;
+        } catch(SolrServerException e) {
+            throw new IOException(e);
+        }
     }
 
     @Override
@@ -201,25 +233,83 @@ public class SolrDatabaseService implements DatabaseService
     }
 
     @Override
-    public Phenotype getPhenotypeByIssueNumber(String issueNumber)
+    public Phenotype getPhenotypeByIssueNumber(String issueNumber) throws IOException
+    {
+        try {
+            String queryString = String.format("%s:%s", Schema.ISSUE_NUMBER, issueNumber);
+            SolrQuery q = new SolrQuery().
+                setQuery(queryString);
+            QueryResponse resp = server.query(q);
+            List<SolrDocument> results = resp.getResults();
+            checkState(results.size() <= 1, "Multiple documents with issue number %s", issueNumber);
+            if (results.size() == 0) {
+                return Phenotype.NULL;
+            }
+            return mapper.fromDoc(results.get(0));
+        } catch (SolrServerException e) {
+            throw new IOException(e);
+        }
+    }
+
+    @Override
+    public Phenotype getPhenotype(Phenotype other) throws IOException
+    {
+        Set<String> names = other.getSynonyms();
+        names.add(other.getName());
+        List<String> queryPieces = new ArrayList<>(names.size() * 2 + 2);
+        /* To test for field equality */
+        String fieldIs = "%s:\"%s\"";
+        if (other.getId().isPresent()) {
+            queryPieces.add(String.format(fieldIs, Schema.ID,
+                        ClientUtils.escapeQueryChars(other.getId().get())));
+        }
+        if (other.getIssueNumber().isPresent()) {
+            queryPieces.add(String.format(fieldIs, Schema.ISSUE_NUMBER,
+                        ClientUtils.escapeQueryChars(other.getIssueNumber().get())));
+        }
+        for (String name : names) {
+            queryPieces.add(String.format(fieldIs, Schema.NAME_EXACT,
+                        ClientUtils.escapeQueryChars(name)));
+            queryPieces.add(String.format(fieldIs, Schema.SYNONYM_EXACT,
+                        ClientUtils.escapeQueryChars(name)));
+        }
+        String queryString = OR_QUERY_JOINER.join(queryPieces);
+        SolrQuery q = new SolrQuery().setQuery(queryString);
+        try {
+            QueryResponse resp = server.query(q);
+            List<SolrDocument> results = resp.getResults();
+            /* TODO: This check might not be the best idea */
+            checkState(results.size() <= 1, "Multiple documents match %s", other);
+            if (results.size() == 0) {
+                return Phenotype.NULL;
+            }
+            return mapper.fromDoc(results.get(0));
+        } catch (SolrServerException e) {
+            throw new IOException(e);
+        }
+    }
+
+    @Override
+    public List<Phenotype> searchPhenotypes(String text) throws IOException
     {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Phenotype getPhenotype(Phenotype other)
+    public boolean getAutocommit()
     {
-        throw new UnsupportedOperationException();
+        return autocommit;
     }
-
+    
     @Override
-    public List<Phenotype> searchPhenotypes(String text)
+    public void setAutocommit(boolean autocommit)
     {
-        throw new UnsupportedOperationException();
+        this.autocommit = autocommit;
     }
 
     /**
      * Get the next available id.
+     * @return the next id
      */
     private String getNextId() throws IOException
     {

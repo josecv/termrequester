@@ -29,6 +29,8 @@ import org.phenotips.termrequester.github.GithubAPIFactory;
 import com.google.common.base.Optional;
 import com.google.inject.Inject;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 
 /**
  * Implements a phenotype manager, tying together the various backend components of the term requester.
@@ -112,6 +114,8 @@ public class PhenotypeManagerImpl implements PhenotypeManager
             if (existing.submittable() && !(github.searchForIssue(existing).isPresent())) {
                 /* We're out of sync, so submit this issue to github */
                 github.openIssue(existing);
+            } else {
+                existing.setStatus(github.getStatus(existing));
             }
             return existing;
         }
@@ -148,6 +152,8 @@ public class PhenotypeManagerImpl implements PhenotypeManager
      */
     private Phenotype updatePhenotype(Phenotype pt) throws IOException
     {
+        checkArgument(pt.getId().isPresent(), "Trying to update not yet saved phenotype");
+        checkArgument(pt.getIssueNumber().isPresent(), "Trying to update not yet saved phenotype");
         db.savePhenotype(pt);
         github.patchIssue(pt);
         return pt;

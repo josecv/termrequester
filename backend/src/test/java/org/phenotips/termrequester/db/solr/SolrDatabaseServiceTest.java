@@ -47,6 +47,7 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -67,6 +68,11 @@ public class SolrDatabaseServiceTest
      * The description of the test phenotype.
      */
     private static final String PT_DESC = "Test phenotype description";
+
+    /**
+     * The issue number of the test phenotype.
+     */
+    private static final String PT_NUM = "1";
 
     /**
      * A dependency injector.
@@ -111,6 +117,7 @@ public class SolrDatabaseServiceTest
     {
         client = injector.getInstance(SolrDatabaseService.class);
         client.init(folder.getRoot().toPath());
+        client.setAutocommit(true);
     }
 
     @After
@@ -207,15 +214,118 @@ public class SolrDatabaseServiceTest
 
     }
     
+    /**
+     * Test the get by id method.
+     */
     @Test
     public void testGetById() throws IOException
     {
         Phenotype pt = new Phenotype(PT_NAME, PT_DESC);
+        pt.addSynonym("synone");
+        pt.addSynonym("syntwo");
         client.savePhenotype(pt);
         Phenotype result = client.getPhenotypeById(pt.getId().get());
         assertEquals(pt.getId().get(), result.getId().get());
         assertEquals(pt.getName(), result.getName());
         assertEquals(pt.getDescription(), result.getDescription());
+        assertEquals(pt.getTimeCreated(), result.getTimeCreated());
+        assertEquals(pt.getTimeModified(), result.getTimeModified());
+        assertEquals(pt.getSynonyms(), result.getSynonyms());
+        result = client.getPhenotypeById("imaginary");
+        assertEquals(Phenotype.NULL, result);
+    }
+
+    /**
+     * Test the deletePhenotype method.
+     */
+    @Test
+    public void testDelete() throws IOException, SolrServerException
+    {
+        Phenotype victim = new Phenotype(PT_NAME, PT_DESC);
+        Phenotype other = new Phenotype(PT_NAME + " yes yes", PT_DESC);
+        client.savePhenotype(victim);
+        client.savePhenotype(other);
+        assertTrue(client.deletePhenotype(victim));
+        assertFalse(client.deletePhenotype(victim));
+        startUpSolr();
+        SolrQuery q = new SolrQuery().setQuery(SolrDatabaseService.WILDCARD_QSTRING);
+        List<SolrDocument> results = solr.query(q).getResults();
+        assertEquals(1, results.size());
+        SolrDocument doc = results.get(0);
+        assertEquals(other.getId().get(), doc.getFieldValue(Schema.ID));
+        assertEquals(other.getName(), doc.getFieldValue(Schema.NAME));
+    }
+
+    /**
+     * Test the getPhenotypeByIssueNumber method.
+     */
+    @Test
+    public void testGetByIssueNumber() throws IOException
+    {
+        Phenotype pt1 = new Phenotype(PT_NAME, PT_DESC);
+        pt1.setIssueNumber(PT_NUM);
+        pt1.setStatus(Phenotype.Status.SUBMITTED);
+        Phenotype pt2 = new Phenotype(PT_NAME + " other", PT_DESC);
+        /* Wanna be extra sure substrings won't match */
+        pt2.setIssueNumber(PT_NUM + "0");
+        pt2.setStatus(Phenotype.Status.SUBMITTED);
+        client.savePhenotype(pt1);
+        client.savePhenotype(pt2);
+        Phenotype result = client.getPhenotypeByIssueNumber(pt1.getIssueNumber().get());
+        assertEquals(pt1.getId().get(), result.getId().get());
+        assertEquals(pt1.getName(), result.getName());
+        assertEquals(pt1.getIssueNumber().get(), result.getIssueNumber().get());
+        result = client.getPhenotypeByIssueNumber(pt2.getIssueNumber().get());
+        assertEquals(pt2.getId().get(), result.getId().get());
+        assertEquals(pt2.getName(), result.getName());
+        assertEquals(pt2.getIssueNumber().get(), result.getIssueNumber().get());
+        result = client.getPhenotypeByIssueNumber(PT_NUM + "2");
+        assertEquals(Phenotype.NULL, result);
+    }
+
+    /**
+     * Test the getPhenotype method.
+     */
+    @Test
+    public void testGetPhenotype() throws IOException
+    {
+        /* All four of these should be the same one:
+         *  pt2 has pt1 as synonym
+         *  pt1 has pt3 as synonym
+         *  pt1 and pt4 have the same name
+         *  pt1 and pt5 have the same id 
+         *  pt1 and pt6 have the same issueNumber
+         */
+        Phenotype pt1 = new Phenotype(PT_NAME, PT_DESC);
+        pt1.setStatus(Phenotype.Status.SUBMITTED);
+        pt1.setIssueNumber(PT_NUM);
+        Phenotype pt2 = new Phenotype("Mahler", PT_DESC);
+        Phenotype pt3 = new Phenotype("Stravinsky", PT_DESC);
+        Phenotype pt4 = new Phenotype(PT_NAME, PT_DESC);
+        Phenotype pt5 = new Phenotype("Schoenberg", PT_DESC);
+        Phenotype pt6 = new Phenotype("Rachmaninoff", PT_DESC);
+        pt2.addSynonym(pt1.getName());
+        pt1.addSynonym(pt3.getName());
+        client.savePhenotype(pt1);
+        pt5.setId(pt1.getId().get());
+        pt6.setIssueNumber(pt1.getIssueNumber().get());
+        pt6.setStatus(pt1.getStatus());
+        Phenotype result = client.getPhenotype(pt1);
+        assertEquals(pt1, result);
+        result = client.getPhenotype(pt2);
+        assertEquals(pt1, result);
+        result = client.getPhenotype(pt3);
+        assertEquals(pt1, result);
+        result = client.getPhenotype(pt4);
+        assertEquals(pt1, result);
+        result = client.getPhenotype(pt5);
+        assertEquals(pt1, result);
+        result = client.getPhenotype(pt6);
+        assertEquals(pt1, result);
+        /* This one isn't equal to the others */
+        Phenotype pt7 = new Phenotype("Ravel", PT_DESC);
+        result = client.getPhenotype(pt7);
+        assertEquals(Phenotype.NULL, result);
     }
 
     /**

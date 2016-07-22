@@ -370,6 +370,13 @@ public class Phenotype implements Serializable
             return false;
         }
         Phenotype other = (Phenotype) o;
+        if (other.id == this.id) {
+            return true;
+        }
+        /* If it's null, we aren't (or they would've been ==) so it's not us */
+        if (other.id == null) {
+            return false;
+        }
         return other.id.equals(id);
     }
 
