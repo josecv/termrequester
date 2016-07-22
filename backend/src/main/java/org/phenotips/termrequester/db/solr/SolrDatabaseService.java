@@ -169,11 +169,11 @@ public class SolrDatabaseService implements DatabaseService
     @Override
     public Phenotype savePhenotype(Phenotype pt) throws IOException
     {
+        /* Nothing to do, it hasn't been changed */
+        if (!pt.isDirty()) {
+            return pt;
+        }
         if (pt.getId().isPresent()) {
-            /* Nothing to do, it hasn't been changed */
-            if (pt.getCurrentHash() == pt.hashCode()) {
-                return pt;
-            }
             try {
                 String id = pt.getId().get();
                 checkState(server.getById(id) != null, "ID %s does not exist when expected to", id);
@@ -199,7 +199,7 @@ public class SolrDatabaseService implements DatabaseService
         if (autocommit) {
             commit();
         }
-        pt.updateHash();
+        pt.setClean();
         return pt;
     }
 

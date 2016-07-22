@@ -27,6 +27,8 @@ import java.util.Set;
 
 import com.google.common.base.Optional;
 
+import static com.google.common.base.Preconditions.checkState;
+
 /**
  * Represents a given phenotype request.
  * Uses a null-object pattern, so instead of using the value "null", use Phenotype.NULL to denote
@@ -373,26 +375,21 @@ public class Phenotype implements Serializable
     }
 
     /**
-     * Update this object's internal version hash.
-     * This will make it exactly match that of hashCode.
-     * Database updates may depend on this, so don't call this unless you know what you're doing.
-     * @return the new hash.
+     * Figure out whether this object is dirty and should be written.
+     * @return if this is dirty
      */
-    public int updateHash()
+    public boolean isDirty()
     {
-        versionHash = hashCode();
-        return versionHash;
+        return (!getId().isPresent()) || (versionHash != hashCode());
     }
 
     /**
-     * Return the current version hash.
-     * This may be different from hashCode() if updateHash() hasn't been called since
-     * changing the object.
-     * @return the hash
+     * Mark this object as clean; database updates depend on this, so don't do it willy-nilly.
      */
-    public int getCurrentHash()
+    public void setClean()
     {
-        return versionHash;
+        checkState(getId().isPresent(), "Phenotype %s cannot be setClean without id", this);
+        versionHash = hashCode();
     }
 
     @Override

@@ -97,7 +97,7 @@ class SolrMapper
         pt.setIssueNumber((String) doc.getFieldValue(Schema.ISSUE_NUMBER));
         pt.setTimeCreated((Date) doc.getFieldValue(Schema.TIME_CREATED));
         pt.setTimeModified((Date) doc.getFieldValue(Schema.TIME_MODIFIED));
-        pt.updateHash();
+        pt.setClean();
         return pt;
     }
 }

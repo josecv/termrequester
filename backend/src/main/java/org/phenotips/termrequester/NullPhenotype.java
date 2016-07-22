@@ -142,4 +142,11 @@ final class NullPhenotype extends Phenotype
     {
         return false;
     }
+
+    @Override
+    public boolean isDirty()
+    {
+        /* Always clean: don't persist this thing */
+        return false;
+    }
 }
