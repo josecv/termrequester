@@ -190,6 +190,11 @@ public class PhenotypeManagerImpl implements PhenotypeManager
     @Override
     public List<Phenotype> search(String text) throws TermRequesterBackendException
     {
-        throw new UnsupportedOperationException();
+        try {
+            List<Phenotype> results = db.searchPhenotypes(text);
+            return results;
+        } catch (IOException e) {
+            throw new TermRequesterBackendException(e);
+        }
     }
 }

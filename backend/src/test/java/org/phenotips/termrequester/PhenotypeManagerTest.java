@@ -20,6 +20,7 @@ package org.phenotips.termrequester;
 import java.io.IOException;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -171,6 +172,20 @@ public class PhenotypeManagerTest
         verify(githubApi).readPhenotype(same(pt));
         verify(databaseService).getPhenotypeById(id);
         verify(databaseService).savePhenotype(same(pt));
+    }
+
+    /**
+     * Test the search method.
+     */
+    @Test
+    public void testSearch() throws TermRequesterBackendException, IOException
+    {
+        String text = "text search!";
+        List<Phenotype> phenotypes = new ArrayList<>();
+        when(databaseService.searchPhenotypes(text)).thenReturn(phenotypes);
+        List<Phenotype> results = client.search(text);
+        verify(databaseService).searchPhenotypes(text);
+        assertEquals(phenotypes, results);
     }
 
     /**

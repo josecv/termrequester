@@ -201,6 +201,8 @@ class GithubAPIImpl implements GithubAPI
     /**
      * Build a github search (the q= parameter) to find issues related
      * to the phenotype given.
+     * @param pt the phenotype
+     * @return the search string
      */
     private String buildSearch(Phenotype pt)
     {
