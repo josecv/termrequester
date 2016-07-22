@@ -17,6 +17,9 @@
  */
 package org.phenotips.termrequester.db.solr;
 
+import org.phenotips.termrequester.Phenotype;
+import org.phenotips.termrequester.db.DatabaseService;
+
 import java.io.File;
 import java.io.IOException;
 
@@ -28,11 +31,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.FutureTask;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -50,11 +48,7 @@ import org.apache.solr.common.params.DisMaxParams;
 import org.apache.solr.common.params.SpellingParams;
 import org.apache.solr.core.CoreContainer;
 
-import org.phenotips.termrequester.Phenotype;
-import org.phenotips.termrequester.db.DatabaseService;
-
 import com.google.common.base.Joiner;
-import com.google.common.base.Optional;
 import com.google.inject.Singleton;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -71,6 +65,16 @@ public class SolrDatabaseService implements DatabaseService
     /* Lots of this came from org.phenotips.variantstore.db.solr.SolrController */
 
     /**
+     * A query string to match all docuemnts.
+     */
+    public static final String WILDCARD_QSTRING = "*:*";
+
+    /**
+     * The name of the solr core.
+     */
+    public static final String CORE_NAME = "termrequester";
+
+    /**
      * A pattern to parse our IDs.
      */
     private static final Pattern ID_PATTERN = Pattern.compile("NONHPO_(\\d{6})");
@@ -84,16 +88,6 @@ public class SolrDatabaseService implements DatabaseService
      * A joiner to join different parts of a Solr query with an OR.
      */
     private static final Joiner OR_QUERY_JOINER = Joiner.on(' ').skipNulls();
-
-    /**
-     * A query string to match all docuemnts.
-     */
-    public static final String WILDCARD_QSTRING = "*:*";
-
-    /**
-     * The name of the solr core.
-     */
-    public static final String CORE_NAME = "termrequester";
 
     /**
      * The path where the database is.
@@ -113,12 +107,12 @@ public class SolrDatabaseService implements DatabaseService
     /**
      * Whether we've been initialized.
      */
-    private boolean up = false;
+    private boolean up;
 
     /**
      * Whether we should commit at the end of every write.
      */
-    private boolean autocommit = false;
+    private boolean autocommit;
 
     /**
      * The solr mapper to use to turn phenotypes to documents and vice-versa.
@@ -181,7 +175,7 @@ public class SolrDatabaseService implements DatabaseService
                 /* We don't wanna trigger anything (two versions of the same document co-existing) a
                  * little later when saving, so just commit now */
                 commit();
-            } catch(SolrServerException e) {
+            } catch (SolrServerException e) {
                 throw new IOException(e);
             }
         } else {
@@ -217,7 +211,7 @@ public class SolrDatabaseService implements DatabaseService
                 commit();
             }
             return true;
-        } catch(SolrServerException e) {
+        } catch (SolrServerException e) {
             throw new IOException(e);
         }
     }
@@ -335,7 +329,7 @@ public class SolrDatabaseService implements DatabaseService
     {
         return autocommit;
     }
-    
+
     @Override
     public void setAutocommit(boolean autocommit)
     {

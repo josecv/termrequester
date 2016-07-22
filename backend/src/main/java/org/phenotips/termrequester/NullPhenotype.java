@@ -30,31 +30,39 @@ import com.google.common.base.Optional;
  */
 final class NullPhenotype extends Phenotype
 {
-    private static final long serialVersionUID = 1450L;
-
     /**
      * The null instance.
      */
     public static final Phenotype INSTANCE = new NullPhenotype();
 
     /**
+     * The serial version uid.
+     */
+    private static final long serialVersionUID = 1450L;
+
+    /**
+     * The null phenotype's name.
+     */
+    private static final String NAME = "NULL PHENOTYPE";
+
+    /**
      * CTOR.
      */
     private NullPhenotype()
     {
-        super("NULL", "NULL");
+        super(NAME, NAME);
     }
 
     @Override
     public String getName()
     {
-        return "NULL";
+        return NAME;
     }
 
     @Override
     public String getDescription()
     {
-        return "NULL";
+        return NAME;
     }
 
     @Override
@@ -84,7 +92,7 @@ final class NullPhenotype extends Phenotype
     @Override
     public String toString()
     {
-        return "NULL PHENOTYPE";
+        return NAME;
     }
 
     @Override
@@ -98,7 +106,7 @@ final class NullPhenotype extends Phenotype
     @Override
     public int hashCode()
     {
-        return "NULL PHENOTYPE".hashCode();
+        return NAME.hashCode();
     }
 
     @Override

@@ -26,13 +26,6 @@ package org.phenotips.termrequester.db.solr;
 final class Schema
 {
     /**
-     * Private CTOR.
-     */
-    private Schema() {
-
-    }
-
-    /**
      * The unique id of a document.
      */
     public static final String ID = "id";
@@ -91,11 +84,6 @@ final class Schema
      * The field for exact matches on the synonym.
      */
     public static final String SYNONYM_EXACT = "synonymExact";
-    /*
-                        Schema.NAME, Schema.NAME_SPELL, Schema.NAME_EXACT, Schema.NAME_PREFIX,
-                        Schema.SYNONYM, Schema.SYNONYM_SPELL, Schema.SYNONYM_EXACT, Schema.SYNONYM_PREFIX,
-                        Schema.TEXT, Schema.TEXT_SPELL));
-                        */
 
     /**
      * A spell checked name field.
@@ -141,4 +129,11 @@ final class Schema
      * A stubbed synonym field.
      */
     public static final String SYNONYM_STUB = "synonymStub";
+
+    /**
+     * Private CTOR.
+     */
+    private Schema() {
+
+    }
 }

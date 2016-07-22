@@ -17,16 +17,13 @@
  */
 package org.phenotips.termrequester.db;
 
+import org.phenotips.termrequester.Phenotype;
+
 import java.io.IOException;
 
 import java.nio.file.Path;
 
 import java.util.List;
-
-import org.phenotips.termrequester.Phenotype;
-
-import com.google.common.base.Optional;
-
 
 /**
  * Connects to a database of some kind, keeps track of phenotypes, etc.
@@ -38,6 +35,7 @@ public interface DatabaseService
 
     /**
      * Initialize this service.
+     * @param path the path to run under
      * @throws IOException on io/solr failure
      */
     void init(Path path) throws IOException;
@@ -74,7 +72,7 @@ public interface DatabaseService
 
     /**
      * Get a phenotype matching the id given.
-     * @param id
+     * @param id the id
      * @return the phenotype - might be the null phenotype if nothing matches
      * @throws IOException on solr failure
      */
@@ -108,7 +106,7 @@ public interface DatabaseService
      * Set whether the service ought to commit at the end of every write.
      * @param autocommit whether to autocommit.
      */
-    void setAutocommit(boolean autocmmit);
+    void setAutocommit(boolean autocommit);
 
     /**
      * Get whether autocommit is turned on.

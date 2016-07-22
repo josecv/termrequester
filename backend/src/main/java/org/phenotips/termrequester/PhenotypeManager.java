@@ -17,12 +17,12 @@
  */
 package org.phenotips.termrequester;
 
+import org.phenotips.termrequester.github.GithubAPI;
+
 import java.nio.file.Path;
 
 import java.util.Collection;
 import java.util.List;
-
-import org.phenotips.termrequester.github.GithubAPI;
 
 import com.google.common.base.Optional;
 

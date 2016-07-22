@@ -17,8 +17,8 @@
  */
 package org.phenotips.termrequester.github;
 
-import java.util.List;
 import java.util.Iterator;
+import java.util.List;
 
 /* This declares a bunch of internal datatypes, so I don't see the point in exposing it
  * to the wider world. For that same reason, it makes sense to place all these thin structs

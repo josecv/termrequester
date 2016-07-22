@@ -17,6 +17,10 @@
  */
 package org.phenotips.termrequester;
 
+import org.phenotips.termrequester.db.DatabaseService;
+import org.phenotips.termrequester.github.GithubAPI;
+import org.phenotips.termrequester.github.GithubAPIFactory;
+
 import java.io.IOException;
 
 import java.nio.file.Path;
@@ -24,14 +28,11 @@ import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
 
-import org.phenotips.termrequester.db.DatabaseService;
-import org.phenotips.termrequester.github.GithubAPI;
-import org.phenotips.termrequester.github.GithubAPIFactory;
-
 import com.google.common.base.Optional;
 import com.google.inject.Inject;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkState;
 
 
 /**
@@ -101,7 +102,7 @@ public class PhenotypeManagerImpl implements PhenotypeManager
             github.openIssue(pt);
             db.savePhenotype(pt);
         } catch (IOException e) {
-            throw new TermRequesterBackendException("Github API threw exception", e);
+            throw new TermRequesterBackendException(e);
         }
         return pt;
     }
@@ -143,8 +144,11 @@ public class PhenotypeManagerImpl implements PhenotypeManager
         Optional<String> number = github.searchForIssue(pt);
         if (number.isPresent()) {
             Phenotype existing = db.getPhenotypeByIssueNumber(number.get());
+            checkState(!Phenotype.NULL.equals(existing),
+                    "Phenotype with issue number %s is not in db", number.get());
             if (Phenotype.NULL.equals(existing)) {
-                throw new RuntimeException("Phenotype with issue number " + number.get() + " is in github but not database.");
+                throw new IllegalStateException("Phenotype with issue number " + number.get()
+                        + " is in github but not database.");
             }
             existing.mergeWith(pt);
             return existing;
@@ -159,8 +163,9 @@ public class PhenotypeManagerImpl implements PhenotypeManager
      */
     private Phenotype updatePhenotype(Phenotype pt) throws IOException
     {
-        checkArgument(pt.getId().isPresent(), "Trying to update not yet saved phenotype");
-        checkArgument(pt.getIssueNumber().isPresent(), "Trying to update not yet saved phenotype");
+        String msg = "Trying to update not yet saved phenotype";
+        checkArgument(pt.getId().isPresent(), msg);
+        checkArgument(pt.getIssueNumber().isPresent(), msg);
         db.savePhenotype(pt);
         github.patchIssue(pt);
         return pt;
@@ -177,7 +182,7 @@ public class PhenotypeManagerImpl implements PhenotypeManager
                 db.savePhenotype(pt);
             }
         } catch (IOException e) {
-            throw new TermRequesterBackendException("Github API threw exception", e);
+            throw new TermRequesterBackendException(e);
         }
         return pt;
     }

@@ -17,19 +17,24 @@
  */
 package org.phenotips.termrequester.github;
 
-import com.google.inject.Inject;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import com.google.inject.Inject;
 
 
 /**
  * Constructs GithubAPI objects.
- * 
+ *
  * @version $Id$
  */
 public class GithubAPIFactoryImpl implements GithubAPIFactory
 {
     private ObjectMapper mapper;
 
+    /**
+     * CTOR.
+     * @param mapper the object mapper
+     */
     @Inject
     public GithubAPIFactoryImpl(ObjectMapper mapper)
     {

@@ -25,7 +25,7 @@ import static com.google.common.base.Preconditions.checkState;
  *
  * @version $Id$
  */
-public abstract class Saveable
+public abstract class AbstractSaveable
 {
     /**
      * A hash to uniquely identify this version of the object.
@@ -35,12 +35,12 @@ public abstract class Saveable
     /**
      * The internal id of this object.
      */
-    private String id = null;
+    private String id;
 
     /**
      * This object's last returned etag.
      */
-    private String etag = null;
+    private String etag;
 
     /**
      * Figure out whether this object is dirty and should be written.
@@ -69,7 +69,7 @@ public abstract class Saveable
     {
         return Optional.fromNullable(id);
     }
-    
+
     /**
      * Set id.
      *
@@ -79,7 +79,7 @@ public abstract class Saveable
     {
         this.id = id;
     }
-    
+
     /**
      * Get etag.
      *
@@ -89,7 +89,7 @@ public abstract class Saveable
     {
         return etag;
     }
-    
+
     /**
      * Set etag.
      *

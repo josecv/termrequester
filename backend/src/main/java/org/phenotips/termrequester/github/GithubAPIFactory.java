@@ -22,7 +22,7 @@ package org.phenotips.termrequester.github;
  * Creates connections to the github api at a certain repository.
  * This is useful for dependency injection purposes: we can inject onto this class
  * and then not have to worry about injecting into the actual githubapi objects.
- * 
+ *
  * @version $Id$
  */
 public interface GithubAPIFactory
@@ -34,12 +34,12 @@ public interface GithubAPIFactory
      * @param oauthToken the auth token in use
      * @return a new GithubAPI instance.
      */
-    public GithubAPI create(String owner, String repository, String oauthToken);
+    GithubAPI create(String owner, String repository, String oauthToken);
 
     /**
      * Construct a new connection to github for the repository given.
      * @param repository the repo
      * @return a new GithubAPI instance
      */
-    public GithubAPI create(GithubAPI.Repository repository);
+    GithubAPI create(GithubAPI.Repository repository);
 }

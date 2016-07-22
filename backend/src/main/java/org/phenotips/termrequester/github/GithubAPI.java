@@ -18,6 +18,7 @@
 package org.phenotips.termrequester.github;
 
 import org.phenotips.termrequester.Phenotype;
+
 import java.io.IOException;
 
 import com.google.common.base.Optional;
@@ -25,7 +26,7 @@ import com.google.common.base.Optional;
 
 /**
  * Connects to github to get the status of a given phenotype, etc.
- * 
+ *
  * @version $Id$
  */
 public interface GithubAPI
@@ -34,8 +35,9 @@ public interface GithubAPI
      * Update the phenotype given with any changes to its github issue.
      * @param phenotype the phenotype
      * @return the same phenotype
+     * @throws IOException on network failure
      */
-    public Phenotype readPhenotype(Phenotype phenotype) throws IOException;
+    Phenotype readPhenotype(Phenotype phenotype) throws IOException;
 
     /**
      * Open a new issue for the phenotype given.
@@ -45,14 +47,14 @@ public interface GithubAPI
      * @throws IllegalArgumentException if the phenotype given has an open issue already
      * @throws IOException on network failure
      */
-    public void openIssue(Phenotype phenotype) throws IOException;
+    void openIssue(Phenotype phenotype) throws IOException;
 
     /**
      * Patch the issue for the given phenotype.
      * @param phenotype the phenotype to patch the issue for.
      * @throws IOException on network failure
      */
-    public void patchIssue(Phenotype phenotype) throws IOException;
+    void patchIssue(Phenotype phenotype) throws IOException;
 
     /**
      * Search the github repository for an issue equivalent to this phenotype's, and return
@@ -62,19 +64,20 @@ public interface GithubAPI
      * @return the issue number for an equivalent issue, if it exists
      * @throws IOException on network failure
      */
-    public Optional<String> searchForIssue(Phenotype phenotype) throws IOException;
+    Optional<String> searchForIssue(Phenotype phenotype) throws IOException;
 
     /**
      * Get the repository that this instance connects to.
+     * @return the repository
      */
-    public Repository getRepository();
+    Repository getRepository();
 
     /**
      * A representation of a github repository.
      *
      * @version $Id$
      */
-    public static class Repository
+    class Repository
     {
         /**
          * The repository's owner.
@@ -113,7 +116,7 @@ public interface GithubAPI
         {
             return owner;
         }
-        
+
         /**
          * Get repository.
          *
@@ -133,7 +136,7 @@ public interface GithubAPI
         {
             return token;
         }
-        
+
         /**
          * Set token.
          *

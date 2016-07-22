@@ -17,6 +17,8 @@
  */
 package org.phenotips.termrequester.github;
 
+import org.phenotips.termrequester.Phenotype;
+
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -26,16 +28,13 @@ import java.net.URISyntaxException;
 import java.net.URL;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
+import org.apache.http.HttpResponse;
 import org.apache.http.client.fluent.Request;
 import org.apache.http.client.fluent.Response;
-import org.apache.http.HttpResponse;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.ContentType;
-
-import org.phenotips.termrequester.Phenotype;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -47,16 +46,11 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 /**
  * Connects to the github rest api.
- * 
+ *
  * @version $Id$
  */
 class GithubAPIImpl implements GithubAPI
 {
-    /**
-     * The repository to bind to.
-     */
-    private Repository repository;
-
     /**
      * The URL where the github api is.
      */
@@ -78,6 +72,11 @@ class GithubAPIImpl implements GithubAPI
     private static final String IF_NONE_MATCH = "If-None-Match";
 
     /**
+     * The repository to bind to.
+     */
+    private Repository repository;
+
+    /**
      * Our object mapper to deserialize from JSON.
      */
     private ObjectMapper mapper;
@@ -85,7 +84,7 @@ class GithubAPIImpl implements GithubAPI
     static {
         try {
             GITHUB_URL = new URL(GITHUB);
-        } catch(MalformedURLException e) {
+        } catch (MalformedURLException e) {
             throw new RuntimeException(e);
         }
     }
@@ -95,7 +94,7 @@ class GithubAPIImpl implements GithubAPI
      * @param mapper the object mapper in use
      * @param repository the repo to use
      */
-    public GithubAPIImpl(ObjectMapper mapper, Repository repository)
+    GithubAPIImpl(ObjectMapper mapper, Repository repository)
     {
         this.repository = repository;
         this.mapper = mapper;
@@ -173,7 +172,7 @@ class GithubAPIImpl implements GithubAPI
             throw new RuntimeException(e);
         }
         DataTypes.SearchResults<DataTypes.Issue> results = mapper.readValue(is,
-                new TypeReference<DataTypes.SearchResults<DataTypes.Issue>> () { });
+                new TypeReference<DataTypes.SearchResults<DataTypes.Issue>>() { });
         for (DataTypes.Issue issue : results) {
             /* TODO This needs to check the synonyms as well. */
             if (issue.title.equals(issueTitle(candidate))) {

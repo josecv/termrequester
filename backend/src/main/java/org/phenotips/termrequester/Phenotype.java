@@ -28,8 +28,6 @@ import java.util.Set;
 import com.google.common.base.Optional;
 import com.google.common.collect.Sets;
 
-import static com.google.common.base.Preconditions.checkState;
-
 /**
  * Represents a given phenotype request.
  * Uses a null-object pattern, so instead of using the value "null", use Phenotype.NULL to denote
@@ -41,13 +39,8 @@ import static com.google.common.base.Preconditions.checkState;
  *
  * @version $Id$
  */
-public class Phenotype extends Saveable implements Serializable
+public class Phenotype extends AbstractSaveable implements Serializable
 {
-    /**
-     * The serial version uid.
-     */
-    private static final long serialVersionUID = 1789L;
-
     /**
      * A sensible default empty id.
      * Will NOT be returned from getId() but can instead serve for consistency.
@@ -67,19 +60,24 @@ public class Phenotype extends Saveable implements Serializable
     public static final Phenotype NULL = NullPhenotype.INSTANCE;
 
     /**
+     * The serial version uid.
+     */
+    private static final long serialVersionUID = 1789L;
+
+    /**
      * The hpo id of this phenotype.
      */
-    private String hpoId = null;
+    private String hpoId;
 
     /**
      * The time when this was created.
      */
-    private Date timeCreated = null;
+    private Date timeCreated;
 
     /**
      * The time when this was modified.
      */
-    private Date timeModified = null;
+    private Date timeModified;
 
     /**
      * The github issue number.
@@ -87,7 +85,7 @@ public class Phenotype extends Saveable implements Serializable
     private String issueNumber;
 
     /**
-     * The phenotype's name
+     * The phenotype's name.
      */
     private String name;
 
@@ -123,7 +121,7 @@ public class Phenotype extends Saveable implements Serializable
         this.description = description;
         synonyms = new HashSet<>();
     }
-    
+
     /**
      * Get the list of synonyms for this phenotype.
      *
@@ -166,7 +164,7 @@ public class Phenotype extends Saveable implements Serializable
     {
         return synonyms.remove(synonym);
     }
-    
+
     /**
      * Get the hpoId.
      *
@@ -186,7 +184,7 @@ public class Phenotype extends Saveable implements Serializable
     {
         this.hpoId = hpoId;
     }
-    
+
     /**
      * Get issueNumber.
      *
@@ -220,7 +218,7 @@ public class Phenotype extends Saveable implements Serializable
     {
         return status;
     }
-    
+
     /**
      * Set status.
      *
@@ -230,7 +228,7 @@ public class Phenotype extends Saveable implements Serializable
     {
         this.status = status;
     }
-    
+
     /**
      * Get name.
      *
@@ -240,7 +238,7 @@ public class Phenotype extends Saveable implements Serializable
     {
         return name;
     }
-    
+
     /**
      * Set name.
      *
@@ -250,7 +248,7 @@ public class Phenotype extends Saveable implements Serializable
     {
         this.name = name;
     }
-    
+
     /**
      * Get description.
      *
@@ -260,7 +258,7 @@ public class Phenotype extends Saveable implements Serializable
     {
         return description;
     }
-    
+
     /**
      * Set description.
      *
@@ -337,12 +335,11 @@ public class Phenotype extends Saveable implements Serializable
      */
     public String issueDescribe()
     {
-        return "TERM: " + this.name +
-            "\nSYNONYMS: " + String.join(",", this.synonyms) +
-            "\nPARENT: " + parent.asParent() +
-            "\nPT_INTERNAL_ID: " + this.getId().or("NONE") +
-            "\nDESCRIPTION: " + this.description.replace("\n", ". ")
-            ;
+        return "TERM: " + this.name
+            + "\nSYNONYMS: " + String.join(",", this.synonyms)
+            + "\nPARENT: " + parent.asParent()
+            + "\nPT_INTERNAL_ID: " + this.getId().or("NONE")
+            + "\nDESCRIPTION: " + this.description.replace("\n", ". ");
     }
 
     @Override
@@ -425,10 +422,22 @@ public class Phenotype extends Saveable implements Serializable
     /**
      * Represents the status of a new phenotype issue in the HPO.
      */
-    public static enum Status {
+    public enum Status {
+        /**
+         * The phenotype hasn't been submitted yet.
+         */
         UNSUBMITTED,
+        /**
+         * The phenotype has been submitted and is pending review.
+         */
         SUBMITTED,
+        /**
+         * The phenotype has been rejected.
+         */
         REJECTED,
+        /**
+         * The phenotype has been accpted.
+         */
         ACCEPTED
     }
 }

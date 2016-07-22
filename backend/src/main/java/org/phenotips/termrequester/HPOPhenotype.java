@@ -32,6 +32,11 @@ public class HPOPhenotype extends Phenotype
      */
     public static final long serialVersionUID = 1848L;
 
+    /**
+     * CTOR.
+     * @param name the name
+     * @param description the description
+     */
     public HPOPhenotype(String name, String description)
     {
         super(name, description);

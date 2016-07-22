@@ -17,17 +17,15 @@
  */
 package org.phenotips.termrequester.db.solr;
 
+import org.phenotips.termrequester.HPOPhenotype;
+import org.phenotips.termrequester.Phenotype;
+
 import java.util.Collection;
 import java.util.Date;
 import java.util.Set;
 
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrInputDocument;
-
-import org.phenotips.termrequester.HPOPhenotype;
-import org.phenotips.termrequester.Phenotype;
-
-import com.google.common.base.Joiner;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
