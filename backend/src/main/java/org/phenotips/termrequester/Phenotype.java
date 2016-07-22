@@ -26,6 +26,7 @@ import java.util.Objects;
 import java.util.Set;
 
 import com.google.common.base.Optional;
+import com.google.common.collect.Sets;
 
 import static com.google.common.base.Preconditions.checkState;
 
@@ -40,7 +41,7 @@ import static com.google.common.base.Preconditions.checkState;
  *
  * @version $Id$
  */
-public class Phenotype implements Serializable
+public class Phenotype extends Saveable implements Serializable
 {
     /**
      * The serial version uid.
@@ -64,11 +65,6 @@ public class Phenotype implements Serializable
      * To be used in the absence of data, instead of just using null.
      */
     public static final Phenotype NULL = NullPhenotype.INSTANCE;
-
-    /**
-     * The internal id of this phenotype.
-     */
-    private String id = null;
 
     /**
      * The hpo id of this phenotype.
@@ -114,11 +110,6 @@ public class Phenotype implements Serializable
      * This phenotype's parent.
      */
     private Phenotype parent = NULL;
-
-    /**
-     * A hash to uniquely identify this version of a phenotype.
-     */
-    private int versionHash = 0;
 
     /**
      * CTOR.
@@ -176,26 +167,6 @@ public class Phenotype implements Serializable
         return synonyms.remove(synonym);
     }
     
-    /**
-     * Get id.
-     *
-     * @return id as String.
-     */
-    public Optional<String> getId()
-    {
-        return Optional.fromNullable(id);
-    }
-    
-    /**
-     * Set id.
-     *
-     * @param id the value to set.
-     */
-    public void setId(String id)
-    {
-        this.id = id;
-    }
-
     /**
      * Get the hpoId.
      *
@@ -369,27 +340,15 @@ public class Phenotype implements Serializable
         return "TERM: " + this.name +
             "\nSYNONYMS: " + String.join(",", this.synonyms) +
             "\nPARENT: " + parent.asParent() +
-            "\nPT_INTERNAL_ID: " + this.id +
+            "\nPT_INTERNAL_ID: " + this.getId().or("NONE") +
             "\nDESCRIPTION: " + this.description.replace("\n", ". ")
             ;
     }
 
-    /**
-     * Figure out whether this object is dirty and should be written.
-     * @return if this is dirty
-     */
-    public boolean isDirty()
+    @Override
+    protected String calculateVersionHash()
     {
-        return (!getId().isPresent()) || (versionHash != hashCode());
-    }
-
-    /**
-     * Mark this object as clean; database updates depend on this, so don't do it willy-nilly.
-     */
-    public void setClean()
-    {
-        checkState(getId().isPresent(), "Phenotype %s cannot be setClean without id", this);
-        versionHash = hashCode();
+        return Integer.toString(hashCode());
     }
 
     @Override
@@ -401,6 +360,9 @@ public class Phenotype implements Serializable
     @Override
     public boolean equals(Object o)
     {
+        if (o == null) {
+            return false;
+        }
         if (o == this) {
             return true;
         }
@@ -408,14 +370,15 @@ public class Phenotype implements Serializable
             return false;
         }
         Phenotype other = (Phenotype) o;
-        if (other.id == this.id) {
-            return true;
+        if (other.getId().isPresent() && getId().isPresent()) {
+            return other.getId().get().equals(getId().get());
         }
-        /* If it's null, we aren't (or they would've been ==) so it's not us */
-        if (other.id == null) {
-            return false;
-        }
-        return other.id.equals(id);
+        /* We're equal if we share at least one name with them */
+        Set<String> theirNames = other.getSynonyms();
+        theirNames.add(other.getName());
+        Set<String> ourNames = getSynonyms();
+        ourNames.add(getName());
+        return !Sets.intersection(theirNames, ourNames).isEmpty();
     }
 
     @Override
@@ -434,7 +397,7 @@ public class Phenotype implements Serializable
         if (getIssueNumber().isPresent()) {
             return "#" + issueNumber;
         } else if (getId().isPresent()) {
-            return id;
+            return getId().get();
         }
         return name;
     }
