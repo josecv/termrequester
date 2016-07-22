@@ -38,6 +38,11 @@ public abstract class Saveable
     private String id = null;
 
     /**
+     * This object's last returned etag.
+     */
+    private String etag = null;
+
+    /**
      * Figure out whether this object is dirty and should be written.
      * @return whether this is dirty
      */
@@ -73,6 +78,26 @@ public abstract class Saveable
     public void setId(String id)
     {
         this.id = id;
+    }
+    
+    /**
+     * Get etag.
+     *
+     * @return etag as String.
+     */
+    public String getEtag()
+    {
+        return etag;
+    }
+    
+    /**
+     * Set etag.
+     *
+     * @param etag the value to set.
+     */
+    public void setEtag(String etag)
+    {
+        this.etag = etag;
     }
 
     /**

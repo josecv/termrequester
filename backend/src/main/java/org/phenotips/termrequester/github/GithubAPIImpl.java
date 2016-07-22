@@ -31,6 +31,7 @@ import java.util.Map;
 
 import org.apache.http.client.fluent.Request;
 import org.apache.http.client.fluent.Response;
+import org.apache.http.HttpResponse;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.ContentType;
 
@@ -41,10 +42,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import com.google.common.base.Optional;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 
 /**
  * Connects to the github rest api.
- * TODO Implement conditional requests: https://developer.github.com/v3/#conditional-requests
  * 
  * @version $Id$
  */
@@ -64,6 +66,16 @@ class GithubAPIImpl implements GithubAPI
      * The URL for the github api, as a java.net.URL instance.
      */
     private static final URL GITHUB_URL;
+
+    /**
+     * The Etag header.
+     */
+    private static final String ETAG = "Etag";
+
+    /**
+     * The if-none-match header.
+     */
+    private static final String IF_NONE_MATCH = "If-None-Match";
 
     /**
      * Our object mapper to deserialize from JSON.
@@ -103,10 +115,11 @@ class GithubAPIImpl implements GithubAPI
         params.put("body", phenotype.issueDescribe());
         String method = getRepoMethod("/issues");
         byte[] body = mapper.writeValueAsBytes(params);
-        InputStream is = execute(Request.
+        HttpResponse response = execute(Request.
                 Post(getURI(method)).
-                bodyByteArray(body, ContentType.APPLICATION_JSON)).
-            returnContent().asStream();
+                bodyByteArray(body, ContentType.APPLICATION_JSON)).returnResponse();
+        phenotype.setEtag(response.getFirstHeader(ETAG).getValue());
+        InputStream is = response.getEntity().getContent();
         DataTypes.Issue result = mapper.readValue(is, DataTypes.Issue.class);
         phenotype.setIssueNumber(Integer.toString(result.number));
         phenotype.setStatus(Phenotype.Status.SUBMITTED);
@@ -121,7 +134,20 @@ class GithubAPIImpl implements GithubAPI
     @Override
     public Phenotype readPhenotype(Phenotype pt) throws IOException
     {
-        Phenotype.Status status = getStatus(pt);
+        checkArgument(pt.getIssueNumber().isPresent(), "Phenotype %s has no issue number");
+        Phenotype.Status status;
+        String method = getRepoMethod("/issues/" + pt.getIssueNumber().get());
+        Request request = Request.Get(getURI(method)).addHeader(IF_NONE_MATCH, pt.getEtag());
+        HttpResponse response = execute(request).returnResponse();
+        pt.setEtag(response.getFirstHeader(ETAG).getValue());
+        InputStream is = response.getEntity().getContent();
+        DataTypes.Issue issue = mapper.readValue(is, DataTypes.Issue.class);
+        /* TODO We're assuming no rejection here! Un-assume that */
+        if (issue.state.equals("closed")) {
+            status = Phenotype.Status.ACCEPTED;
+        } else {
+            status = Phenotype.Status.SUBMITTED;
+        }
         pt.setStatus(status);
         return pt;
     }
@@ -161,18 +187,6 @@ class GithubAPIImpl implements GithubAPI
     public Repository getRepository()
     {
         return repository;
-    }
-
-    /**
-     * GET the github issue for the phenotype given.
-     * @param phenotype the phenotype
-     * @return the HTTP response object for the request
-     * @throws IOException on network error
-     */
-    private Response issueEndpoint(Phenotype phenotype) throws IOException
-    {
-        String method = getRepoMethod("/issues/" + phenotype.getIssueNumber().get());
-        return execute(Request.Get(getURI(method)));
     }
 
     /**
@@ -231,25 +245,5 @@ class GithubAPIImpl implements GithubAPI
             throw new RuntimeException(e);
         }
     }
-
-    /**
-     * Get the status of the phenotype given.
-     * @param pt the phenotype
-     * @return the status
-     */
-    private Phenotype.Status getStatus(Phenotype pt) throws IOException
-    {
-        if (!pt.getIssueNumber().isPresent()) {
-            throw new IllegalArgumentException("Phenotype " + pt + " has no issue number");
-        }
-        /* TODO We're assuming no rejection here! Un-assume that */
-        InputStream is = issueEndpoint(pt).returnContent().asStream();
-        DataTypes.Issue issue = mapper.readValue(is, DataTypes.Issue.class);
-        if (issue.state.equals("closed")) {
-            return Phenotype.Status.ACCEPTED;
-        }
-        return Phenotype.Status.SUBMITTED;
-    }
-
 }
 

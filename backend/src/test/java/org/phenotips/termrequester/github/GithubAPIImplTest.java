@@ -164,8 +164,8 @@ public class GithubAPIImplTest
         String expectedDescription = pt.issueDescribe();
         client.openIssue(pt);
         String number = pt.getIssueNumber().get();
-        assertNotNull(number);
         cleanupIssues.add(number);
+        assertNotNull(number);
         String endpoint = String.format("https://api.github.com/repos/%s/%s/issues/%s", USER, REPO, number);
         InputStream is = Request.Get(endpoint).execute().returnContent().asStream();
         DataTypes.Issue issue = mapper.readValue(is, DataTypes.Issue.class);
