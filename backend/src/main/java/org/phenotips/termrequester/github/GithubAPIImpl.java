@@ -109,14 +109,12 @@ class GithubAPIImpl implements GithubAPI
         if (searchForIssue(phenotype).isPresent()) {
             throw new IllegalArgumentException("Issue for " + phenotype + " already exists");
         }
-        Map<String, String> params = new HashMap<>();
-        params.put("title", issueTitle(phenotype));
-        params.put("body", phenotype.issueDescribe());
         String method = getRepoMethod("/issues");
-        byte[] body = mapper.writeValueAsBytes(params);
+        byte[] body = buildRequest(phenotype);
         HttpResponse response = execute(Request.
                 Post(getURI(method)).
-                bodyByteArray(body, ContentType.APPLICATION_JSON)).returnResponse();
+                bodyByteArray(body, ContentType.APPLICATION_JSON)).
+            returnResponse();
         phenotype.setEtag(response.getFirstHeader(ETAG).getValue());
         InputStream is = response.getEntity().getContent();
         DataTypes.Issue result = mapper.readValue(is, DataTypes.Issue.class);
@@ -125,9 +123,18 @@ class GithubAPIImpl implements GithubAPI
     }
 
     @Override
-    public void patchIssue(Phenotype phenotype) throws IOException
+    public void patchIssue(Phenotype pt) throws IOException
     {
-        throw new UnsupportedOperationException();
+        checkArgument(pt.getIssueNumber().isPresent(), "Phenotype %s has no issueNumber", pt);
+        byte[] body = buildRequest(pt);
+
+        String method = getIssueEndpoint(pt.getIssueNumber().get());
+        HttpResponse response = execute(Request.
+                Patch(getURI(method)).
+                bodyByteArray(body, ContentType.APPLICATION_JSON).
+                addHeader(IF_NONE_MATCH, pt.getEtag())).
+            returnResponse();
+        pt.setEtag(response.getFirstHeader(ETAG).getValue());
     }
 
     @Override
@@ -135,9 +142,13 @@ class GithubAPIImpl implements GithubAPI
     {
         checkArgument(pt.getIssueNumber().isPresent(), "Phenotype %s has no issue number");
         Phenotype.Status status;
-        String method = getRepoMethod("/issues/" + pt.getIssueNumber().get());
+        String method = getIssueEndpoint(pt.getIssueNumber().get());
         Request request = Request.Get(getURI(method)).addHeader(IF_NONE_MATCH, pt.getEtag());
         HttpResponse response = execute(request).returnResponse();
+        /* TODO Be nice if the 304 were a constant */
+        if (response.getStatusLine().getStatusCode() == 304) {
+            return pt;
+        }
         pt.setEtag(response.getFirstHeader(ETAG).getValue());
         InputStream is = response.getEntity().getContent();
         DataTypes.Issue issue = mapper.readValue(is, DataTypes.Issue.class);
@@ -222,6 +233,16 @@ class GithubAPIImpl implements GithubAPI
     }
 
     /**
+     * Get the issue endpoint (/issues/:issueNumber) for the issue given.
+     * @param issueNumber the issue number
+     * @return the endpoint.
+     */
+    private String getIssueEndpoint(String issueNumber)
+    {
+        return getRepoMethod("/issues/" + issueNumber);
+    }
+
+    /**
      * Build a method bound to our repository.
      * @param method the name of the method, starting with a /
      * @return the bound method, i.e. /repos/:owner/:repo/:method
@@ -245,6 +266,20 @@ class GithubAPIImpl implements GithubAPI
         } catch (MalformedURLException | URISyntaxException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    /**
+     * Build a request body out of the phenotype given.
+     * @param pt the phenotype
+     * @return the request body as a byte array
+     */
+    private byte[] buildRequest(Phenotype pt) throws IOException
+    {
+        Map<String, String> params = new HashMap<>();
+        params.put("title", issueTitle(pt));
+        params.put("body", pt.issueDescribe());
+        byte[] body = mapper.writeValueAsBytes(params);
+        return body;
     }
 }
 

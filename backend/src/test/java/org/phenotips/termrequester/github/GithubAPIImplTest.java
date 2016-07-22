@@ -31,6 +31,7 @@ import org.apache.http.entity.ContentType;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import org.phenotips.termrequester.Phenotype;
@@ -48,6 +49,11 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 /**
  * Tests the GithubAPIImpl class.
@@ -174,6 +180,26 @@ public class GithubAPIImplTest
     }
 
     /**
+     * Test the patch issue method.
+     */
+    @Test
+    public void testPatchIssue() throws IOException
+    {
+        client.openIssue(pt);
+        String number = pt.getIssueNumber().get();
+        cleanupIssues.add(number);
+        pt.setName("different name!");
+        String expectedDescription = pt.issueDescribe();
+        String etag = pt.getEtag();
+        client.patchIssue(pt);
+        String endpoint = String.format("https://api.github.com/repos/%s/%s/issues/%s", USER, REPO, number);
+        InputStream is = Request.Get(endpoint).execute().returnContent().asStream();
+        DataTypes.Issue issue = mapper.readValue(is, DataTypes.Issue.class);
+        assertEquals(expectedDescription, issue.body);
+        assertNotNull(etag, pt.getEtag());
+    }
+
+    /**
      * Test that the searchForIssue method works.
      */
     @Test
@@ -222,5 +248,35 @@ public class GithubAPIImplTest
         closeIssue(pt.getIssueNumber().get());
         client.readPhenotype(pt);
         assertEquals(Phenotype.Status.ACCEPTED, pt.getStatus());
+    }
+
+    /**
+     * Test that we won't re-read the phenotype if it's not necessary.
+     */
+    @Test
+    public void testNoReRead() throws IOException
+    {
+        client.openIssue(pt);
+        cleanupIssues.add(pt.getIssueNumber().get());
+        Phenotype ptSpy = spy(pt);
+        client.readPhenotype(ptSpy);
+        verify(ptSpy, never()).setStatus(any(Phenotype.Status.class));
+        verify(ptSpy, never()).setEtag(any(String.class));
+    }
+
+    /**
+     * Test that we won't re-write the phenotype if it's not necessary.
+     * Marked as ignore because github doesn't actually return a 304 when we patch
+     * without it being necessary. Ideally we need a concept of "github-dirty".
+     */
+    @Test
+    @Ignore
+    public void testNoReWrite() throws IOException
+    {
+        client.openIssue(pt);
+        cleanupIssues.add(pt.getIssueNumber().get());
+        Phenotype ptSpy = spy(pt);
+        client.patchIssue(ptSpy);
+        verify(ptSpy, never()).setEtag(any(String.class));
     }
 }
