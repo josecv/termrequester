@@ -115,7 +115,7 @@ public class PhenotypeManagerImpl implements PhenotypeManager
                 /* We're out of sync, so submit this issue to github */
                 github.openIssue(existing);
             } else {
-                existing.setStatus(github.getStatus(existing));
+                github.readPhenotype(existing);
             }
             return existing;
         }
@@ -166,11 +166,8 @@ public class PhenotypeManagerImpl implements PhenotypeManager
         try {
             pt = db.getPhenotypeById(id);
             if (pt.getIssueNumber().isPresent()) {
-                Phenotype.Status status = github.getStatus(pt);
-                if (status != pt.getStatus()) {
-                    pt.setStatus(status);
-                    db.savePhenotype(pt);
-                }
+                github.readPhenotype(pt);
+                db.savePhenotype(pt);
             }
         } catch (IOException e) {
             throw new TermRequesterBackendException("Github API threw exception", e);

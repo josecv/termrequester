@@ -156,36 +156,13 @@ public class PhenotypeManagerTest
     {
         String id = "NONHPO_123";
         pt = mock(Phenotype.class);
-        when(pt.getStatus()).thenReturn(Phenotype.Status.SUBMITTED);
         when(databaseService.getPhenotypeById(id)).thenReturn(pt);
-        when(githubApi.getStatus(same(pt))).thenReturn(Phenotype.Status.ACCEPTED);
         when(pt.getIssueNumber()).thenReturn(Optional.of(PT_NUM));
         Phenotype pt2 = client.getPhenotypeById(id);
         assertEquals(pt, pt2);
-        verify(githubApi).getStatus(same(pt));
-        verify(pt).setStatus(Phenotype.Status.ACCEPTED);
+        verify(githubApi).readPhenotype(same(pt));
         verify(databaseService).getPhenotypeById(id);
         verify(databaseService).savePhenotype(same(pt));
-    }
-
-    /**
-     * Test the getPhenotypeById method when no status update is needed.
-     */
-    @Test
-    public void testGetByIdNoStatus() throws TermRequesterBackendException, IOException
-    {
-        String id = "NONHPO_123";
-        pt = mock(Phenotype.class);
-        when(pt.getStatus()).thenReturn(Phenotype.Status.ACCEPTED);
-        when(databaseService.getPhenotypeById(id)).thenReturn(pt);
-        when(githubApi.getStatus(same(pt))).thenReturn(Phenotype.Status.ACCEPTED);
-        when(pt.getIssueNumber()).thenReturn(Optional.of(PT_NUM));
-        Phenotype pt2 = client.getPhenotypeById(id);
-        assertEquals(pt, pt2);
-        verify(githubApi).getStatus(same(pt));
-        verify(pt, never()).setStatus(Phenotype.Status.ACCEPTED);
-        verify(databaseService).getPhenotypeById(id);
-        verify(databaseService, never()).savePhenotype(same(pt));
     }
 
     /**

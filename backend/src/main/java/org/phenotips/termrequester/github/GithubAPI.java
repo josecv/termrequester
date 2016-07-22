@@ -31,13 +31,11 @@ import com.google.common.base.Optional;
 public interface GithubAPI
 {
     /**
-     * Get the status of the phenotype given
+     * Update the phenotype given with any changes to its github issue.
      * @param phenotype the phenotype
-     * @return the status
-     * @throws NoSuchElementException if the issue number refers to a non-existing issue
-     * @throws IOException in event of network failure (or hacker error)
+     * @return the same phenotype
      */
-    public Phenotype.Status getStatus(Phenotype phenotype) throws IOException;
+    public Phenotype readPhenotype(Phenotype phenotype) throws IOException;
 
     /**
      * Open a new issue for the phenotype given.
