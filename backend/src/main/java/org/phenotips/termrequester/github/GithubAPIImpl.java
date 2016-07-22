@@ -119,18 +119,11 @@ class GithubAPIImpl implements GithubAPI
     }
 
     @Override
-    public Phenotype.Status getStatus(Phenotype pt) throws IOException
+    public Phenotype readPhenotype(Phenotype pt) throws IOException
     {
-        if (!pt.getIssueNumber().isPresent()) {
-            throw new IllegalArgumentException("Phenotype " + pt + " has no issue number");
-        }
-        /* TODO We're assuming no rejection here! Un-assume that */
-        InputStream is = issueEndpoint(pt).returnContent().asStream();
-        DataTypes.Issue issue = mapper.readValue(is, DataTypes.Issue.class);
-        if (issue.state.equals("closed")) {
-            return Phenotype.Status.ACCEPTED;
-        }
-        return Phenotype.Status.SUBMITTED;
+        Phenotype.Status status = getStatus(pt);
+        pt.setStatus(status);
+        return pt;
     }
 
     @Override
@@ -238,5 +231,25 @@ class GithubAPIImpl implements GithubAPI
             throw new RuntimeException(e);
         }
     }
+
+    /**
+     * Get the status of the phenotype given.
+     * @param pt the phenotype
+     * @return the status
+     */
+    private Phenotype.Status getStatus(Phenotype pt) throws IOException
+    {
+        if (!pt.getIssueNumber().isPresent()) {
+            throw new IllegalArgumentException("Phenotype " + pt + " has no issue number");
+        }
+        /* TODO We're assuming no rejection here! Un-assume that */
+        InputStream is = issueEndpoint(pt).returnContent().asStream();
+        DataTypes.Issue issue = mapper.readValue(is, DataTypes.Issue.class);
+        if (issue.state.equals("closed")) {
+            return Phenotype.Status.ACCEPTED;
+        }
+        return Phenotype.Status.SUBMITTED;
+    }
+
 }
 

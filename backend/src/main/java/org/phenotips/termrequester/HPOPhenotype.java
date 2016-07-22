@@ -40,7 +40,7 @@ public class HPOPhenotype extends Phenotype
     @Override
     public String asParent()
     {
-        return getId();
+        return getHpoId().get();
     }
 
     @Override

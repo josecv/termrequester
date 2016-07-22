@@ -19,6 +19,8 @@ package org.phenotips.termrequester;
 
 import java.io.IOException;
 
+import java.nio.file.Path;
+
 import java.util.Collection;
 import java.util.List;
 
@@ -28,6 +30,8 @@ import org.phenotips.termrequester.github.GithubAPIFactory;
 
 import com.google.common.base.Optional;
 import com.google.inject.Inject;
+
+import static com.google.common.base.Preconditions.checkArgument;
 
 
 /**
@@ -65,9 +69,14 @@ public class PhenotypeManagerImpl implements PhenotypeManager
     }
 
     @Override
-    public void init(GithubAPI.Repository repo)
+    public void init(GithubAPI.Repository repo, Path home) throws TermRequesterBackendException
     {
         github = factory.create(repo);
+        try {
+            db.init(home);
+        } catch (IOException e) {
+            throw new TermRequesterBackendException(e);
+        }
     }
 
     @Override
@@ -76,10 +85,10 @@ public class PhenotypeManagerImpl implements PhenotypeManager
     {
         Phenotype pt = new Phenotype(name, description.or(""));
         pt.addAllSynonyms(synonyms);
-        /* TODO USE PROPER DEFAULT PARENT */
-        Phenotype parent = db.getPhenotypeById(parentId.or("wat"));
-        pt.setParent(parent);
         try {
+            /* TODO USE PROPER DEFAULT PARENT */
+            Phenotype parent = db.getPhenotypeById(parentId.or("wat"));
+            pt.setParent(parent);
             Phenotype existing = checkInDb(pt);
             if (!Phenotype.NULL.equals(existing)) {
                 return updatePhenotype(existing);
@@ -112,6 +121,8 @@ public class PhenotypeManagerImpl implements PhenotypeManager
             if (existing.submittable() && !(github.searchForIssue(existing).isPresent())) {
                 /* We're out of sync, so submit this issue to github */
                 github.openIssue(existing);
+            } else {
+                github.readPhenotype(existing);
             }
             return existing;
         }
@@ -148,6 +159,8 @@ public class PhenotypeManagerImpl implements PhenotypeManager
      */
     private Phenotype updatePhenotype(Phenotype pt) throws IOException
     {
+        checkArgument(pt.getId().isPresent(), "Trying to update not yet saved phenotype");
+        checkArgument(pt.getIssueNumber().isPresent(), "Trying to update not yet saved phenotype");
         db.savePhenotype(pt);
         github.patchIssue(pt);
         return pt;
@@ -156,14 +169,12 @@ public class PhenotypeManagerImpl implements PhenotypeManager
     @Override
     public Phenotype getPhenotypeById(String id) throws TermRequesterBackendException
     {
-        Phenotype pt = db.getPhenotypeById(id);
+        Phenotype pt;
         try {
+            pt = db.getPhenotypeById(id);
             if (pt.getIssueNumber().isPresent()) {
-                Phenotype.Status status = github.getStatus(pt);
-                if (status != pt.getStatus()) {
-                    pt.setStatus(status);
-                    db.savePhenotype(pt);
-                }
+                github.readPhenotype(pt);
+                db.savePhenotype(pt);
             }
         } catch (IOException e) {
             throw new TermRequesterBackendException("Github API threw exception", e);

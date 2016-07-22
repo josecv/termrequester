@@ -20,19 +20,28 @@ package org.phenotips.termrequester;
 import java.io.Serializable;
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 import com.google.common.base.Optional;
+import com.google.common.collect.Sets;
+
+import static com.google.common.base.Preconditions.checkState;
 
 /**
  * Represents a given phenotype request.
  * Uses a null-object pattern, so instead of using the value "null", use Phenotype.NULL to denote
  * absence.
+ * Once stored in the database, will have an id (accessible via getId()). If accepted into the HPO,
+ * an hpo id will be set (accessible via getHpoId())
+ *
+ * TODO NEED TO SUPPORT MULTIPLE PARENTS
  *
  * @version $Id$
  */
-public class Phenotype implements Serializable
+public class Phenotype extends Saveable implements Serializable
 {
     /**
      * The serial version uid.
@@ -40,15 +49,37 @@ public class Phenotype implements Serializable
     private static final long serialVersionUID = 1789L;
 
     /**
+     * A sensible default empty id.
+     * Will NOT be returned from getId() but can instead serve for consistency.
+     */
+    public static final String EMPTY_ID = "NOID";
+
+    /**
+     * A sensible default empty issue number.
+     * Will NOT be returned from getIssueNumber() but can instead serve for consistency.
+     */
+    public static final String EMPTY_ISSUE = "NOISSUE";
+
+    /**
      * A null phenotype.
      * To be used in the absence of data, instead of just using null.
      */
-    public static final Phenotype NULL = new NullPhenotype();
+    public static final Phenotype NULL = NullPhenotype.INSTANCE;
 
     /**
-     * The internal id of this phenotype.
+     * The hpo id of this phenotype.
      */
-    private String id = "NONHPO_NULLID";
+    private String hpoId = null;
+
+    /**
+     * The time when this was created.
+     */
+    private Date timeCreated = null;
+
+    /**
+     * The time when this was modified.
+     */
+    private Date timeModified = null;
 
     /**
      * The github issue number.
@@ -137,23 +168,23 @@ public class Phenotype implements Serializable
     }
     
     /**
-     * Get id.
+     * Get the hpoId.
      *
-     * @return id as String.
+     * @return the hpo id.
      */
-    public String getId()
+    public Optional<String> getHpoId()
     {
-        return id;
+        return Optional.fromNullable(hpoId);
     }
-    
+
     /**
-     * Set id.
+     * Set the hpoId.
      *
-     * @param id the value to set.
+     * @param hpoId the value to set.
      */
-    public void setId(String id)
+    public void setHpoId(String hpoId)
     {
-        this.id = id;
+        this.hpoId = hpoId;
     }
     
     /**
@@ -169,7 +200,7 @@ public class Phenotype implements Serializable
             return Optional.of(issueNumber);
         }
     }
-    
+
     /**
      * Set issueNumber.
      *
@@ -261,6 +292,46 @@ public class Phenotype implements Serializable
     }
 
     /**
+     * Get timeCreated.
+     *
+     * @return timeCreated as Date.
+     */
+    public Optional<Date> getTimeCreated()
+    {
+        return Optional.fromNullable(timeCreated);
+    }
+
+    /**
+     * Set timeCreated.
+     *
+     * @param timeCreated the value to set.
+     */
+    public void setTimeCreated(Date timeCreated)
+    {
+        this.timeCreated = timeCreated;
+    }
+
+    /**
+     * Get timeModified.
+     *
+     * @return timeModified as Date.
+     */
+    public Optional<Date> getTimeModified()
+    {
+        return Optional.fromNullable(timeModified);
+    }
+
+    /**
+     * Set timeModified.
+     *
+     * @param timeModified the value to set.
+     */
+    public void setTimeModified(Date timeModified)
+    {
+        this.timeModified = timeModified;
+    }
+
+    /**
      * Get a long form description of this phenotype, suitable for an issue tracker.
      * @return a description.
      */
@@ -269,9 +340,15 @@ public class Phenotype implements Serializable
         return "TERM: " + this.name +
             "\nSYNONYMS: " + String.join(",", this.synonyms) +
             "\nPARENT: " + parent.asParent() +
-            "\nPT_INTERNAL_ID: " + this.id +
+            "\nPT_INTERNAL_ID: " + this.getId().or("NONE") +
             "\nDESCRIPTION: " + this.description.replace("\n", ". ")
             ;
+    }
+
+    @Override
+    protected String calculateVersionHash()
+    {
+        return Integer.toString(hashCode());
     }
 
     @Override
@@ -283,6 +360,9 @@ public class Phenotype implements Serializable
     @Override
     public boolean equals(Object o)
     {
+        if (o == null) {
+            return false;
+        }
         if (o == this) {
             return true;
         }
@@ -290,23 +370,36 @@ public class Phenotype implements Serializable
             return false;
         }
         Phenotype other = (Phenotype) o;
-        return other.id.equals(id);
+        if (other.getId().isPresent() && getId().isPresent()) {
+            return other.getId().get().equals(getId().get());
+        }
+        /* We're equal if we share at least one name with them */
+        Set<String> theirNames = other.getSynonyms();
+        theirNames.add(other.getName());
+        Set<String> ourNames = getSynonyms();
+        ourNames.add(getName());
+        return !Sets.intersection(theirNames, ourNames).isEmpty();
     }
 
     @Override
     public int hashCode()
     {
-        return id.hashCode();
+        return Objects.hash(getId().or(EMPTY_ID), name, description, synonyms,
+                parent, getIssueNumber().or(EMPTY_ISSUE), status, hpoId);
     }
 
     /**
      * Return this phenotype's description as a parent of another.
-     * Thus, for an HPO phenotype HPO_WHATEVER
      * @return the parent representation
      */
     public String asParent()
     {
-        return "#" + issueNumber;
+        if (getIssueNumber().isPresent()) {
+            return "#" + issueNumber;
+        } else if (getId().isPresent()) {
+            return getId().get();
+        }
+        return name;
     }
 
     /**
@@ -337,104 +430,5 @@ public class Phenotype implements Serializable
         SUBMITTED,
         REJECTED,
         ACCEPTED
-    }
-
-    /**
-     * A null phenotype object that does nothing and returns sensible defaults.
-     *
-     * @version $Id : $
-     */
-    private static final class NullPhenotype extends Phenotype
-    {
-        private static final long serialVersionUID = 1450L;
-
-        /**
-         * CTOR.
-         */
-        public NullPhenotype()
-        {
-            super("NULL", "NULL");
-        }
-
-        @Override
-        public String getName()
-        {
-            return "NULL";
-        }
-
-        @Override
-        public String getDescription()
-        {
-            return "NULL";
-        }
-
-        @Override
-        public Optional<String> getIssueNumber()
-        {
-            return Optional.<String>absent();
-        }
-
-        @Override
-        public String getId()
-        {
-            return "NULL";
-        }
-
-        @Override
-        public String asParent()
-        {
-            /* TODO IS THIS REASONABLE */
-            return "NO PARENT";
-        }
-
-        @Override
-        public String toString()
-        {
-            return "NULL PHENOTYPE";
-        }
-
-        @Override
-        public boolean equals(Object o)
-        {
-            /* This class is finals and there should only ever be one instance,
-             * so this is probably okay */
-            return this == o;
-        }
-
-        @Override
-        public int hashCode()
-        {
-            return "NULL PHENOTYPE".hashCode();
-        }
-
-        @Override
-        public Set<String> getSynonyms()
-        {
-            return new HashSet<>();
-        }
-
-        @Override
-        public String issueDescribe()
-        {
-            return "NULL PHENOTYPE. YOU SHOULD NOT BE SEEING THIS IN YOUR ISSUE TRACKER. PLEASE REPORT BUG TO PHENOTIPS";
-        }
-
-        @Override
-        public Status getStatus()
-        {
-            return Status.REJECTED;
-        }
-
-        @Override
-        public Phenotype getParent()
-        {
-            return this;
-        }
-
-        @Override
-        public boolean submittable()
-        {
-            return false;
-        }
     }
 }

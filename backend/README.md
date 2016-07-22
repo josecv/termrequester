@@ -16,4 +16,4 @@ Github interaction
 
 #### `org.phenotips.termrequester.github.GithubAPI`
 ##### `createIssue(Phenotype pt)`
-##### `getStatus(Phenotype pt)`
+##### `readPhenotype(Phenotype pt)`

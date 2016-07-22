@@ -218,8 +218,9 @@ public class GithubAPIImplTest
     public void testStatus() throws IOException
     {
         client.openIssue(pt);
-        assertEquals(Phenotype.Status.SUBMITTED, client.getStatus(pt));
+        assertEquals(Phenotype.Status.SUBMITTED, pt.getStatus());
         closeIssue(pt.getIssueNumber().get());
-        assertEquals(Phenotype.Status.ACCEPTED, client.getStatus(pt));
+        client.readPhenotype(pt);
+        assertEquals(Phenotype.Status.ACCEPTED, pt.getStatus());
     }
 }

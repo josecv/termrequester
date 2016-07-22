@@ -24,7 +24,9 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import org.phenotips.termrequester.db.DatabaseService;
 import org.phenotips.termrequester.di.HPORequestModule;
@@ -45,8 +47,8 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.refEq;
 import static org.mockito.Matchers.same;
 import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -113,17 +115,23 @@ public class PhenotypeManagerTest
     private static final String PT_NUM = "123";
 
     /**
+     * A temporary folder.
+     */
+    @Rule
+    public TemporaryFolder folder = new TemporaryFolder();
+
+    /**
      * Set up the test case.
      */
     @Before
-    public void setUp()
+    public void setUp() throws IOException, TermRequesterBackendException
     {
         databaseService = mock(DatabaseService.class);
         githubApi = mock(GithubAPI.class);
         injector = Guice.createInjector(Modules.override(new HPORequestModule()).
                 with(new TestModule(databaseService, githubApi)));
         client = injector.getInstance(PhenotypeManager.class);
-        client.init(new GithubAPI.Repository(OWNER, REPOSITORY, TOKEN));
+        client.init(new GithubAPI.Repository(OWNER, REPOSITORY, TOKEN), folder.getRoot().toPath());
         pt = new Phenotype(PT_NAME, PT_DESC);
         when(databaseService.getPhenotypeById(any(String.class))).thenReturn(Phenotype.NULL);
         when(databaseService.getPhenotype(any(Phenotype.class))).thenReturn(Phenotype.NULL);
@@ -136,10 +144,7 @@ public class PhenotypeManagerTest
     @Test
     public void testCreation() throws InterruptedException, ExecutionException, IOException, TermRequesterBackendException
     {
-        @SuppressWarnings("unchecked")
-        Future<Phenotype> f = mock(Future.class);
-        when(f.get()).thenReturn(pt);
-        when(databaseService.savePhenotype(refEq(pt))).thenReturn(f);
+        when(databaseService.savePhenotype(refEq(pt))).thenReturn(pt);
         when(githubApi.searchForIssue(refEq(pt))).thenReturn(Optional.<String>absent());
         doNothing().when(githubApi).openIssue(refEq(pt));
         Phenotype pt2 = client.createRequest(PT_NAME, new ArrayList<String>(), Optional.<String>absent(),
@@ -159,36 +164,13 @@ public class PhenotypeManagerTest
     {
         String id = "NONHPO_123";
         pt = mock(Phenotype.class);
-        when(pt.getStatus()).thenReturn(Phenotype.Status.SUBMITTED);
         when(databaseService.getPhenotypeById(id)).thenReturn(pt);
-        when(githubApi.getStatus(same(pt))).thenReturn(Phenotype.Status.ACCEPTED);
         when(pt.getIssueNumber()).thenReturn(Optional.of(PT_NUM));
         Phenotype pt2 = client.getPhenotypeById(id);
         assertEquals(pt, pt2);
-        verify(githubApi).getStatus(same(pt));
-        verify(pt).setStatus(Phenotype.Status.ACCEPTED);
+        verify(githubApi).readPhenotype(same(pt));
         verify(databaseService).getPhenotypeById(id);
         verify(databaseService).savePhenotype(same(pt));
-    }
-
-    /**
-     * Test the getPhenotypeById method when no status update is needed.
-     */
-    @Test
-    public void testGetByIdNoStatus() throws TermRequesterBackendException, IOException
-    {
-        String id = "NONHPO_123";
-        pt = mock(Phenotype.class);
-        when(pt.getStatus()).thenReturn(Phenotype.Status.ACCEPTED);
-        when(databaseService.getPhenotypeById(id)).thenReturn(pt);
-        when(githubApi.getStatus(same(pt))).thenReturn(Phenotype.Status.ACCEPTED);
-        when(pt.getIssueNumber()).thenReturn(Optional.of(PT_NUM));
-        Phenotype pt2 = client.getPhenotypeById(id);
-        assertEquals(pt, pt2);
-        verify(githubApi).getStatus(same(pt));
-        verify(pt, never()).setStatus(Phenotype.Status.ACCEPTED);
-        verify(databaseService).getPhenotypeById(id);
-        verify(databaseService, never()).savePhenotype(same(pt));
     }
 
     /**
