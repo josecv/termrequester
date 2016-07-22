@@ -22,6 +22,7 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 import com.google.common.base.Optional;
@@ -43,6 +44,18 @@ public class Phenotype implements Serializable
      * The serial version uid.
      */
     private static final long serialVersionUID = 1789L;
+
+    /**
+     * A sensible default empty id.
+     * Will NOT be returned from getId() but can instead serve for consistency.
+     */
+    public static final String EMPTY_ID = "NOID";
+
+    /**
+     * A sensible default empty issue number.
+     * Will NOT be returned from getIssueNumber() but can instead serve for consistency.
+     */
+    public static final String EMPTY_ISSUE = "NOISSUE";
 
     /**
      * A null phenotype.
@@ -99,6 +112,11 @@ public class Phenotype implements Serializable
      * This phenotype's parent.
      */
     private Phenotype parent = NULL;
+
+    /**
+     * A hash to uniquely identify this version of a phenotype.
+     */
+    private int versionHash = 0;
 
     /**
      * CTOR.
@@ -354,6 +372,29 @@ public class Phenotype implements Serializable
             ;
     }
 
+    /**
+     * Update this object's internal version hash.
+     * This will make it exactly match that of hashCode.
+     * Database updates may depend on this, so don't call this unless you know what you're doing.
+     * @return the new hash.
+     */
+    public int updateHash()
+    {
+        versionHash = hashCode();
+        return versionHash;
+    }
+
+    /**
+     * Return the current version hash.
+     * This may be different from hashCode() if updateHash() hasn't been called since
+     * changing the object.
+     * @return the hash
+     */
+    public int getCurrentHash()
+    {
+        return versionHash;
+    }
+
     @Override
     public String toString()
     {
@@ -383,17 +424,22 @@ public class Phenotype implements Serializable
     @Override
     public int hashCode()
     {
-        return id.hashCode();
+        return Objects.hash(getId().or(EMPTY_ID), name, description, synonyms,
+                parent, getIssueNumber().or(EMPTY_ISSUE), status, hpoId);
     }
 
     /**
      * Return this phenotype's description as a parent of another.
-     * Thus, for an HPO phenotype HPO_WHATEVER
      * @return the parent representation
      */
     public String asParent()
     {
-        return "#" + issueNumber;
+        if (getIssueNumber().isPresent()) {
+            return "#" + issueNumber;
+        } else if (getId().isPresent()) {
+            return id;
+        }
+        return name;
     }
 
     /**

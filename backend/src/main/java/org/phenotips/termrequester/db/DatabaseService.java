@@ -56,7 +56,7 @@ public interface DatabaseService
 
     /**
      * Save the phenotype given, whether by creating a new one or updating an existing
-     * record.
+     * record, iff phenotype.getCurrentHash() != phenotype.hashCode().
      *
      * @param phenotype the phenotype
      * @return the saved phenotype

@@ -52,8 +52,8 @@ class SolrMapper
         doc.setField(Schema.NAME, pt.getName());
         doc.setField(Schema.DEFINITION, pt.getDescription());
         doc.setField(Schema.STATUS, pt.getStatus().name());
-        doc.setField(Schema.ISSUE_NUMBER, pt.getIssueNumber().or("0"));
-        doc.setField(Schema.PARENT, pt.getParent().getId().or("0"));
+        doc.setField(Schema.ISSUE_NUMBER, pt.getIssueNumber().or(Phenotype.EMPTY_ISSUE));
+        doc.setField(Schema.PARENT, pt.getParent().getId().or((Phenotype.EMPTY_ID)));
         doc.setField(Schema.SYNONYM, synonyms.toArray(new String[synonyms.size()]));
         doc.setField(Schema.ID, pt.getId().get());
         if (pt.getHpoId().isPresent()) {
@@ -97,6 +97,7 @@ class SolrMapper
         pt.setIssueNumber((String) doc.getFieldValue(Schema.ISSUE_NUMBER));
         pt.setTimeCreated((Date) doc.getFieldValue(Schema.TIME_CREATED));
         pt.setTimeModified((Date) doc.getFieldValue(Schema.TIME_MODIFIED));
+        pt.updateHash();
         return pt;
     }
 }
