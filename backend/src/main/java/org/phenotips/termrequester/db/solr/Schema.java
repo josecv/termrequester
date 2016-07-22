@@ -91,4 +91,54 @@ final class Schema
      * The field for exact matches on the synonym.
      */
     public static final String SYNONYM_EXACT = "synonymExact";
+    /*
+                        Schema.NAME, Schema.NAME_SPELL, Schema.NAME_EXACT, Schema.NAME_PREFIX,
+                        Schema.SYNONYM, Schema.SYNONYM_SPELL, Schema.SYNONYM_EXACT, Schema.SYNONYM_PREFIX,
+                        Schema.TEXT, Schema.TEXT_SPELL));
+                        */
+
+    /**
+     * A spell checked name field.
+     */
+    public static final String NAME_SPELL = "nameSpell";
+
+    /**
+     * A name prefix field.
+     */
+    public static final String NAME_PREFIX = "namePrefix";
+
+    /**
+     * A spell checked synonym field.
+     */
+    public static final String SYNONYM_SPELL = "synonymSpell";
+
+    /**
+     * A synonym prefix field.
+     */
+    public static final String SYNONYM_PREFIX = "synonymPrefix";
+
+    /**
+     * A full text field.
+     */
+    public static final String TEXT = "text";
+
+    /**
+     * A spell checked text field.
+     */
+    public static final String TEXT_SPELL = "textSpell";
+
+    /**
+     * A stubbed text field.
+     */
+    public static final String TEXT_STUB = "textStub";
+
+    /**
+     * A stubbed name field.
+     */
+    public static final String NAME_STUB = "nameStub";
+
+    /**
+     * A stubbed synonym field.
+     */
+    public static final String SYNONYM_STUB = "synonymStub";
 }

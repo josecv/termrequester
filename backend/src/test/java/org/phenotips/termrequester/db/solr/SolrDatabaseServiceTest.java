@@ -19,8 +19,12 @@ package org.phenotips.termrequester.db.solr;
 
 import java.io.IOException;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -67,7 +71,7 @@ public class SolrDatabaseServiceTest
     /**
      * The description of the test phenotype.
      */
-    private static final String PT_DESC = "Test phenotype description";
+    private static final String PT_DESC = "Descriptions are cool";
 
     /**
      * The issue number of the test phenotype.
@@ -326,6 +330,52 @@ public class SolrDatabaseServiceTest
         Phenotype pt7 = new Phenotype("Ravel", PT_DESC);
         result = client.getPhenotype(pt7);
         assertEquals(Phenotype.NULL, result);
+    }
+
+    /**
+     * Test the searchPhenotypes function.
+     */
+    @Test
+    public void testSearch() throws IOException
+    {
+        String s1 = "hooray",
+               s2 = "string",
+               s3 = "bam",
+               s4 = "commas",
+               s5 = "more variables";
+        Phenotype pt1 = new Phenotype(PT_NAME, PT_DESC),
+                  pt2 = new Phenotype(PT_NAME + PT_NAME, PT_DESC),
+                  pt3 = new Phenotype(PT_NAME, s1),
+                  pt4 = new Phenotype(s1, s1),
+                  pt5 = new Phenotype(s1, s2),
+                  pt6 = new Phenotype(s2, s2),
+                  pt7 = new Phenotype(s3, s3),
+                  pt8 = new Phenotype(s4, s4);
+        client.savePhenotype(pt1);
+        client.savePhenotype(pt2);
+        client.savePhenotype(pt3);
+        client.savePhenotype(pt4);
+        client.savePhenotype(pt5);
+        client.savePhenotype(pt6);
+        client.savePhenotype(pt7);
+        client.savePhenotype(pt8);
+        List<Phenotype> results = client.searchPhenotypes(PT_NAME);
+        assertSetEquals(results, pt1, pt2, pt3);
+        results = client.searchPhenotypes(PT_DESC);
+        assertSetEquals(results, pt1, pt2);
+        results = client.searchPhenotypes(s2);
+        assertSetEquals(results, pt6, pt5);
+        results = client.searchPhenotypes(s3);
+        assertSetEquals(results, pt7);
+        results = client.searchPhenotypes(s5);
+        assertSetEquals(results);
+    }
+
+    private void assertSetEquals(Collection<Phenotype> results, Phenotype... expected)
+    {
+        Set<Phenotype> resultSet = new HashSet<>(results);
+        Set<Phenotype> expectedSet = new HashSet<>(Arrays.asList(expected));
+        assertEquals(expectedSet, resultSet);
     }
 
     /**

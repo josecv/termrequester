@@ -45,6 +45,9 @@ import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrInputDocument;
+import org.apache.solr.common.params.CommonParams;
+import org.apache.solr.common.params.DisMaxParams;
+import org.apache.solr.common.params.SpellingParams;
 import org.apache.solr.core.CoreContainer;
 
 import org.phenotips.termrequester.Phenotype;
@@ -292,7 +295,34 @@ public class SolrDatabaseService implements DatabaseService
     @Override
     public List<Phenotype> searchPhenotypes(String text) throws IOException
     {
-        throw new UnsupportedOperationException();
+        try {
+            SolrQuery q = new SolrQuery();
+            String escaped = ClientUtils.escapeQueryChars(text);
+            q.add(CommonParams.Q, escaped);
+            q.add(SpellingParams.SPELLCHECK_Q, text);
+            q.add(DisMaxParams.PF, String.format("%s^20 %s^36 %s^100 %s^30 %s^15 %s^25 %s^70 %s^20 %s^3 %s^5",
+                        Schema.NAME, Schema.NAME_SPELL, Schema.NAME_EXACT, Schema.NAME_PREFIX,
+                        Schema.SYNONYM, Schema.SYNONYM_SPELL, Schema.SYNONYM_EXACT, Schema.SYNONYM_PREFIX,
+                        Schema.TEXT, Schema.TEXT_SPELL));
+            q.add(DisMaxParams.QF, "%s^10 %s^18 %s^5 %s^6 %s^10 %s^3 %s^1 %s^2 %s^0.5",
+                    Schema.NAME, Schema.NAME_SPELL, Schema.NAME_STUB, Schema.SYNONYM, Schema.SYNONYM_SPELL,
+                    Schema.SYNONYM_STUB, Schema.TEXT, Schema.TEXT, Schema.TEXT_SPELL, Schema.TEXT_STUB);
+            q.add("spellcheck", Boolean.toString(true));
+            q.add(SpellingParams.SPELLCHECK_COLLATE, Boolean.toString(true));
+            q.add(SpellingParams.SPELLCHECK_COUNT, "100");
+            q.add(SpellingParams.SPELLCHECK_MAX_COLLATION_TRIES, "3");
+            q.add("lowercaseOperators", Boolean.toString(false));
+            q.add("defType", "edismax");
+            QueryResponse resp = server.query(q);
+            List<SolrDocument> results = resp.getResults();
+            List<Phenotype> retval = new ArrayList<>(results.size());
+            for (SolrDocument doc : results) {
+                retval.add(mapper.fromDoc(doc));
+            }
+            return retval;
+        } catch (SolrServerException e) {
+            throw new IOException(e);
+        }
     }
 
     @Override
