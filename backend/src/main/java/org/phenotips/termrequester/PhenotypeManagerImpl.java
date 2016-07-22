@@ -19,6 +19,8 @@ package org.phenotips.termrequester;
 
 import java.io.IOException;
 
+import java.nio.file.Path;
+
 import java.util.Collection;
 import java.util.List;
 
@@ -67,9 +69,14 @@ public class PhenotypeManagerImpl implements PhenotypeManager
     }
 
     @Override
-    public void init(GithubAPI.Repository repo)
+    public void init(GithubAPI.Repository repo, Path home) throws TermRequesterBackendException
     {
         github = factory.create(repo);
+        try {
+            db.init(home);
+        } catch (IOException e) {
+            throw new TermRequesterBackendException(e);
+        }
     }
 
     @Override

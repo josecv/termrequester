@@ -17,8 +17,10 @@
  */
 package org.phenotips.termrequester;
 
-import java.util.List;
+import java.nio.file.Path;
+
 import java.util.Collection;
+import java.util.List;
 
 import org.phenotips.termrequester.github.GithubAPI;
 
@@ -35,8 +37,10 @@ public interface PhenotypeManager
     /**
      * Initialize this manager.
      * @param repo the repository in use.
+     * @param home the path to the directory where this object can live
+     * @throws TermRequesterBackendException on initialization failure
      */
-    void init(GithubAPI.Repository repo);
+    void init(GithubAPI.Repository repo, Path home) throws TermRequesterBackendException;
 
     /**
      * Request a new phenotype in the HPO.
@@ -62,6 +66,7 @@ public interface PhenotypeManager
      * Fuzzily search for phenotypes matching the text given.
      * @param text the text to search for
      * @return the list of phenotypes
+     * @throws TermRequesterBackendException if something goes wrong in the backend.
      */
     List<Phenotype> search(String text) throws TermRequesterBackendException;
 }

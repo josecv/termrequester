@@ -24,7 +24,9 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import org.phenotips.termrequester.db.DatabaseService;
 import org.phenotips.termrequester.di.HPORequestModule;
@@ -45,8 +47,8 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.refEq;
 import static org.mockito.Matchers.same;
 import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -113,17 +115,23 @@ public class PhenotypeManagerTest
     private static final String PT_NUM = "123";
 
     /**
+     * A temporary folder.
+     */
+    @Rule
+    public TemporaryFolder folder = new TemporaryFolder();
+
+    /**
      * Set up the test case.
      */
     @Before
-    public void setUp() throws IOException
+    public void setUp() throws IOException, TermRequesterBackendException
     {
         databaseService = mock(DatabaseService.class);
         githubApi = mock(GithubAPI.class);
         injector = Guice.createInjector(Modules.override(new HPORequestModule()).
                 with(new TestModule(databaseService, githubApi)));
         client = injector.getInstance(PhenotypeManager.class);
-        client.init(new GithubAPI.Repository(OWNER, REPOSITORY, TOKEN));
+        client.init(new GithubAPI.Repository(OWNER, REPOSITORY, TOKEN), folder.getRoot().toPath());
         pt = new Phenotype(PT_NAME, PT_DESC);
         when(databaseService.getPhenotypeById(any(String.class))).thenReturn(Phenotype.NULL);
         when(databaseService.getPhenotype(any(Phenotype.class))).thenReturn(Phenotype.NULL);
