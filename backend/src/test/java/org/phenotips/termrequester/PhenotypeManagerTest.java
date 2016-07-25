@@ -17,6 +17,12 @@
  */
 package org.phenotips.termrequester;
 
+import org.phenotips.termrequester.db.DatabaseService;
+import org.phenotips.termrequester.di.TermRequesterBackendModule;
+import org.phenotips.termrequester.github.GithubAPI;
+import org.phenotips.termrequester.github.GithubAPIFactory;
+import org.phenotips.termrequester.testutils.TestModule;
+
 import java.io.IOException;
 
 import java.util.ArrayList;
@@ -28,11 +34,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
-import org.phenotips.termrequester.db.DatabaseService;
-import org.phenotips.termrequester.di.TermRequesterBackendModule;
-import org.phenotips.termrequester.github.GithubAPI;
-import org.phenotips.termrequester.github.GithubAPIFactory;
 
 import com.google.common.base.Optional;
 import com.google.inject.AbstractModule;
@@ -188,41 +189,5 @@ public class PhenotypeManagerTest
         List<Phenotype> results = client.search(text);
         verify(databaseService).searchPhenotypes(text);
         assertEquals(phenotypes, results);
-    }
-
-    /**
-     * Sets up all of our mocked objects, binds them to their corresponding interfaces.
-     */
-    private static final class TestModule extends AbstractModule
-    {
-        /**
-         * The mocked database service.
-         */
-        private DatabaseService databaseService;
-
-        /**
-         * The mocked github api.
-         */
-        private GithubAPI githubApi;
-
-        /**
-         * Create a new TestModule instance.
-         * @param dbs the database service to inject
-         * @param github the github service to inject
-         */
-        public TestModule(DatabaseService dbs, GithubAPI github)
-        {
-            this.databaseService = dbs;
-            this.githubApi = github;
-        }
-
-        @Override
-        public void configure()
-        {
-            GithubAPIFactory factory = mock(GithubAPIFactory.class);
-            when(factory.create(any(GithubAPI.Repository.class))).thenReturn(githubApi);
-            bind(GithubAPIFactory.class).toInstance(factory);
-            bind(DatabaseService.class).toInstance(databaseService);
-        }
     }
 }
