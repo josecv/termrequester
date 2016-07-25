@@ -46,12 +46,12 @@ public interface PhenotypeManager
      * Request a new phenotype in the HPO.
      * @param name the name of the phenotype to request
      * @param synonyms a list of synonyms for the phenotype
-     * @param parentId optionally the phenotype's parent id
+     * @param parentIds the phenotype's parents
      * @param description optionally the phenotype's description
      * @return the newly created request, and whether or not it was new
      * @throws TermRequesterBackendException if something goes wrong in the backend.
      */
-    PhenotypeCreation createRequest(String name, Collection<String> synonyms, Optional<String> parentId,
+    PhenotypeCreation createRequest(String name, Collection<String> synonyms, Collection<String> parentIds,
                                     Optional<String> description) throws TermRequesterBackendException;
 
     /**

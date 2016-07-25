@@ -86,7 +86,7 @@ final class NullPhenotype extends Phenotype
     public String asParent()
     {
         /* TODO IS THIS REASONABLE */
-        return "NO PARENT";
+        return "";
     }
 
     @Override
@@ -140,9 +140,9 @@ final class NullPhenotype extends Phenotype
     }
 
     @Override
-    public Phenotype getParent()
+    public Set<Phenotype> getParents()
     {
-        return this;
+        return new HashSet<>();
     }
 
     @Override

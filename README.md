@@ -19,6 +19,7 @@ DATA STRUCTURES
   'synonyms': ['...', '...', ],
   'description': '...',
   'issue_num': '...',           /* The github issue number in the HPO's github */
+  'parents': ['...', ], /* The ids of this phenotype's parents */
 }
 ```
 
@@ -60,11 +61,14 @@ created, and the previously existing one will be returned.
 
 ###### Parameters
 
+These are an exact match of the phenotype data type, only missing the `status`, `id` and `issue_num`.
+
 ```javascript
 {
   'name': '...',
   'synonyms': ['...', '...', ],
   'description': '...',
+  'parents': ['...', '...', ],
 }
 ```
 
@@ -74,19 +78,6 @@ If the phenotype has already been requested, the response code will be `HTTP 409
 
 In either case the new (or previously existing) phenotype will be returned
 (see above for phenotype object format).
-
-### `POST /phenotypes/force_create`
-
-Create a new phenotype request, whether or not there's already an identical one.
-
-###### Parameters
-
-See `POST /phenotypes/create`
-
-###### Response
-
-Will always accept a (properly formatted) request and return the newly minted phenotype.
-
 
 READ
 ----
@@ -115,5 +106,6 @@ Returns the phenotype with the id given (see above for object format) or an empt
     'text': '...',      /* Echo of the search text */
     'num_results': ..., /* Number of results returned */
   },
+  'results': [ {...}, ... ], /* The results as phenotype instances */
 }
 ```

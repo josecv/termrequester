@@ -49,6 +49,7 @@ import org.apache.solr.common.params.SpellingParams;
 import org.apache.solr.core.CoreContainer;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Optional;
 import com.google.inject.Singleton;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -224,10 +225,7 @@ public class SolrDatabaseService implements DatabaseService
             if (doc == null) {
                 return Phenotype.NULL;
             }
-            Phenotype pt = mapper.fromDoc(doc);
-            String parentId = (String) doc.getFieldValue(Schema.PARENT);
-            SolrDocument parentDoc = server.getById(parentId);
-            pt.setParent(parentDoc == null ? Phenotype.NULL : mapper.fromDoc(parentDoc));
+            Phenotype pt = mapper.fromDoc(doc, Optional.of(server));
             return pt;
         } catch (SolrServerException e) {
             throw new IOException(e);
@@ -247,7 +245,7 @@ public class SolrDatabaseService implements DatabaseService
             if (results.size() == 0) {
                 return Phenotype.NULL;
             }
-            return mapper.fromDoc(results.get(0));
+            return mapper.fromDoc(results.get(0), Optional.of(server));
         } catch (SolrServerException e) {
             throw new IOException(e);
         }
@@ -285,7 +283,7 @@ public class SolrDatabaseService implements DatabaseService
             if (results.size() == 0) {
                 return Phenotype.NULL;
             }
-            return mapper.fromDoc(results.get(0));
+            return mapper.fromDoc(results.get(0), Optional.of(server));
         } catch (SolrServerException e) {
             throw new IOException(e);
         }
@@ -316,7 +314,7 @@ public class SolrDatabaseService implements DatabaseService
             List<SolrDocument> results = resp.getResults();
             List<Phenotype> retval = new ArrayList<>(results.size());
             for (SolrDocument doc : results) {
-                retval.add(mapper.fromDoc(doc));
+                retval.add(mapper.fromDoc(doc, Optional.of(server)));
             }
             return retval;
         } catch (SolrServerException e) {

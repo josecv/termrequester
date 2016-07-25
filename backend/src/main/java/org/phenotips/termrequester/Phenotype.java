@@ -19,12 +19,15 @@ package org.phenotips.termrequester;
 
 import java.io.Serializable;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.Sets;
 
@@ -34,8 +37,6 @@ import com.google.common.collect.Sets;
  * absence.
  * Once stored in the database, will have an id (accessible via getId()). If accepted into the HPO,
  * an hpo id will be set (accessible via getHpoId())
- *
- * TODO NEED TO SUPPORT MULTIPLE PARENTS
  *
  * @version $Id$
  */
@@ -63,6 +64,11 @@ public class Phenotype extends AbstractSaveable implements Serializable
      * The serial version uid.
      */
     private static final long serialVersionUID = 1789L;
+
+    /**
+     * Joins all the parent ids with commas.
+     */
+    private static final Joiner PARENT_JOINER = Joiner.on(", ").skipNulls();
 
     /**
      * The hpo id of this phenotype.
@@ -105,9 +111,9 @@ public class Phenotype extends AbstractSaveable implements Serializable
     private Status status = Status.UNSUBMITTED;
 
     /**
-     * This phenotype's parent.
+     * This phenotype's parents.
      */
-    private Phenotype parent = NULL;
+    private Set<Phenotype> parents;
 
     /**
      * CTOR.
@@ -120,6 +126,7 @@ public class Phenotype extends AbstractSaveable implements Serializable
         this.name = name;
         this.description = description;
         synonyms = new HashSet<>();
+        parents = new HashSet<>();
     }
 
     /**
@@ -270,23 +277,36 @@ public class Phenotype extends AbstractSaveable implements Serializable
     }
 
     /**
-     * Get parent.
+     * Get the parents.
      *
-     * @return parent as Phenotype.
+     * @return parents
      */
-    public Phenotype getParent()
+    public Set<Phenotype> getParents()
     {
-        return parent;
+        return new HashSet<>(parents);
     }
 
     /**
-     * Set parent.
+     * Add a new parent.
      *
-     * @param parent the value to set.
+     * @param parent the value to add.
      */
-    public void setParent(Phenotype parent)
+    public void addParent(Phenotype parent)
     {
-        this.parent = parent;
+        if (!NULL.equals(parent)) {
+            parents.add(parent);
+        }
+    }
+
+    /**
+     * Add all the parents given to this phenotype's set.
+     *
+     * @param parents the parents.
+     */
+    public void addAllParents(Collection<Phenotype> parents)
+    {
+        this.parents.addAll(parents);
+        this.parents.remove(NULL);
     }
 
     /**
@@ -335,9 +355,13 @@ public class Phenotype extends AbstractSaveable implements Serializable
      */
     public String issueDescribe()
     {
+        List<String> theParents = new ArrayList<>(parents.size());
+        for (Phenotype parent : parents) {
+            theParents.add(parent.asParent());
+        }
         return "TERM: " + this.name
             + "\nSYNONYMS: " + String.join(",", this.synonyms)
-            + "\nPARENT: " + parent.asParent()
+            + "\nPARENT: " + PARENT_JOINER.join(theParents)
             + "\nPT_INTERNAL_ID: " + this.getId().or("NONE")
             + "\nDESCRIPTION: " + this.description.replace("\n", ". ");
     }
@@ -382,7 +406,23 @@ public class Phenotype extends AbstractSaveable implements Serializable
     public int hashCode()
     {
         return Objects.hash(getId().or(EMPTY_ID), name, description, synonyms,
-                parent, getIssueNumber().or(EMPTY_ISSUE), status, hpoId);
+                parents, getIssueNumber().or(EMPTY_ISSUE), status, hpoId);
+    }
+
+    /**
+     * Get the ids of the parents of this phenotype.
+     * Any parents without an id will not be considered.
+     * @return the parent ids.
+     */
+    public Collection<String> getParentIds()
+    {
+        List<String> parentIds = new ArrayList<>(parents.size());
+        for (Phenotype parent : parents) {
+            if (parent.getId().isPresent()) {
+                parentIds.add(parent.getId().get());
+            }
+        }
+        return parentIds;
     }
 
     /**

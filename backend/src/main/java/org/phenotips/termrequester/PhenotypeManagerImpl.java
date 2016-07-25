@@ -89,15 +89,16 @@ public class PhenotypeManagerImpl implements PhenotypeManager
     }
 
     @Override
-    public PhenotypeCreation createRequest(String name, Collection<String> synonyms, Optional<String> parentId,
+    public PhenotypeCreation createRequest(String name, Collection<String> synonyms, Collection<String> parentIds,
                                    Optional<String> description) throws TermRequesterBackendException
     {
         Phenotype pt = new Phenotype(name, description.or(""));
         pt.addAllSynonyms(synonyms);
         try {
-            /* TODO USE PROPER DEFAULT PARENT */
-            Phenotype parent = db.getPhenotypeById(parentId.or("wat"));
-            pt.setParent(parent);
+            /* TODO: Need to set default parent if there's no parent */
+            for (String parentId : parentIds) {
+                pt.addParent(db.getPhenotypeById(parentId));
+            }
             Phenotype existing = checkInDb(pt);
             if (!Phenotype.NULL.equals(existing)) {
                 return new PhenotypeCreation(updatePhenotype(existing), false);

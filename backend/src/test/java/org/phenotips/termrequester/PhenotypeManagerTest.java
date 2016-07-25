@@ -149,7 +149,7 @@ public class PhenotypeManagerTest
         when(githubApi.searchForIssue(refEq(pt))).thenReturn(Optional.<String>absent());
         doNothing().when(githubApi).openIssue(refEq(pt));
         PhenotypeManager.PhenotypeCreation created = client.createRequest(PT_NAME,
-                new ArrayList<String>(), Optional.<String>absent(), Optional.of(PT_DESC));
+                new ArrayList<String>(), new ArrayList<String>(), Optional.of(PT_DESC));
         Phenotype pt2 = created.phenotype;
         assertNotNull(pt2);
         assertEquals(PT_NAME, pt2.getName());

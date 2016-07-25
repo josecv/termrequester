@@ -20,12 +20,18 @@ package org.phenotips.termrequester.db.solr;
 import org.phenotips.termrequester.HPOPhenotype;
 import org.phenotips.termrequester.Phenotype;
 
+import java.io.IOException;
+
 import java.util.Collection;
 import java.util.Date;
 import java.util.Set;
 
+import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrInputDocument;
+
+import com.google.common.base.Optional;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -45,13 +51,14 @@ class SolrMapper
     {
         checkArgument(pt.getId().isPresent(), "Missing id for " + pt);
         Set<String> synonyms = pt.getSynonyms();
+        Collection<String> parents = pt.getParentIds();
         Date now = new Date();
         SolrInputDocument doc = new SolrInputDocument();
         doc.setField(Schema.NAME, pt.getName());
         doc.setField(Schema.DEFINITION, pt.getDescription());
         doc.setField(Schema.STATUS, pt.getStatus().name());
         doc.setField(Schema.ISSUE_NUMBER, pt.getIssueNumber().or(Phenotype.EMPTY_ISSUE));
-        doc.setField(Schema.PARENT, pt.getParent().getId().or((Phenotype.EMPTY_ID)));
+        doc.setField(Schema.PARENT, parents.toArray(new String[parents.size()]));
         doc.setField(Schema.SYNONYM, synonyms.toArray(new String[synonyms.size()]));
         doc.setField(Schema.ID, pt.getId().get());
         if (pt.getHpoId().isPresent()) {
@@ -68,11 +75,14 @@ class SolrMapper
 
     /**
      * Turn the document given into a Phenotype instance.
-     * Note that the parent will not be populated.
+     * If the solr client is given, will use it to populate the parents.
      * @param doc the document
+     * @param client optionally the solr client to populate the parents
      * @return the instance
+     * @throws SolrServerException if the server throws
+     * @throws IOException if the server throws
      */
-    public Phenotype fromDoc(SolrDocument doc)
+    public Phenotype fromDoc(SolrDocument doc, Optional<SolrClient> client) throws SolrServerException, IOException
     {
         String name = (String) doc.getFieldValue(Schema.NAME);
         String description = (String) doc.getFieldValue(Schema.DEFINITION);
@@ -95,7 +105,31 @@ class SolrMapper
         pt.setIssueNumber((String) doc.getFieldValue(Schema.ISSUE_NUMBER));
         pt.setTimeCreated((Date) doc.getFieldValue(Schema.TIME_CREATED));
         pt.setTimeModified((Date) doc.getFieldValue(Schema.TIME_MODIFIED));
+        if (client.isPresent()) {
+            populateParents(pt, doc, client.get());
+        }
         pt.setClean();
         return pt;
+    }
+
+    /**
+     * Populate the parents of the phenotype given.
+     * @param pt the phenotype
+     * @param ptDoc the phenotype's solr document
+     * @param clien the solr client in use
+     */
+    private void populateParents(Phenotype pt, SolrDocument ptDoc, SolrClient client)
+        throws SolrServerException, IOException
+    {
+        Collection<Object> parents = ptDoc.getFieldValues(Schema.PARENT);
+        if (parents != null) {
+            for (Object parent : parents) {
+                SolrDocument parentDoc = client.getById((String) parent);
+                if (parentDoc != null) {
+                    /* We certainly don't wanna recurse any further */
+                    pt.addParent(fromDoc(parentDoc, Optional.<SolrClient>absent()));
+                }
+            }
+        }
     }
 }
