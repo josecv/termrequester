@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see http://www.gnu.org/licenses/
  */
-package org.phenotips.termrequester.resources;
+package org.phenotips.termrequester.rest.resources;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -24,7 +24,7 @@ import org.junit.rules.TemporaryFolder;
 
 import org.phenotips.termrequester.Phenotype;
 import org.phenotips.termrequester.db.DatabaseService;
-import org.phenotips.termrequester.di.TermRequesterRESTModule;
+import org.phenotips.termrequester.rest.di.TermRequesterRESTModule;
 import org.phenotips.termrequester.github.GithubAPI;
 import org.phenotips.termrequester.testutils.TestModule;
 

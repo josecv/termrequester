@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see http://www.gnu.org/licenses/
  */
-package org.phenotips.termrequester.resources.annotations;
+package org.phenotips.termrequester.rest.resources.annotations;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -23,10 +23,10 @@ import java.lang.annotation.RetentionPolicy;
 import com.google.inject.BindingAnnotation;
 
 /**
- * The home directory where the application should save its permanent data.
+ * The name of the repository to report to.
  *
- * @version $Id : $
+ * @version $Id$
  */
 @Retention(RetentionPolicy.RUNTIME)
 @BindingAnnotation
-public @interface HomeDir { }
+public @interface RepositoryName { }

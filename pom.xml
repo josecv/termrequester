@@ -171,7 +171,7 @@
   </build>
   <modules>
     <module>backend</module>
-    <module>api</module>
+    <module>rest</module>
     <module>war-packaging</module>
   </modules>
   <dependencies>

@@ -15,46 +15,32 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see http://www.gnu.org/licenses/
  */
-package org.phenotips.termrequester.resources;
+package org.phenotips.termrequester.rest;
 
-import java.util.List;
+import org.phenotips.termrequester.rest.di.TermRequesterRESTModule;
+import org.phenotips.termrequester.rest.resources.TermRequesterResource;
+
+import org.restlet.Application;
+import org.restlet.Restlet;
+import org.restlet.ext.guice.FinderFactory;
+import org.restlet.ext.guice.RestletGuice;
+import org.restlet.routing.Router;
 
 
 /**
- * Contains data types respresenting requests and responses for the resources.
+ * The main restlet application for the term requester.
  *
  * @version $Id$
  */
-final class DataTypes
+public class TermRequesterApplication extends Application
 {
-    /**
-     * Private CTOR.
-     */
-    private DataTypes() { }
-
-    /**
-     * The request object to the create() method.
-     */
-    public static class CreateRequest
+    @Override
+    public Restlet createInboundRoot()
     {
-        /**
-         * The name of the new phenotype.
-         */
-        public String name;
-
-        /**
-         * The list of synonyms for the new phenotype.
-         */
-        public List<String> synonyms;
-
-        /**
-         * The description for the new phenotype.
-         */
-        public String description;
-
-        /**
-         * The id of the parent.
-         */
-        public List<String> parents;
+        Router router = new Router(getContext());
+        /* TODO Proper values */
+        FinderFactory finder = new RestletGuice.Module(new TermRequesterRESTModule("", "", "", ""));
+        router.attach("/phenotypes", finder.finder(TermRequesterResource.class));
+        return router;
     }
 }

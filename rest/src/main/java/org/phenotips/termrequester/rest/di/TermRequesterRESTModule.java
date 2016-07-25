@@ -15,12 +15,14 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see http://www.gnu.org/licenses/
  */
-package org.phenotips.termrequester.di;
+package org.phenotips.termrequester.rest.di;
 
-import org.phenotips.termrequester.resources.annotations.HomeDir;
-import org.phenotips.termrequester.resources.annotations.OAuthToken;
-import org.phenotips.termrequester.resources.annotations.RepositoryName;
-import org.phenotips.termrequester.resources.annotations.RepositoryOwner;
+import org.phenotips.termrequester.di.TermRequesterBackendModule;
+
+import org.phenotips.termrequester.rest.resources.annotations.HomeDir;
+import org.phenotips.termrequester.rest.resources.annotations.OAuthToken;
+import org.phenotips.termrequester.rest.resources.annotations.RepositoryName;
+import org.phenotips.termrequester.rest.resources.annotations.RepositoryOwner;
 
 import com.google.inject.AbstractModule;
 

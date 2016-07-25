@@ -15,18 +15,46 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see http://www.gnu.org/licenses/
  */
-package org.phenotips.termrequester.resources.annotations;
+package org.phenotips.termrequester.rest.resources;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
+import java.util.List;
 
-import com.google.inject.BindingAnnotation;
 
 /**
- * The github username of the owner of the repository to report to.
+ * Contains data types respresenting requests and responses for the resources.
  *
  * @version $Id$
  */
-@Retention(RetentionPolicy.RUNTIME)
-@BindingAnnotation
-public @interface RepositoryOwner { }
+final class DataTypes
+{
+    /**
+     * Private CTOR.
+     */
+    private DataTypes() { }
+
+    /**
+     * The request object to the create() method.
+     */
+    public static class CreateRequest
+    {
+        /**
+         * The name of the new phenotype.
+         */
+        public String name;
+
+        /**
+         * The list of synonyms for the new phenotype.
+         */
+        public List<String> synonyms;
+
+        /**
+         * The description for the new phenotype.
+         */
+        public String description;
+
+        /**
+         * The id of the parent.
+         */
+        public List<String> parents;
+    }
+}

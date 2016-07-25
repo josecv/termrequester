@@ -26,9 +26,9 @@
     <artifactId>phenotips-term-requester</artifactId>
     <version>1.0-SNAPSHOT</version>
   </parent>
-  <artifactId>phenotips-term-requester-api</artifactId>
+  <artifactId>phenotips-term-requester-rest</artifactId>
 
-  <name>PhenoTips - Term Requester API</name>
+  <name>PhenoTips - Term Requester Rest interface</name>
   <description>Sets up the restlet api for the Term requester</description>
   <packaging>jar</packaging>
 

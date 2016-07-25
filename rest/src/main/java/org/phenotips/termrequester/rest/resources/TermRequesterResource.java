@@ -15,16 +15,16 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see http://www.gnu.org/licenses/
  */
-package org.phenotips.termrequester.resources;
+package org.phenotips.termrequester.rest.resources;
 
 import org.phenotips.termrequester.Phenotype;
 import org.phenotips.termrequester.PhenotypeManager;
 import org.phenotips.termrequester.TermRequesterBackendException;
 import org.phenotips.termrequester.github.GithubAPI;
-import org.phenotips.termrequester.resources.annotations.HomeDir;
-import org.phenotips.termrequester.resources.annotations.OAuthToken;
-import org.phenotips.termrequester.resources.annotations.RepositoryName;
-import org.phenotips.termrequester.resources.annotations.RepositoryOwner;
+import org.phenotips.termrequester.rest.resources.annotations.HomeDir;
+import org.phenotips.termrequester.rest.resources.annotations.OAuthToken;
+import org.phenotips.termrequester.rest.resources.annotations.RepositoryName;
+import org.phenotips.termrequester.rest.resources.annotations.RepositoryOwner;
 
 import java.nio.file.Paths;
 
