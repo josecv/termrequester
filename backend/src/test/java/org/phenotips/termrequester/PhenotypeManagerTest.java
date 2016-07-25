@@ -156,8 +156,8 @@ public class PhenotypeManagerTest
         assertEquals(PT_NAME, pt2.getName());
         assertEquals(PT_DESC, pt2.getDescription());
         assertTrue(created.isNew);
-        verify(databaseService).savePhenotype(refEq(pt, "parent"));
-        verify(githubApi).openIssue(refEq(pt, "parent"));
+        verify(databaseService).savePhenotype(refEq(pt));
+        verify(githubApi).openIssue(refEq(pt));
     }
 
     /**
