@@ -45,7 +45,7 @@ import org.junit.rules.TemporaryFolder;
 
 import org.phenotips.termrequester.Phenotype;
 import org.phenotips.termrequester.db.DatabaseService;
-import org.phenotips.termrequester.di.HPORequestModule;
+import org.phenotips.termrequester.di.TermRequesterBackendModule;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -110,7 +110,7 @@ public class SolrDatabaseServiceTest
     @BeforeClass
     public static void beforeClass()
     {
-        injector = Guice.createInjector(new HPORequestModule());
+        injector = Guice.createInjector(new TermRequesterBackendModule());
     }
 
     /**

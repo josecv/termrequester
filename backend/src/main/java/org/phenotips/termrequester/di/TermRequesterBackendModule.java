@@ -33,11 +33,11 @@ import com.google.inject.Singleton;
 
 
 /**
- * A guice module for the HPORequest app's backend.
+ * A guice module for the term requester app's backend.
  *
  * @version $Id$
  */
-public class HPORequestModule extends AbstractModule
+public class TermRequesterBackendModule extends AbstractModule
 {
     @Override
     public void configure()

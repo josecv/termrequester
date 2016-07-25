@@ -30,7 +30,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import org.phenotips.termrequester.db.DatabaseService;
-import org.phenotips.termrequester.di.HPORequestModule;
+import org.phenotips.termrequester.di.TermRequesterBackendModule;
 import org.phenotips.termrequester.github.GithubAPI;
 import org.phenotips.termrequester.github.GithubAPIFactory;
 
@@ -54,7 +54,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * Tests the PhenotypeManager implementation defined in HPORequestModule.
+ * Tests the PhenotypeManager implementation defined in TermRequesterBackendModule.
  *
  * @version $Id$
  */
@@ -129,7 +129,7 @@ public class PhenotypeManagerTest
     {
         databaseService = mock(DatabaseService.class);
         githubApi = mock(GithubAPI.class);
-        injector = Guice.createInjector(Modules.override(new HPORequestModule()).
+        injector = Guice.createInjector(Modules.override(new TermRequesterBackendModule()).
                 with(new TestModule(databaseService, githubApi)));
         client = injector.getInstance(PhenotypeManager.class);
         client.init(new GithubAPI.Repository(OWNER, REPOSITORY, TOKEN), folder.getRoot().toPath());

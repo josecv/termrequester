@@ -35,7 +35,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import org.phenotips.termrequester.Phenotype;
-import org.phenotips.termrequester.di.HPORequestModule;
+import org.phenotips.termrequester.di.TermRequesterBackendModule;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -115,7 +115,7 @@ public class GithubAPIImplTest
     @BeforeClass
     public static void beforeClass()
     {
-        injector = Guice.createInjector(new HPORequestModule());
+        injector = Guice.createInjector(new TermRequesterBackendModule());
         mapper = injector.getInstance(ObjectMapper.class);
         factory = injector.getInstance(GithubAPIFactoryImpl.class);
     }
