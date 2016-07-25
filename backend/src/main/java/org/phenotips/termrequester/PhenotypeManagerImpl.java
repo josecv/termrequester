@@ -81,7 +81,7 @@ public class PhenotypeManagerImpl implements PhenotypeManager
     }
 
     @Override
-    public Phenotype createRequest(String name, Collection<String> synonyms, Optional<String> parentId,
+    public PhenotypeCreation createRequest(String name, Collection<String> synonyms, Optional<String> parentId,
                                    Optional<String> description) throws TermRequesterBackendException
     {
         Phenotype pt = new Phenotype(name, description.or(""));
@@ -92,11 +92,11 @@ public class PhenotypeManagerImpl implements PhenotypeManager
             pt.setParent(parent);
             Phenotype existing = checkInDb(pt);
             if (!Phenotype.NULL.equals(existing)) {
-                return updatePhenotype(existing);
+                return new PhenotypeCreation(updatePhenotype(existing), false);
             }
             existing = checkInGithub(pt);
             if (!Phenotype.NULL.equals(existing)) {
-                return updatePhenotype(existing);
+                return new PhenotypeCreation(updatePhenotype(existing), false);
             }
             /* It wasn't anywhere */
             github.openIssue(pt);
@@ -104,7 +104,7 @@ public class PhenotypeManagerImpl implements PhenotypeManager
         } catch (IOException e) {
             throw new TermRequesterBackendException(e);
         }
-        return pt;
+        return new PhenotypeCreation(pt, true);
     }
 
     /**

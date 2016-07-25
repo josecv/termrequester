@@ -148,11 +148,13 @@ public class PhenotypeManagerTest
         when(databaseService.savePhenotype(refEq(pt))).thenReturn(pt);
         when(githubApi.searchForIssue(refEq(pt))).thenReturn(Optional.<String>absent());
         doNothing().when(githubApi).openIssue(refEq(pt));
-        Phenotype pt2 = client.createRequest(PT_NAME, new ArrayList<String>(), Optional.<String>absent(),
-                                             Optional.of(PT_DESC));
+        PhenotypeManager.PhenotypeCreation created = client.createRequest(PT_NAME,
+                new ArrayList<String>(), Optional.<String>absent(), Optional.of(PT_DESC));
+        Phenotype pt2 = created.phenotype;
         assertNotNull(pt2);
         assertEquals(PT_NAME, pt2.getName());
         assertEquals(PT_DESC, pt2.getDescription());
+        assertTrue(created.isNew);
         verify(databaseService).savePhenotype(refEq(pt, "parent"));
         verify(githubApi).openIssue(refEq(pt, "parent"));
     }

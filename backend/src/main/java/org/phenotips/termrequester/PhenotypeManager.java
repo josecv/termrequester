@@ -48,11 +48,11 @@ public interface PhenotypeManager
      * @param synonyms a list of synonyms for the phenotype
      * @param parentId optionally the phenotype's parent id
      * @param description optionally the phenotype's description
-     * @return the newly created request.
+     * @return the newly created request, and whether or not it was new
      * @throws TermRequesterBackendException if something goes wrong in the backend.
      */
-    Phenotype createRequest(String name, Collection<String> synonyms, Optional<String> parentId,
-                            Optional<String> description) throws TermRequesterBackendException;
+    PhenotypeCreation createRequest(String name, Collection<String> synonyms, Optional<String> parentId,
+                                    Optional<String> description) throws TermRequesterBackendException;
 
     /**
      * Get the phenotype with the id given. This might be an HPO or a termrequester id.
@@ -69,4 +69,29 @@ public interface PhenotypeManager
      * @throws TermRequesterBackendException if something goes wrong in the backend.
      */
     List<Phenotype> search(String text) throws TermRequesterBackendException;
+
+    /**
+     * A response to the createRequest method, containing the phenotype and whether
+     * or not it was just created.
+     *
+     * @version $Id$
+     */
+    class PhenotypeCreation
+    {
+        /**
+         * The phenotype.
+         */
+        public Phenotype phenotype;
+
+        /**
+         * Whether it is new.
+         */
+        public boolean isNew;
+
+        public PhenotypeCreation(Phenotype phenotype, boolean isNew)
+        {
+            this.phenotype = phenotype;
+            this.isNew = isNew;
+        }
+    }
 }
