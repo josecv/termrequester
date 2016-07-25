@@ -29,6 +29,8 @@ import com.google.inject.AbstractModule;
 
 /**
  * Sets up mocked objects and binds them to interfaces.
+ * If any of the services it mocks are given as null, will not do any binding on that service.
+ * This should allow you to flexibly decide which services you want and do not want mocked
  *
  * @version $Id$
  */
@@ -58,9 +60,13 @@ public final class TestModule extends AbstractModule
     @Override
     public void configure()
     {
-        GithubAPIFactory factory = mock(GithubAPIFactory.class);
-        when(factory.create(any(GithubAPI.Repository.class))).thenReturn(githubApi);
-        bind(GithubAPIFactory.class).toInstance(factory);
-        bind(DatabaseService.class).toInstance(databaseService);
+        if (githubApi != null) {
+            GithubAPIFactory factory = mock(GithubAPIFactory.class);
+            when(factory.create(any(GithubAPI.Repository.class))).thenReturn(githubApi);
+            bind(GithubAPIFactory.class).toInstance(factory);
+        }
+        if (databaseService != null) {
+            bind(DatabaseService.class).toInstance(databaseService);
+        }
     }
 }
