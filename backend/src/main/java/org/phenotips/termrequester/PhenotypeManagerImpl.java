@@ -58,6 +58,11 @@ public class PhenotypeManagerImpl implements PhenotypeManager
     private GithubAPI github;
 
     /**
+     * Whether this service is up.
+     */
+    private boolean up;
+
+    /**
      * CTOR.
      * @param factory the injected github api factory
      * @param db the database service
@@ -72,11 +77,14 @@ public class PhenotypeManagerImpl implements PhenotypeManager
     @Override
     public void init(GithubAPI.Repository repo, Path home) throws TermRequesterBackendException
     {
-        github = factory.create(repo);
-        try {
-            db.init(home);
-        } catch (IOException e) {
-            throw new TermRequesterBackendException(e);
+        if (!up) {
+            github = factory.create(repo);
+            try {
+                db.init(home);
+            } catch (IOException e) {
+                throw new TermRequesterBackendException(e);
+            }
+            up = true;
         }
     }
 
