@@ -116,6 +116,14 @@ public class Phenotype extends AbstractSaveable implements Serializable
     private Set<Phenotype> parents;
 
     /**
+     * No-arg constructor. Sets name and description to empty string.
+     */
+    public Phenotype()
+    {
+        this("", "");
+    }
+
+    /**
      * CTOR.
      *
      * @param name the name

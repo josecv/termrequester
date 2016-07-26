@@ -17,7 +17,10 @@
  */
 package org.phenotips.termrequester;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import com.google.common.base.Optional;
+
 import static com.google.common.base.Preconditions.checkState;
 
 /**
@@ -46,6 +49,7 @@ public abstract class AbstractSaveable
      * Figure out whether this object is dirty and should be written.
      * @return whether this is dirty
      */
+    @JsonIgnore
     public boolean isDirty()
     {
         return (!getId().isPresent()) || (!versionHash.equals(calculateVersionHash()));

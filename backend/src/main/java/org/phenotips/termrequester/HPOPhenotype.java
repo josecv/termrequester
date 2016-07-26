@@ -33,6 +33,14 @@ public class HPOPhenotype extends Phenotype
     public static final long serialVersionUID = 1848L;
 
     /**
+     * No-arg constructor. Sets name and description to empty string.
+     */
+    public HPOPhenotype()
+    {
+        this("", "");
+    }
+
+    /**
      * CTOR.
      * @param name the name
      * @param description the description

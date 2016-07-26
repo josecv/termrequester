@@ -24,8 +24,8 @@ import org.junit.rules.TemporaryFolder;
 
 import org.phenotips.termrequester.Phenotype;
 import org.phenotips.termrequester.db.DatabaseService;
-import org.phenotips.termrequester.rest.di.TermRequesterRESTModule;
 import org.phenotips.termrequester.github.GithubAPI;
+import org.phenotips.termrequester.rest.di.TermRequesterRESTModule;
 import org.phenotips.termrequester.testutils.TestModule;
 
 import org.restlet.Request;
@@ -36,6 +36,8 @@ import org.restlet.ext.guice.FinderFactory;
 import org.restlet.ext.guice.RestletGuice;
 import org.restlet.representation.StringRepresentation;
 import org.restlet.routing.Router;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import com.google.common.base.Optional;
 import com.google.inject.AbstractModule;
@@ -48,10 +50,12 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.refEq;
 import static org.mockito.Matchers.same;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -101,6 +105,11 @@ public class TermRequesterResourceTest
     private Router router;
 
     /**
+     * An object mapper to deserialize from json.
+     */
+    private ObjectMapper mapper;
+
+    /**
      * A temporary folder.
      */
     @Rule
@@ -109,23 +118,23 @@ public class TermRequesterResourceTest
     @Before
     public void setUp() throws Exception
     {
-        databaseService = mock(DatabaseService.class);
         githubApi = mock(GithubAPI.class);
+        System.out.println(folder.getRoot().toString());
         injector = RestletGuice.createInjector(Modules.override(
                     new TermRequesterRESTModule("", "", "", folder.getRoot().toString())).
-                with(new TestModule(databaseService, githubApi)));
+                with(new TestModule(null, githubApi)));
         FinderFactory finder = injector.getInstance(FinderFactory.class);
         router = new Router();
         //router.attach("/phenotypes", finder.finder(TermRequesterResource.class));
         router.attachDefault(finder.finder(TermRequesterResource.class));
         pt = new Phenotype(PT_NAME, PT_DESC);
+        mapper = injector.getInstance(ObjectMapper.class);
+        databaseService = injector.getInstance(DatabaseService.class);
     }
 
     @Test
     public void testCreate() throws Exception
     {
-        when(databaseService.savePhenotype(refEq(pt))).thenReturn(pt);
-        when(databaseService.getPhenotype(refEq(pt))).thenReturn(Phenotype.NULL);
         when(githubApi.searchForIssue(refEq(pt))).thenReturn(Optional.<String>absent());
         doNothing().when(githubApi).openIssue(refEq(pt));
         String requestUri = "/phenotypes/create";
@@ -140,7 +149,7 @@ public class TermRequesterResourceTest
         assertEquals(201, response.getStatus().getCode());
         assertTrue(response.isEntityAvailable());
         assertEquals(MediaType.APPLICATION_JSON, response.getEntity().getMediaType());
-        verify(databaseService).savePhenotype(refEq(pt));
-        verify(githubApi).openIssue(refEq(pt));
+        System.out.println(response.getEntity().getText());
+        verify(githubApi).openIssue(eq(pt));
     }
 }
