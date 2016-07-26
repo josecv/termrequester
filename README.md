@@ -15,11 +15,12 @@ DATA STRUCTURES
 {
   'id': 'NONHPO_...',           /* The id of this phenotype within the request service */
   'name': '...',
-  'status': { ... },            /* See spec for status object */
+  'status': '...', /* See the status below */
   'synonyms': ['...', '...', ],
   'description': '...',
-  'issue_num': '...',           /* The github issue number in the HPO's github */
+  'issueNumber': '...',           /* The github issue number in the HPO's github */
   'parents': ['...', ], /* The ids of this phenotype's parents */
+  'hpoId': '...', /* The id of the term in the HPO. Non-null iff status == ACCEPTED */
 }
 ```
 
@@ -27,28 +28,9 @@ DATA STRUCTURES
 
 One of:
 
-- Submitted
-```javascript
-  {
-    'status': 'SUBMITTED',
-  }
-```
-- Rejected
-
-```javascript
-  {
-    'status': 'REJECTED',
-  }
-```
-
-- Accepted
-
-```javascript
-  {
-    'status': 'ACCEPTED',
-    'new_id': 'HPO_...',  /* The id of the created phenotype in the HPO */
-  }
-```
+- `SUBMITTED`
+- `REJECTED`
+- `ACCEPTED`
 
 CREATE
 ------
