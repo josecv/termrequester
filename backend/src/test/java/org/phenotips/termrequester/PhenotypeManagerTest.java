@@ -149,8 +149,7 @@ public class PhenotypeManagerTest
         when(databaseService.savePhenotype(refEq(pt))).thenReturn(pt);
         when(githubApi.searchForIssue(refEq(pt))).thenReturn(Optional.<String>absent());
         doNothing().when(githubApi).openIssue(refEq(pt));
-        PhenotypeManager.PhenotypeCreation created = client.createRequest(PT_NAME,
-                new ArrayList<String>(), new ArrayList<String>(), Optional.of(PT_DESC));
+        PhenotypeManager.PhenotypeCreation created = client.createRequest(pt);
         Phenotype pt2 = created.phenotype;
         assertNotNull(pt2);
         assertEquals(PT_NAME, pt2.getName());

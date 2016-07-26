@@ -62,6 +62,12 @@ import static org.mockito.Mockito.verify;
  */
 public class GithubAPIImplTest
 {
+    /* You'll notice there's a fair few sleep()s here. The more we run this test, the bigger the
+     * issue list for the test repo gets, and the longer things take to sync. This is obviously
+     * not the greatest situation in the world, but hopefully with a couple of long-enough
+     * sleeps we should be able to make everything sync nicely. For this very reason you should
+     * mock the githubapi component in every other test that uses it */
+
     /**
      * The github user whose repo we're gonna hit.
      */
@@ -73,7 +79,7 @@ public class GithubAPIImplTest
     private static final String REPO = "Sandbox";
 
     /**
-     * The OAuth Token we're using for auth.
+     * The OAuth Token we're using for auth - needs public_repo, repo, and delete_repo privileges.
      * TODO How can we fill this in when testing?
      * github revokes it when it makes its way into a commit (for obvious security reasons)
      */
@@ -169,7 +175,7 @@ public class GithubAPIImplTest
     {
         String expectedDescription = pt.issueDescribe();
         client.openIssue(pt);
-        Thread.sleep(1000);
+        Thread.sleep(2000);
         String number = pt.getIssueNumber().get();
         cleanupIssues.add(number);
         assertNotNull(number);
@@ -187,14 +193,14 @@ public class GithubAPIImplTest
     public void testPatchIssue() throws IOException, InterruptedException
     {
         client.openIssue(pt);
+        Thread.sleep(2000);
         String number = pt.getIssueNumber().get();
         cleanupIssues.add(number);
         pt.setName("different name!");
         String expectedDescription = pt.issueDescribe();
         String etag = pt.getEtag();
         client.patchIssue(pt);
-        /* Gotta make sure the patched issue makes its way into the db */
-        Thread.sleep(1000);
+        Thread.sleep(2000);
         String endpoint = String.format("https://api.github.com/repos/%s/%s/issues/%s", USER, REPO, number);
         InputStream is = Request.Get(endpoint).execute().returnContent().asStream();
         DataTypes.Issue issue = mapper.readValue(is, DataTypes.Issue.class);
@@ -215,9 +221,6 @@ public class GithubAPIImplTest
         assertTrue(number.isPresent());
         assertEquals(pt.getIssueNumber().get(), number.get());
         Phenotype pt2 = new Phenotype(pt.getName(), pt.getDescription());
-        /* We need to allow time for the new issue to be indexed, otherwise if we request
-         * it really quickly it won't come back.
-         * This was a horrible thing to debug as you might guess */
         Thread.sleep(3000);
         number = client.searchForIssue(pt2);
         assertTrue(number.isPresent());

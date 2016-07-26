@@ -25,7 +25,6 @@ import java.io.IOException;
 
 import java.nio.file.Path;
 
-import java.util.Collection;
 import java.util.List;
 
 import com.google.common.base.Optional;
@@ -89,16 +88,10 @@ public class PhenotypeManagerImpl implements PhenotypeManager
     }
 
     @Override
-    public PhenotypeCreation createRequest(String name, Collection<String> synonyms, Collection<String> parentIds,
-                                   Optional<String> description) throws TermRequesterBackendException
+    public PhenotypeCreation createRequest(Phenotype pt) throws TermRequesterBackendException
     {
-        Phenotype pt = new Phenotype(name, description.or(""));
-        pt.addAllSynonyms(synonyms);
         try {
-            /* TODO: Need to set default parent if there's no parent */
-            for (String parentId : parentIds) {
-                pt.addParent(db.getPhenotypeById(parentId));
-            }
+            /* TODO: Maybe set default parent if there's no parent? */
             Phenotype existing = checkInDb(pt);
             if (!Phenotype.NULL.equals(existing)) {
                 return new PhenotypeCreation(updatePhenotype(existing), false);

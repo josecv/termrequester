@@ -21,10 +21,7 @@ import org.phenotips.termrequester.github.GithubAPI;
 
 import java.nio.file.Path;
 
-import java.util.Collection;
 import java.util.List;
-
-import com.google.common.base.Optional;
 
 /**
  * Manages the lifecycle of a requested (or existing) phenotype within the entire system.
@@ -44,15 +41,11 @@ public interface PhenotypeManager
 
     /**
      * Request a new phenotype in the HPO.
-     * @param name the name of the phenotype to request
-     * @param synonyms a list of synonyms for the phenotype
-     * @param parentIds the phenotype's parents
-     * @param description optionally the phenotype's description
+     * @param phenotype the new phenotype we want added
      * @return the newly created request, and whether or not it was new
      * @throws TermRequesterBackendException if something goes wrong in the backend.
      */
-    PhenotypeCreation createRequest(String name, Collection<String> synonyms, Collection<String> parentIds,
-                                    Optional<String> description) throws TermRequesterBackendException;
+    PhenotypeCreation createRequest(Phenotype phenotype) throws TermRequesterBackendException;
 
     /**
      * Get the phenotype with the id given. This might be an HPO or a termrequester id.

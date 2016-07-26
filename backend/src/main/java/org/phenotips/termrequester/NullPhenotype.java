@@ -140,7 +140,7 @@ final class NullPhenotype extends Phenotype
     }
 
     @Override
-    public Set<Phenotype> getParents()
+    public Set<String> getParentIds()
     {
         return new HashSet<>();
     }

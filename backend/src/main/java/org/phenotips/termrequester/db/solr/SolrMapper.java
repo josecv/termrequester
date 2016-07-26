@@ -26,12 +26,9 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.Set;
 
-import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrInputDocument;
-
-import com.google.common.base.Optional;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -82,7 +79,7 @@ class SolrMapper
      * @throws SolrServerException if the server throws
      * @throws IOException if the server throws
      */
-    public Phenotype fromDoc(SolrDocument doc, Optional<SolrClient> client) throws SolrServerException, IOException
+    public Phenotype fromDoc(SolrDocument doc) throws SolrServerException, IOException
     {
         String name = (String) doc.getFieldValue(Schema.NAME);
         String description = (String) doc.getFieldValue(Schema.DEFINITION);
@@ -105,31 +102,13 @@ class SolrMapper
         pt.setIssueNumber((String) doc.getFieldValue(Schema.ISSUE_NUMBER));
         pt.setTimeCreated((Date) doc.getFieldValue(Schema.TIME_CREATED));
         pt.setTimeModified((Date) doc.getFieldValue(Schema.TIME_MODIFIED));
-        if (client.isPresent()) {
-            populateParents(pt, doc, client.get());
+        Collection<Object> parents = doc.getFieldValues(Schema.PARENT);
+        if (parents != null) {
+            for (Object parent : parents) {
+                pt.addParentId((String) parent);
+            }
         }
         pt.setClean();
         return pt;
-    }
-
-    /**
-     * Populate the parents of the phenotype given.
-     * @param pt the phenotype
-     * @param ptDoc the phenotype's solr document
-     * @param clien the solr client in use
-     */
-    private void populateParents(Phenotype pt, SolrDocument ptDoc, SolrClient client)
-        throws SolrServerException, IOException
-    {
-        Collection<Object> parents = ptDoc.getFieldValues(Schema.PARENT);
-        if (parents != null) {
-            for (Object parent : parents) {
-                SolrDocument parentDoc = client.getById((String) parent);
-                if (parentDoc != null) {
-                    /* We certainly don't wanna recurse any further */
-                    pt.addParent(fromDoc(parentDoc, Optional.<SolrClient>absent()));
-                }
-            }
-        }
     }
 }

@@ -19,11 +19,9 @@ package org.phenotips.termrequester;
 
 import java.io.Serializable;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -116,7 +114,7 @@ public class Phenotype extends AbstractSaveable implements Serializable
     /**
      * This phenotype's parents.
      */
-    private Set<Phenotype> parents;
+    private Set<String> parentIds;
 
     /**
      * No-arg constructor. Sets name and description to empty string.
@@ -137,7 +135,7 @@ public class Phenotype extends AbstractSaveable implements Serializable
         this.name = name;
         this.description = description;
         synonyms = new HashSet<>();
-        parents = new HashSet<>();
+        parentIds = new HashSet<>();
     }
 
     /**
@@ -292,9 +290,10 @@ public class Phenotype extends AbstractSaveable implements Serializable
      *
      * @return parents
      */
-    public Set<Phenotype> getParents()
+    @JsonProperty("parents")
+    public Set<String> getParentIds()
     {
-        return new HashSet<>(parents);
+        return new HashSet<>(parentIds);
     }
 
     /**
@@ -302,11 +301,9 @@ public class Phenotype extends AbstractSaveable implements Serializable
      *
      * @param parent the value to add.
      */
-    public void addParent(Phenotype parent)
+    public void addParentId(String parent)
     {
-        if (!NULL.equals(parent)) {
-            parents.add(parent);
-        }
+        parentIds.add(parent);
     }
 
     /**
@@ -314,10 +311,9 @@ public class Phenotype extends AbstractSaveable implements Serializable
      *
      * @param parents the parents.
      */
-    public void addAllParents(Collection<Phenotype> parents)
+    public void addAllParentIds(Collection<String> parents)
     {
-        this.parents.addAll(parents);
-        this.parents.remove(NULL);
+        this.parentIds.addAll(parents);
     }
 
     /**
@@ -368,13 +364,9 @@ public class Phenotype extends AbstractSaveable implements Serializable
      */
     public String issueDescribe()
     {
-        List<String> theParents = new ArrayList<>(parents.size());
-        for (Phenotype parent : parents) {
-            theParents.add(parent.asParent());
-        }
         return "TERM: " + this.name
             + "\nSYNONYMS: " + String.join(",", this.synonyms)
-            + "\nPARENT: " + PARENT_JOINER.join(theParents)
+            + "\nPARENT: " + PARENT_JOINER.join(getParentIds())
             + "\nPT_INTERNAL_ID: " + this.getId().or("NONE")
             + "\nDESCRIPTION: " + this.description.replace("\n", ". ");
     }
@@ -419,24 +411,7 @@ public class Phenotype extends AbstractSaveable implements Serializable
     public int hashCode()
     {
         return Objects.hash(getId().or(EMPTY_ID), name, description, synonyms,
-                parents, getIssueNumber().or(EMPTY_ISSUE), status, hpoId);
-    }
-
-    /**
-     * Get the ids of the parents of this phenotype.
-     * Any parents without an id will not be considered.
-     * @return the parent ids.
-     */
-    @JsonProperty("parents")
-    public Collection<String> getParentIds()
-    {
-        List<String> parentIds = new ArrayList<>(parents.size());
-        for (Phenotype parent : parents) {
-            if (parent.getId().isPresent()) {
-                parentIds.add(parent.getId().get());
-            }
-        }
-        return parentIds;
+                parentIds, getIssueNumber().or(EMPTY_ISSUE), status, hpoId);
     }
 
     /**

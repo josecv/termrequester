@@ -33,7 +33,6 @@ import org.restlet.resource.Post;
 import org.restlet.resource.ResourceException;
 import org.restlet.resource.ServerResource;
 
-import com.google.common.base.Optional;
 import com.google.inject.Inject;
 
 /**
@@ -95,12 +94,10 @@ public class TermRequesterResource extends ServerResource
      * @return the new (or existing) phenotype.
      */
     @Post("json")
-    public Phenotype create(DataTypes.CreateRequest request)
+    public Phenotype create(Phenotype request)
     {
         try {
-            PhenotypeManager.PhenotypeCreation creation = ptManager.createRequest(request.name,
-                    request.synonyms, request.parents,
-                    Optional.of(request.description));
+            PhenotypeManager.PhenotypeCreation creation = ptManager.createRequest(request);
             if (creation.isNew) {
                 getResponse().setStatus(Status.SUCCESS_CREATED);
             } else {
