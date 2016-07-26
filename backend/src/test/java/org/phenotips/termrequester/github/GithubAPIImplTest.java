@@ -165,10 +165,11 @@ public class GithubAPIImplTest
      * Test that a new issue can be created for a simple phenotype.
      */
     @Test
-    public void testOpenIssue() throws IOException
+    public void testOpenIssue() throws IOException, InterruptedException
     {
         String expectedDescription = pt.issueDescribe();
         client.openIssue(pt);
+        Thread.sleep(1000);
         String number = pt.getIssueNumber().get();
         cleanupIssues.add(number);
         assertNotNull(number);
@@ -183,7 +184,7 @@ public class GithubAPIImplTest
      * Test the patch issue method.
      */
     @Test
-    public void testPatchIssue() throws IOException
+    public void testPatchIssue() throws IOException, InterruptedException
     {
         client.openIssue(pt);
         String number = pt.getIssueNumber().get();
@@ -192,6 +193,8 @@ public class GithubAPIImplTest
         String expectedDescription = pt.issueDescribe();
         String etag = pt.getEtag();
         client.patchIssue(pt);
+        /* Gotta make sure the patched issue makes its way into the db */
+        Thread.sleep(1000);
         String endpoint = String.format("https://api.github.com/repos/%s/%s/issues/%s", USER, REPO, number);
         InputStream is = Request.Get(endpoint).execute().returnContent().asStream();
         DataTypes.Issue issue = mapper.readValue(is, DataTypes.Issue.class);
