@@ -89,6 +89,7 @@ public abstract class AbstractSaveable
      *
      * @return etag as String.
      */
+    @JsonIgnore
     public String getEtag()
     {
         return etag;

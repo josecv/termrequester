@@ -149,7 +149,10 @@ public class TermRequesterResourceTest
         assertEquals(201, response.getStatus().getCode());
         assertTrue(response.isEntityAvailable());
         assertEquals(MediaType.APPLICATION_JSON, response.getEntity().getMediaType());
+        Phenotype result = mapper.readValue(response.getEntity().getStream(), Phenotype.class);
         System.out.println(response.getEntity().getText());
         verify(githubApi).openIssue(eq(pt));
+        assertTrue(result.getId().isPresent());
+        assertEquals(pt, result);
     }
 }

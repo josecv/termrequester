@@ -27,6 +27,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.Sets;
@@ -322,6 +325,7 @@ public class Phenotype extends AbstractSaveable implements Serializable
      *
      * @return timeCreated as Date.
      */
+    @JsonIgnore
     public Optional<Date> getTimeCreated()
     {
         return Optional.fromNullable(timeCreated);
@@ -342,6 +346,7 @@ public class Phenotype extends AbstractSaveable implements Serializable
      *
      * @return timeModified as Date.
      */
+    @JsonIgnore
     public Optional<Date> getTimeModified()
     {
         return Optional.fromNullable(timeModified);
@@ -422,6 +427,7 @@ public class Phenotype extends AbstractSaveable implements Serializable
      * Any parents without an id will not be considered.
      * @return the parent ids.
      */
+    @JsonProperty("parents")
     public Collection<String> getParentIds()
     {
         List<String> parentIds = new ArrayList<>(parents.size());
@@ -464,7 +470,41 @@ public class Phenotype extends AbstractSaveable implements Serializable
     {
         addAllSynonyms(other.getSynonyms());
         addSynonym(other.getName());
-        /* TODO Merge description sensibly */
+        /* TODO Merge description a bit better */
+        description += " " + other.getDescription();
+    }
+
+    /**
+     * Get an id whether or not there is one; will return null if there's no id.
+     *
+     * @return the id or null
+     */
+    @JsonProperty("id")
+    public String forceGetId()
+    {
+        return getId().orNull();
+    }
+
+    /**
+     * Get an issue number whether or not there is one.
+     *
+     * @return the issue number or null
+     */
+    @JsonProperty("issueNumber")
+    public String forceGetIssueNumber()
+    {
+        return getIssueNumber().orNull();
+    }
+
+    /**
+     * Get an hpo id whether or not there is one.
+     *
+     * @return the hpo id or null
+     */
+    @JsonProperty("hpoId")
+    public String forceGetHpoId()
+    {
+        return getHpoId().orNull();
     }
 
     /**
