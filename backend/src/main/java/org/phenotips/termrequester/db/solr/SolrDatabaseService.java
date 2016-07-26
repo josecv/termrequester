@@ -19,13 +19,13 @@ package org.phenotips.termrequester.db.solr;
 
 import org.phenotips.termrequester.Phenotype;
 import org.phenotips.termrequester.db.DatabaseService;
+import org.phenotips.variantstore.db.DatabaseException;
+import org.phenotips.variantstore.shared.ResourceManager;
 
 import java.io.File;
 import java.io.IOException;
-
-import java.net.URISyntaxException;
-
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -34,7 +34,6 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -127,13 +126,12 @@ public class SolrDatabaseService implements DatabaseService
         if (!up) {
             up = true;
             File resources;
-            try {
-                resources = new File(this.getClass().getResource("/solr").toURI());
-            } catch (URISyntaxException e) {
-                throw new RuntimeException(e);
-            }
-            FileUtils.copyDirectoryToDirectory(resources, new File(path.toUri()));
             this.path = path.resolve("solr");
+            try {
+                ResourceManager.copyResourcesToPath(Paths.get("solr/"), this.path, SolrDatabaseService.class);
+            } catch (DatabaseException e) {
+                throw new IOException(e);
+            }
             cores = new CoreContainer(this.path.toString());
             cores.load();
             server = new EmbeddedSolrServer(cores, CORE_NAME);
