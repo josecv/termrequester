@@ -35,7 +35,7 @@ One of:
 CREATE
 ------
 
-### `POST /phenotypes/create`
+### `POST /phenotypes`
 
 Create a new phenotype request.
 If one already exists with that same name or as a synonym of this one, none will be
@@ -64,13 +64,15 @@ In either case the new (or previously existing) phenotype will be returned
 READ
 ----
 
-### `GET /phenotypes/{id}`
+### `GET /phenotype/{id}`
 
 ###### Response
 
 Returns the phenotype with the id given (see above for object format) or an empty `HTTP 404` if none exists.
 
-### `GET /phenotypes/search`
+### `GET /phenotypes`
+
+Search the phenotypes that match a text givne.
 
 ###### Parameters
 

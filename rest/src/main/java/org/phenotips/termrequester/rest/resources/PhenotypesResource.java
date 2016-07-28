@@ -27,8 +27,10 @@ import org.phenotips.termrequester.rest.resources.annotations.RepositoryName;
 import org.phenotips.termrequester.rest.resources.annotations.RepositoryOwner;
 
 import java.nio.file.Paths;
+import java.util.List;
 
 import org.restlet.data.Status;
+import org.restlet.resource.Get;
 import org.restlet.resource.Post;
 import org.restlet.resource.ResourceException;
 import org.restlet.resource.ServerResource;
@@ -36,12 +38,18 @@ import org.restlet.resource.ServerResource;
 import com.google.inject.Inject;
 
 /**
- * The core term requester restlet resource.
+ * The term requester restlet resource to manage the sum total of phenotypes.
+ * In other words, provides for adding new phenotypes and searching existing ones.
  *
  * @version $Id$
  */
-public class TermRequesterResource extends ServerResource
+public class PhenotypesResource extends ServerResource
 {
+    /**
+     * The parameter for the text search.
+     */
+    private static final String TEXT_PARAM = "text";
+
     /**
      * The phenotype manager we're using.
      */
@@ -67,7 +75,7 @@ public class TermRequesterResource extends ServerResource
      * @param repoOwner the owner of the repo
      */
     @Inject
-    public TermRequesterResource(PhenotypeManager ptManager, @HomeDir String homeDir,
+    public PhenotypesResource(PhenotypeManager ptManager, @HomeDir String homeDir,
             @OAuthToken String token, @RepositoryName String repoName,
             @RepositoryOwner String repoOwner)
     {
@@ -104,6 +112,24 @@ public class TermRequesterResource extends ServerResource
                 getResponse().setStatus(Status.CLIENT_ERROR_CONFLICT);
             }
             return creation.phenotype;
+        } catch (TermRequesterBackendException e) {
+            throw new ResourceException(e);
+        }
+    }
+
+    /**
+     * Search phenotypes matching the text given (a GET param).
+     *
+     * @return the phenotypes
+     */
+    @Get("json")
+    public List<Phenotype> search()
+    {
+        String text = getQuery().getValues(TEXT_PARAM);
+        try {
+            List<Phenotype> results = ptManager.search(text);
+            getResponse().setStatus(Status.SUCCESS_OK);
+            return results;
         } catch (TermRequesterBackendException e) {
             throw new ResourceException(e);
         }

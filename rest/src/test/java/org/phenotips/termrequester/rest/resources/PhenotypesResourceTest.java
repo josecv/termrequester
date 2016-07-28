@@ -17,12 +17,15 @@
  */
 package org.phenotips.termrequester.rest.resources;
 
+import java.util.List;
+
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import org.phenotips.termrequester.Phenotype;
+import org.phenotips.termrequester.PhenotypeManager;
 import org.phenotips.termrequester.db.DatabaseService;
 import org.phenotips.termrequester.github.GithubAPI;
 import org.phenotips.termrequester.rest.di.TermRequesterRESTModule;
@@ -37,6 +40,7 @@ import org.restlet.ext.guice.RestletGuice;
 import org.restlet.representation.StringRepresentation;
 import org.restlet.routing.Router;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import com.google.common.base.Optional;
@@ -55,8 +59,8 @@ import static org.mockito.Matchers.refEq;
 import static org.mockito.Matchers.same;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -65,7 +69,7 @@ import static org.mockito.Mockito.when;
  *
  * @version $Id$
  */
-public class TermRequesterResourceTest
+public class PhenotypesResourceTest
 {
     /* TODO This copies PhenotypeManagerTest in its set up. Not brilliant */
 
@@ -125,19 +129,18 @@ public class TermRequesterResourceTest
                 with(new TestModule(null, githubApi)));
         FinderFactory finder = injector.getInstance(FinderFactory.class);
         router = new Router();
-        //router.attach("/phenotypes", finder.finder(TermRequesterResource.class));
-        router.attachDefault(finder.finder(TermRequesterResource.class));
+        router.attach("/phenotypes", finder.finder(PhenotypesResource.class));
         pt = new Phenotype(PT_NAME, PT_DESC);
         mapper = injector.getInstance(ObjectMapper.class);
         databaseService = injector.getInstance(DatabaseService.class);
+        when(githubApi.searchForIssue(refEq(pt))).thenReturn(Optional.<String>absent());
     }
 
     @Test
     public void testCreate() throws Exception
     {
-        when(githubApi.searchForIssue(refEq(pt))).thenReturn(Optional.<String>absent());
         doNothing().when(githubApi).openIssue(refEq(pt));
-        String requestUri = "/phenotypes/create";
+        String requestUri = "/phenotypes";
         String createJson = String.format("{ \"name\": \"%s\", " +
                 "\"description\": \"%s\", " +
                 "\"synonyms\": [], " +
@@ -150,9 +153,26 @@ public class TermRequesterResourceTest
         assertTrue(response.isEntityAvailable());
         assertEquals(MediaType.APPLICATION_JSON, response.getEntity().getMediaType());
         Phenotype result = mapper.readValue(response.getEntity().getStream(), Phenotype.class);
-        System.out.println(response.getEntity().getText());
         verify(githubApi).openIssue(eq(pt));
         assertTrue(result.getId().isPresent());
         assertEquals(pt, result);
+    }
+
+    @Test
+    public void testGetById() throws Exception
+    {
+        PhenotypeManager manager = injector.getInstance(PhenotypeManager.class);
+        manager.init(new GithubAPI.Repository("", "", ""), folder.getRoot().toPath());
+        manager.createRequest(pt);
+        databaseService.commit();
+        Request request = new Request(Method.GET, "/phenotypes?text=liszt");
+        Response response = new Response(request);
+        router.handle(request, response);
+        assertEquals(200, response.getStatus().getCode());
+        assertTrue(response.isEntityAvailable());
+        List<Phenotype> results = mapper.readValue(response.getEntity().getStream(),
+                new TypeReference<List<Phenotype>>() { });
+        assertEquals(1, results.size());
+        assertEquals(pt, results.get(0));
     }
 }
