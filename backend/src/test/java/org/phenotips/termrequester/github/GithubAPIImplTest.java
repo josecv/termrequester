@@ -59,6 +59,10 @@ import static org.mockito.Mockito.verify;
 
 /**
  * Tests the GithubAPIImpl class.
+ * Agonizingly, this class sometimes fails, mostly because github produces an imperfect
+ * response or doesn't update fast enough for our test. Ideally we should be able to
+ * automatically re-run once it right after failing out, so that a false negative
+ * doesn't fail the entire build.
  *
  * @version $Id$
  */

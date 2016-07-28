@@ -36,6 +36,9 @@ import org.apache.http.client.fluent.Response;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.ContentType;
 
+/* To get the nice HTTP status code constants */
+import org.restlet.data.Status;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -145,8 +148,7 @@ class GithubAPIImpl implements GithubAPI
         String method = getIssueEndpoint(pt.getIssueNumber().get());
         Request request = Request.Get(getURI(method)).addHeader(IF_NONE_MATCH, pt.getEtag());
         HttpResponse response = execute(request).returnResponse();
-        /* TODO Be nice if the 304 were a constant */
-        if (response.getStatusLine().getStatusCode() == 304) {
+        if (response.getStatusLine().getStatusCode() == Status.REDIRECTION_NOT_MODIFIED.getCode()) {
             return pt;
         }
         pt.setEtag(response.getFirstHeader(ETAG).getValue());

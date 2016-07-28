@@ -40,11 +40,6 @@
     </dependency>
     <dependency>
       <groupId>org.restlet.jee</groupId>
-      <artifactId>org.restlet</artifactId>
-      <version>${restlet.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.restlet.jee</groupId>
       <artifactId>org.restlet.ext.jaxrs</artifactId>
       <version>${restlet.version}</version>
     </dependency>
