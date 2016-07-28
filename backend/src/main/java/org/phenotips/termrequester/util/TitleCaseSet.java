@@ -17,8 +17,10 @@
  */
 package org.phenotips.termrequester.util;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.lang3.text.WordUtils;
@@ -89,5 +91,56 @@ public class TitleCaseSet extends ForwardingSet<String>
     public boolean addAll(Collection<? extends String> other)
     {
         return standardAddAll(other);
+    }
+
+    @Override
+    public boolean contains(Object o)
+    {
+        if (!(o instanceof String)) {
+            return false;
+        }
+        String s = (String) o;
+        return super.contains(WordUtils.capitalizeFully(s));
+    }
+
+    @Override
+    public boolean containsAll(Collection<?> c)
+    {
+        return standardContainsAll(c);
+    }
+
+    @Override
+    public boolean remove(Object o)
+    {
+        if (!(o instanceof String)) {
+            return false;
+        }
+        String s = (String) o;
+        return super.remove(WordUtils.capitalizeFully(s));
+    }
+
+    @Override
+    public boolean removeAll(Collection<?> c)
+    {
+        /* Gah, standardRemoveAll is defined in terms of ForwardingCollection.remove, and we need
+         * it to go through our own remove().
+         * We'll do it manually instead */
+        boolean result = false;
+        for (Object o : c) {
+            result = result || remove(o);
+        }
+        return result;
+    }
+
+    @Override
+    public boolean retainAll(Collection<?> c)
+    {
+        List<String> toRetain = new ArrayList<>(c.size());
+        for (Object o : c) {
+            if (o instanceof String) {
+                toRetain.add(WordUtils.capitalizeFully((String) o));
+            }
+        }
+        return standardRetainAll(toRetain);
     }
 }
