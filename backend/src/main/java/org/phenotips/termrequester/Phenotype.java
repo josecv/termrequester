@@ -17,6 +17,8 @@
  */
 package org.phenotips.termrequester;
 
+import org.phenotips.termrequester.util.TitleCaseSet;
+
 import java.io.Serializable;
 
 import java.util.Collection;
@@ -24,6 +26,8 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+
+import org.apache.commons.lang3.text.WordUtils;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -132,10 +136,11 @@ public class Phenotype extends AbstractSaveable implements Serializable
      */
     public Phenotype(String name, String description)
     {
-        this.name = name;
-        this.description = description;
-        synonyms = new HashSet<>();
+        /* We're gonna make synonyms and names title case, to make sure comparisons work */
+        synonyms = new TitleCaseSet();
         parentIds = new HashSet<>();
+        setName(name);
+        setDescription(description);
     }
 
     /**
@@ -145,7 +150,7 @@ public class Phenotype extends AbstractSaveable implements Serializable
      */
     public Set<String> getSynonyms()
     {
-        return new HashSet<>(synonyms);
+        return new TitleCaseSet(synonyms);
     }
 
     /**
@@ -262,7 +267,7 @@ public class Phenotype extends AbstractSaveable implements Serializable
      */
     public void setName(String name)
     {
-        this.name = name;
+        this.name = WordUtils.capitalizeFully(name);
     }
 
     /**
