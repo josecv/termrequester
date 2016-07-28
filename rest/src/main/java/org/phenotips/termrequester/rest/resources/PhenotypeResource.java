@@ -25,11 +25,8 @@ import org.phenotips.termrequester.rest.resources.annotations.OAuthToken;
 import org.phenotips.termrequester.rest.resources.annotations.RepositoryName;
 import org.phenotips.termrequester.rest.resources.annotations.RepositoryOwner;
 
-import java.util.List;
-
 import org.restlet.data.Status;
 import org.restlet.resource.Get;
-import org.restlet.resource.Post;
 import org.restlet.resource.ResourceException;
 
 import com.google.inject.Inject;

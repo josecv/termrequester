@@ -74,10 +74,8 @@ public class PhenotypeResourceTest extends AbstractResourceTest
 {
 
     @Override
-    @Before
-    public void setUp() throws Exception
+    public void doSetUp() throws Exception
     {
-        super.commonSetUp();
         router.attach("/phenotype/{id}", finder.finder(PhenotypeResource.class));
     }
 
@@ -88,11 +86,7 @@ public class PhenotypeResourceTest extends AbstractResourceTest
     @Test
     public void testGetById() throws Exception
     {
-        /* TODO Yay for code repetition. */
-        PhenotypeManager manager = injector.getInstance(PhenotypeManager.class);
-        manager.init(new GithubAPI.Repository("", "", ""), folder.getRoot().toPath());
-        manager.createRequest(pt);
-        databaseService.commit();
+        savePhenotype(pt);
         Request request = new Request(Method.GET, "/phenotype/" + pt.getId().get());
         Response response = new Response(request);
         router.handle(request, response);
@@ -108,10 +102,7 @@ public class PhenotypeResourceTest extends AbstractResourceTest
     @Test
     public void testGetById404() throws Exception
     {
-        /* TODO Yay for code repetition. */
-        PhenotypeManager manager = injector.getInstance(PhenotypeManager.class);
-        manager.init(new GithubAPI.Repository("", "", ""), folder.getRoot().toPath());
-        manager.createRequest(pt);
+        savePhenotype(pt);
         databaseService.commit();
         Request request = new Request(Method.GET, "/phenotype/" + pt.getId().get() + "1");
         Response response = new Response(request);

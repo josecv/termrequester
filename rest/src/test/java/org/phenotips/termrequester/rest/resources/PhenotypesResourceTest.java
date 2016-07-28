@@ -71,11 +71,9 @@ import static org.mockito.Mockito.when;
  */
 public class PhenotypesResourceTest extends AbstractResourceTest
 {
-    @Before
     @Override
-    public void setUp() throws Exception
+    public void doSetUp() throws Exception
     {
-        super.commonSetUp();
         router.attach("/phenotypes", finder.finder(PhenotypesResource.class));
     }
 
@@ -104,10 +102,7 @@ public class PhenotypesResourceTest extends AbstractResourceTest
     @Test
     public void testSearch() throws Exception
     {
-        PhenotypeManager manager = injector.getInstance(PhenotypeManager.class);
-        manager.init(new GithubAPI.Repository("", "", ""), folder.getRoot().toPath());
-        manager.createRequest(pt);
-        databaseService.commit();
+        savePhenotype(pt);
         Request request = new Request(Method.GET, "/phenotypes?text=liszt");
         Response response = new Response(request);
         router.handle(request, response);

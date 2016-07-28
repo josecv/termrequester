@@ -17,8 +17,6 @@
  */
 package org.phenotips.termrequester.rest.resources;
 
-import java.nio.file.Paths;
-
 import org.phenotips.termrequester.PhenotypeManager;
 import org.phenotips.termrequester.TermRequesterBackendException;
 import org.phenotips.termrequester.github.GithubAPI;
@@ -26,6 +24,8 @@ import org.phenotips.termrequester.rest.resources.annotations.HomeDir;
 import org.phenotips.termrequester.rest.resources.annotations.OAuthToken;
 import org.phenotips.termrequester.rest.resources.annotations.RepositoryName;
 import org.phenotips.termrequester.rest.resources.annotations.RepositoryOwner;
+
+import java.nio.file.Paths;
 
 import org.restlet.resource.ResourceException;
 import org.restlet.resource.ServerResource;

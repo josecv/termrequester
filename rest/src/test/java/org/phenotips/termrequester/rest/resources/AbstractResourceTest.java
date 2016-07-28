@@ -67,7 +67,7 @@ import static org.mockito.Mockito.when;
 /**
  * Test any given resource.
  * Contains some useful stuff such as a dependency injector, a PhenotypeManager, sample phenotype, etc.
- * To use, override setUp(), have it call commonSetUp() and then set up any routes you need.
+ * To use, override doSetUp() with your own routes, etc.
  *
  * @version $Id$
  */
@@ -127,9 +127,15 @@ public abstract class AbstractResourceTest
     public TemporaryFolder folder = new TemporaryFolder();
 
     /**
-     * Call this to get the dependency injector and router set up.
+     * Do your own set up. Should prepare any routes you need.
      */
-    public void commonSetUp() throws Exception
+    protected abstract void doSetUp() throws Exception;
+
+    /**
+     * Sets up the test.
+     */
+    @Before
+    public void setUp() throws Exception
     {
         githubApi = mock(GithubAPI.class);
         System.out.println(folder.getRoot().toString());
@@ -141,13 +147,20 @@ public abstract class AbstractResourceTest
         pt = new Phenotype(PT_NAME, PT_DESC);
         mapper = injector.getInstance(ObjectMapper.class);
         databaseService = injector.getInstance(DatabaseService.class);
+        databaseService.setAutocommit(true);
         when(githubApi.searchForIssue(refEq(pt))).thenReturn(Optional.<String>absent());
+        doSetUp();
     }
 
     /**
-     * Sets up the child test - should create any routes you need.
+     * Store the phenotype given into the db as part of set up.
+     * @param pt the phenotype
      */
-    @Before
-    public abstract void setUp() throws Exception;
+    protected void savePhenotype(Phenotype pt) throws Exception
+    {
+        PhenotypeManager manager = injector.getInstance(PhenotypeManager.class);
+        manager.init(new GithubAPI.Repository("", "", ""), folder.getRoot().toPath());
+        manager.createRequest(pt);
+    }
 }
 
