@@ -88,6 +88,19 @@ public class PhenotypeManagerImpl implements PhenotypeManager
     }
 
     @Override
+    public void shutdown() throws TermRequesterBackendException
+    {
+        if (up) {
+            try {
+                db.shutdown();
+            } catch (IOException e) {
+                throw new TermRequesterBackendException(e);
+            }
+            up = false;
+        }
+    }
+
+    @Override
     public PhenotypeCreation createRequest(Phenotype pt) throws TermRequesterBackendException
     {
         try {

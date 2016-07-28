@@ -35,17 +35,16 @@ import org.restlet.resource.ResourceException;
 import com.google.inject.Inject;
 
 /**
- * The term requester restlet resource to manage the sum total of phenotypes.
- * In other words, provides for adding new phenotypes and searching existing ones.
+ * Manages one single phenotype, as dictated by an id encoded in the uri.
  *
  * @version $Id$
  */
-public class PhenotypesResource extends AbstractTermRequesterResource
+public class PhenotypeResource extends AbstractTermRequesterResource
 {
     /**
-     * The parameter for the text search.
+     * The attribute that identifies the id in the URI.
      */
-    private static final String TEXT_PARAM = "text";
+    private static final String ID_ATTRIBUTE = "id";
 
     /**
      * CTOR.
@@ -57,7 +56,7 @@ public class PhenotypesResource extends AbstractTermRequesterResource
      * @param repoOwner the owner of the repo
      */
     @Inject
-    public PhenotypesResource(PhenotypeManager ptManager, @HomeDir String homeDir,
+    public PhenotypeResource(PhenotypeManager ptManager, @HomeDir String homeDir,
             @OAuthToken String token, @RepositoryName String repoName,
             @RepositoryOwner String repoOwner)
     {
@@ -65,43 +64,26 @@ public class PhenotypesResource extends AbstractTermRequesterResource
     }
 
     /**
-     * Create a new phenotype matching the request given and return it; if one already
-     * exists that is identical to the one being requested, return that one instead.
+     * Get the phenotype that matches the id at the end of the requested uri.
+     * Will return an empty 404 if nothing is found.
      *
-     * @param request the request
-     * @return the new (or existing) phenotype.
-     */
-    @Post("json")
-    public Phenotype create(Phenotype request)
-    {
-        try {
-            PhenotypeManager.PhenotypeCreation creation = ptManager.createRequest(request);
-            if (creation.isNew) {
-                getResponse().setStatus(Status.SUCCESS_CREATED);
-            } else {
-                getResponse().setStatus(Status.CLIENT_ERROR_CONFLICT);
-            }
-            return creation.phenotype;
-        } catch (TermRequesterBackendException e) {
-            throw new ResourceException(e);
-        }
-    }
-
-    /**
-     * Search phenotypes matching the text given (a GET param).
-     *
-     * @return the phenotypes
+     * @return the phenotype
      */
     @Get("json")
-    public List<Phenotype> search()
+    public Phenotype getById()
     {
-        String text = getQuery().getValues(TEXT_PARAM);
+        String id = (String) getRequest().getAttributes().get(ID_ATTRIBUTE);
+        Phenotype pt;
         try {
-            List<Phenotype> results = ptManager.search(text);
-            getResponse().setStatus(Status.SUCCESS_OK);
-            return results;
+            pt = ptManager.getPhenotypeById(id);
+            if (Phenotype.NULL.equals(pt)) {
+                getResponse().setStatus(Status.CLIENT_ERROR_NOT_FOUND);
+                return null;
+            }
         } catch (TermRequesterBackendException e) {
             throw new ResourceException(e);
         }
+        getResponse().setStatus(Status.SUCCESS_OK);
+        return pt;
     }
 }

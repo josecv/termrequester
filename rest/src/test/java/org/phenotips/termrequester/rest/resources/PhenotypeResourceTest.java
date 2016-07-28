@@ -50,6 +50,7 @@ import com.google.inject.Injector;
 import com.google.inject.util.Modules;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -65,57 +66,57 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * Test the PhenotypesResource server resource.
+ * Test the PhenotypeResource server resource.
  *
  * @version $Id$
  */
-public class PhenotypesResourceTest extends AbstractResourceTest
+public class PhenotypeResourceTest extends AbstractResourceTest
 {
-    @Before
+
     @Override
+    @Before
     public void setUp() throws Exception
     {
         super.commonSetUp();
-        router.attach("/phenotypes", finder.finder(PhenotypesResource.class));
+        router.attach("/phenotype/{id}", finder.finder(PhenotypeResource.class));
     }
 
-    @Test
-    public void testCreate() throws Exception
-    {
-        doNothing().when(githubApi).openIssue(refEq(pt));
-        String requestUri = "/phenotypes";
-        String createJson = String.format("{ \"name\": \"%s\", " +
-                "\"description\": \"%s\", " +
-                "\"synonyms\": [], " +
-                "\"parents\": [] }", PT_NAME, PT_DESC);
-        StringRepresentation entity = new StringRepresentation(createJson, MediaType.APPLICATION_JSON);
-        Request request = new Request(Method.POST, requestUri, entity);
-        Response response = new Response(request);
-        router.handle(request, response);
-        assertEquals(201, response.getStatus().getCode());
-        assertTrue(response.isEntityAvailable());
-        assertEquals(MediaType.APPLICATION_JSON, response.getEntity().getMediaType());
-        Phenotype result = mapper.readValue(response.getEntity().getStream(), Phenotype.class);
-        verify(githubApi).openIssue(eq(pt));
-        assertTrue(result.getId().isPresent());
-        assertEquals(pt, result);
-    }
 
+    /**
+     * Test getting by id when there is a phenotype to get.
+     */
     @Test
-    public void testSearch() throws Exception
+    public void testGetById() throws Exception
     {
+        /* TODO Yay for code repetition. */
         PhenotypeManager manager = injector.getInstance(PhenotypeManager.class);
         manager.init(new GithubAPI.Repository("", "", ""), folder.getRoot().toPath());
         manager.createRequest(pt);
         databaseService.commit();
-        Request request = new Request(Method.GET, "/phenotypes?text=liszt");
+        Request request = new Request(Method.GET, "/phenotype/" + pt.getId().get());
         Response response = new Response(request);
         router.handle(request, response);
         assertEquals(200, response.getStatus().getCode());
         assertTrue(response.isEntityAvailable());
-        List<Phenotype> results = mapper.readValue(response.getEntity().getStream(),
-                new TypeReference<List<Phenotype>>() { });
-        assertEquals(1, results.size());
-        assertEquals(pt, results.get(0));
+        Phenotype result = mapper.readValue(response.getEntity().getStream(), Phenotype.class);
+        assertEquals(pt, result);
+    }
+
+    /**
+     * Test that getting by id with the wrong id doesn't work.
+     */
+    @Test
+    public void testGetById404() throws Exception
+    {
+        /* TODO Yay for code repetition. */
+        PhenotypeManager manager = injector.getInstance(PhenotypeManager.class);
+        manager.init(new GithubAPI.Repository("", "", ""), folder.getRoot().toPath());
+        manager.createRequest(pt);
+        databaseService.commit();
+        Request request = new Request(Method.GET, "/phenotype/" + pt.getId().get() + "1");
+        Response response = new Response(request);
+        router.handle(request, response);
+        assertEquals(404, response.getStatus().getCode());
+        assertFalse(response.isEntityAvailable());
     }
 }

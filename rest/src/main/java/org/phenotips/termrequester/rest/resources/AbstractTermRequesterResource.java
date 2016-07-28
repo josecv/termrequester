@@ -17,35 +17,43 @@
  */
 package org.phenotips.termrequester.rest.resources;
 
-import org.phenotips.termrequester.Phenotype;
+import java.nio.file.Paths;
+
 import org.phenotips.termrequester.PhenotypeManager;
 import org.phenotips.termrequester.TermRequesterBackendException;
+import org.phenotips.termrequester.github.GithubAPI;
 import org.phenotips.termrequester.rest.resources.annotations.HomeDir;
 import org.phenotips.termrequester.rest.resources.annotations.OAuthToken;
 import org.phenotips.termrequester.rest.resources.annotations.RepositoryName;
 import org.phenotips.termrequester.rest.resources.annotations.RepositoryOwner;
 
-import java.util.List;
-
-import org.restlet.data.Status;
-import org.restlet.resource.Get;
-import org.restlet.resource.Post;
 import org.restlet.resource.ResourceException;
+import org.restlet.resource.ServerResource;
 
 import com.google.inject.Inject;
 
 /**
- * The term requester restlet resource to manage the sum total of phenotypes.
- * In other words, provides for adding new phenotypes and searching existing ones.
+ * An abstract resource, encapsulates backend stuff and provides common initialization and
+ * shutdown routines.
  *
- * @version $Id$
+ * @version $Id :$
  */
-public class PhenotypesResource extends AbstractTermRequesterResource
+public abstract class AbstractTermRequesterResource extends ServerResource
 {
     /**
-     * The parameter for the text search.
+     * The phenotype manager.
      */
-    private static final String TEXT_PARAM = "text";
+    protected PhenotypeManager ptManager;
+
+    /**
+     * The home directory of this resource.
+     */
+    private String homeDir;
+
+    /**
+     * The github repository we'll be hitting.
+     */
+    private GithubAPI.Repository repo;
 
     /**
      * CTOR.
@@ -57,49 +65,30 @@ public class PhenotypesResource extends AbstractTermRequesterResource
      * @param repoOwner the owner of the repo
      */
     @Inject
-    public PhenotypesResource(PhenotypeManager ptManager, @HomeDir String homeDir,
+    public AbstractTermRequesterResource(PhenotypeManager ptManager, @HomeDir String homeDir,
             @OAuthToken String token, @RepositoryName String repoName,
             @RepositoryOwner String repoOwner)
     {
-        super(ptManager, homeDir, token, repoName, repoOwner);
+        this.ptManager = ptManager;
+        this.homeDir = homeDir;
+        repo = new GithubAPI.Repository(repoOwner, repoName, token);
     }
 
-    /**
-     * Create a new phenotype matching the request given and return it; if one already
-     * exists that is identical to the one being requested, return that one instead.
-     *
-     * @param request the request
-     * @return the new (or existing) phenotype.
-     */
-    @Post("json")
-    public Phenotype create(Phenotype request)
+    @Override
+    protected void doInit()
     {
         try {
-            PhenotypeManager.PhenotypeCreation creation = ptManager.createRequest(request);
-            if (creation.isNew) {
-                getResponse().setStatus(Status.SUCCESS_CREATED);
-            } else {
-                getResponse().setStatus(Status.CLIENT_ERROR_CONFLICT);
-            }
-            return creation.phenotype;
+            ptManager.init(repo, Paths.get(homeDir));
         } catch (TermRequesterBackendException e) {
             throw new ResourceException(e);
         }
     }
 
-    /**
-     * Search phenotypes matching the text given (a GET param).
-     *
-     * @return the phenotypes
-     */
-    @Get("json")
-    public List<Phenotype> search()
+    @Override
+    protected void doRelease()
     {
-        String text = getQuery().getValues(TEXT_PARAM);
         try {
-            List<Phenotype> results = ptManager.search(text);
-            getResponse().setStatus(Status.SUCCESS_OK);
-            return results;
+            ptManager.shutdown();
         } catch (TermRequesterBackendException e) {
             throw new ResourceException(e);
         }

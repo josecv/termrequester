@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -137,6 +138,12 @@ public class PhenotypeManagerTest
         pt = new Phenotype(PT_NAME, PT_DESC);
         when(databaseService.getPhenotypeById(any(String.class))).thenReturn(Phenotype.NULL);
         when(databaseService.getPhenotype(any(Phenotype.class))).thenReturn(Phenotype.NULL);
+    }
+
+    @After
+    public void tearDown() throws TermRequesterBackendException
+    {
+        client.shutdown();
     }
 
     /**

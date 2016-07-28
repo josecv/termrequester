@@ -65,57 +65,89 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * Test the PhenotypesResource server resource.
+ * Test any given resource.
+ * Contains some useful stuff such as a dependency injector, a PhenotypeManager, sample phenotype, etc.
+ * To use, override setUp(), have it call commonSetUp() and then set up any routes you need.
  *
  * @version $Id$
  */
-public class PhenotypesResourceTest extends AbstractResourceTest
+public abstract class AbstractResourceTest
 {
+    /* TODO This copies PhenotypeManagerTest in its set up. Not brilliant */
+
+    /**
+     * The phenotype name.
+     */
+    protected static final String PT_NAME = "Franz Liszt";
+
+    /**
+     * The phenotype description.
+     */
+    protected static final String PT_DESC = "Penguin";
+
+    /**
+     * The mocked database service.
+     */
+    protected DatabaseService databaseService;
+
+    /**
+     * The mocked github api.
+     */
+    protected GithubAPI githubApi;
+
+    /**
+     * The dependency injector in use.
+     */
+    protected Injector injector;
+
+    /**
+     * A test phenotype.
+     */
+    protected Phenotype pt;
+
+    /**
+     * The router.
+     */
+    protected Router router;
+
+    /**
+     * An object mapper to deserialize from json.
+     */
+    protected ObjectMapper mapper;
+
+    /**
+     * The finder factory to get resources.
+     */
+    protected FinderFactory finder;
+
+    /**
+     * A temporary folder.
+     */
+    @Rule
+    public TemporaryFolder folder = new TemporaryFolder();
+
+    /**
+     * Call this to get the dependency injector and router set up.
+     */
+    public void commonSetUp() throws Exception
+    {
+        githubApi = mock(GithubAPI.class);
+        System.out.println(folder.getRoot().toString());
+        injector = RestletGuice.createInjector(Modules.override(
+                    new TermRequesterRESTModule("", "", "", folder.getRoot().toString())).
+                with(new TestModule(null, githubApi)));
+        finder = injector.getInstance(FinderFactory.class);
+        router = new Router();
+        pt = new Phenotype(PT_NAME, PT_DESC);
+        mapper = injector.getInstance(ObjectMapper.class);
+        databaseService = injector.getInstance(DatabaseService.class);
+        when(githubApi.searchForIssue(refEq(pt))).thenReturn(Optional.<String>absent());
+    }
+
+    /**
+     * Sets up the child test - should create any routes you need.
+     */
     @Before
-    @Override
-    public void setUp() throws Exception
-    {
-        super.commonSetUp();
-        router.attach("/phenotypes", finder.finder(PhenotypesResource.class));
-    }
-
-    @Test
-    public void testCreate() throws Exception
-    {
-        doNothing().when(githubApi).openIssue(refEq(pt));
-        String requestUri = "/phenotypes";
-        String createJson = String.format("{ \"name\": \"%s\", " +
-                "\"description\": \"%s\", " +
-                "\"synonyms\": [], " +
-                "\"parents\": [] }", PT_NAME, PT_DESC);
-        StringRepresentation entity = new StringRepresentation(createJson, MediaType.APPLICATION_JSON);
-        Request request = new Request(Method.POST, requestUri, entity);
-        Response response = new Response(request);
-        router.handle(request, response);
-        assertEquals(201, response.getStatus().getCode());
-        assertTrue(response.isEntityAvailable());
-        assertEquals(MediaType.APPLICATION_JSON, response.getEntity().getMediaType());
-        Phenotype result = mapper.readValue(response.getEntity().getStream(), Phenotype.class);
-        verify(githubApi).openIssue(eq(pt));
-        assertTrue(result.getId().isPresent());
-        assertEquals(pt, result);
-    }
-
-    @Test
-    public void testSearch() throws Exception
-    {
-        PhenotypeManager manager = injector.getInstance(PhenotypeManager.class);
-        manager.init(new GithubAPI.Repository("", "", ""), folder.getRoot().toPath());
-        manager.createRequest(pt);
-        databaseService.commit();
-        Request request = new Request(Method.GET, "/phenotypes?text=liszt");
-        Response response = new Response(request);
-        router.handle(request, response);
-        assertEquals(200, response.getStatus().getCode());
-        assertTrue(response.isEntityAvailable());
-        List<Phenotype> results = mapper.readValue(response.getEntity().getStream(),
-                new TypeReference<List<Phenotype>>() { });
-        assertEquals(1, results.size());
-        assertEquals(pt, results.get(0));
-    }
+    public abstract void setUp() throws Exception;
 }
+

@@ -40,6 +40,12 @@ public interface PhenotypeManager
     void init(GithubAPI.Repository repo, Path home) throws TermRequesterBackendException;
 
     /**
+     * Shutdown this manager.
+     * @throws TermRequesterBackendException if the backend throws
+     */
+    void shutdown() throws TermRequesterBackendException;
+
+    /**
      * Request a new phenotype in the HPO.
      * @param phenotype the new phenotype we want added
      * @return the newly created request, and whether or not it was new
