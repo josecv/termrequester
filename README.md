@@ -72,7 +72,7 @@ Returns the phenotype with the id given (see above for object format) or an empt
 
 ### `GET /phenotypes`
 
-Search the phenotypes that match a text givne.
+Search the phenotypes that match a given text.
 
 ###### Parameters
 
@@ -85,11 +85,5 @@ Search the phenotypes that match a text givne.
 ###### Response
 
 ```javascript
-{
-  'metadata': {
-    'text': '...',      /* Echo of the search text */
-    'num_results': ..., /* Number of results returned */
-  },
-  'results': [ {...}, ... ], /* The results as phenotype instances */
-}
+[{...}, ...] /* the results as phenotype instances */
 ```
