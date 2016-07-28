@@ -18,6 +18,7 @@
 package org.phenotips.termrequester.rest;
 
 import org.phenotips.termrequester.rest.di.TermRequesterRESTModule;
+import org.phenotips.termrequester.rest.resources.PhenotypeResource;
 import org.phenotips.termrequester.rest.resources.PhenotypesResource;
 
 import org.restlet.Application;
@@ -41,6 +42,7 @@ public class TermRequesterApplication extends Application
         /* TODO Proper values */
         FinderFactory finder = new RestletGuice.Module(new TermRequesterRESTModule("", "", "", ""));
         router.attach("/phenotypes", finder.finder(PhenotypesResource.class));
+        router.attach("/phenotype/{id}", finder.finder(PhenotypeResource.class));
         return router;
     }
 }

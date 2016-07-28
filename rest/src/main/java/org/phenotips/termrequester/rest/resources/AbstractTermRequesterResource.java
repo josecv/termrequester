@@ -36,7 +36,7 @@ import com.google.inject.Inject;
  * An abstract resource, encapsulates backend stuff and provides common initialization and
  * shutdown routines.
  *
- * @version $Id :$
+ * @version $Id$
  */
 public abstract class AbstractTermRequesterResource extends ServerResource
 {
