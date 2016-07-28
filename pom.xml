@@ -35,6 +35,11 @@
 
   <repositories>
     <repository>
+      <id>maven-restlet</id>
+      <name>Public online Restlet repository</name>
+      <url>http://maven.restlet.com</url>
+    </repository>
+    <repository>
       <id>phenotips-releases</id>
       <name>PhenoTips Releases repository</name>
       <url>https://nexus.phenotips.org/nexus/content/repositories/releases/</url>

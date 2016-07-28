@@ -23,8 +23,33 @@
     xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
     version="3.0">
 
-  <display-name>HPORequest</display-name>
-  <description>TODO FILL ME</description>
+  <display-name>TermRequester</display-name>
+  <description>Requests new terms from the HPO and keeps track of requested terms</description>
+
+  <servlet>
+    <servlet-name>TermRequesterServlet</servlet-name>
+    <servlet-class>org.restlet.ext.servlet.ServerServlet</servlet-class>
+    <init-param>
+      <param-name>org.restlet.applicaiton</param-name>
+      <param-value>org.phenotips.termrequester.rest.TermRequesterApplication</param-value>
+    </init-param>
+    <init-param>
+      <param-name>org.phenotips.termrequester.repositoryOwner</param-name>
+      <param-value>CHANGE ME</param-value>
+    </init-param>
+    <init-param>
+      <param-name>org.phenotips.termrequester.repositoryName</param-name>
+      <param-value>CHANGE ME</param-value>
+    </init-param>
+    <init-param>
+      <param-name>org.phenotips.termrequester.oauthToken</param-name>
+      <param-value>CHANGE ME</param-value>
+    </init-param>
+    <init-param>
+      <param-name>org.phenotips.termrequester.homeDir</param-name>
+      <param-value>CHANGE ME</param-value>
+    </init-param>
+  </servlet>
 
 </web-app>
 
