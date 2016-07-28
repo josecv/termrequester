@@ -35,12 +35,36 @@ import org.restlet.routing.Router;
  */
 public class TermRequesterApplication extends Application
 {
+    /**
+     * The parameter for the repository owner.
+     */
+    public static final String REPO_OWNER_PARAM = "org.phenotips.termrequester.repositoryOwner";
+
+    /**
+     * The parameter for the repository name.
+     */
+    public static final String REPO_NAME_PARAM = "org.phenotips.termrequester.repositoryName";
+
+    /**
+     * The parameter for the oauth token.
+     */
+    public static final String OAUTH_TOKEN_PARAM = "org.phenotips.termrequester.oauthToken";
+
+    /**
+     * The parameter for the home directory.
+     */
+    public static final String HOME_DIR_PARAM = "org.phenotips.termrequester.homeDir";
+
     @Override
     public Restlet createInboundRoot()
     {
         Router router = new Router(getContext());
-        /* TODO Proper values */
-        FinderFactory finder = new RestletGuice.Module(new TermRequesterRESTModule("", "", "", ""));
+        String repoOwner = getContext().getParameters().getFirstValue(REPO_OWNER_PARAM);
+        String repoName = getContext().getParameters().getFirstValue(REPO_NAME_PARAM);
+        String token = getContext().getParameters().getFirstValue(OAUTH_TOKEN_PARAM);
+        String homeDir = getContext().getParameters().getFirstValue(HOME_DIR_PARAM);
+        FinderFactory finder = new RestletGuice.Module(
+                new TermRequesterRESTModule(repoOwner, repoName, token, homeDir));
         router.attach("/phenotypes", finder.finder(PhenotypesResource.class));
         router.attach("/phenotype/{id}", finder.finder(PhenotypeResource.class));
         return router;
