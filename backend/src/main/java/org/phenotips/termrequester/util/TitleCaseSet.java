@@ -122,25 +122,29 @@ public class TitleCaseSet extends ForwardingSet<String>
     @Override
     public boolean removeAll(Collection<?> c)
     {
-        /* Gah, standardRemoveAll is defined in terms of ForwardingCollection.remove, and we need
-         * it to go through our own remove().
-         * We'll do it manually instead */
-        boolean result = false;
-        for (Object o : c) {
-            result = result || remove(o);
-        }
-        return result;
+        return standardRemoveAll(titleCaseColletion(c));
     }
 
     @Override
     public boolean retainAll(Collection<?> c)
     {
-        List<String> toRetain = new ArrayList<>(c.size());
+        return standardRetainAll(titleCaseColletion(c));
+    }
+
+    /**
+     * Title case the collection of objects given.
+     *
+     * @param c the collection
+     * @return the strings given title cased.
+     */
+    private Collection<String> titleCaseColletion(Collection<?> c)
+    {
+        List<String> retval = new ArrayList<>(c.size());
         for (Object o : c) {
             if (o instanceof String) {
-                toRetain.add(WordUtils.capitalizeFully((String) o));
+                retval.add(WordUtils.capitalizeFully((String) o));
             }
         }
-        return standardRetainAll(toRetain);
+        return retval;
     }
 }
