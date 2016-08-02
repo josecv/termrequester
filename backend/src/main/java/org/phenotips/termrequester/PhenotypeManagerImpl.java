@@ -20,6 +20,7 @@ package org.phenotips.termrequester;
 import org.phenotips.termrequester.db.DatabaseService;
 import org.phenotips.termrequester.github.GithubAPI;
 import org.phenotips.termrequester.github.GithubAPIFactory;
+import org.phenotips.termrequester.github.GithubException;
 
 import java.io.IOException;
 
@@ -116,7 +117,7 @@ public class PhenotypeManagerImpl implements PhenotypeManager
             /* It wasn't anywhere */
             github.openIssue(pt);
             db.savePhenotype(pt);
-        } catch (IOException e) {
+        } catch (IOException | GithubException e) {
             throw new TermRequesterBackendException(e);
         }
         return new PhenotypeCreation(pt, true);
@@ -128,7 +129,7 @@ public class PhenotypeManagerImpl implements PhenotypeManager
      * @param pt the phenotype to check for
      * @return the existing phenotype or Phenotype.NULL if none existed.
      */
-    private Phenotype checkInDb(Phenotype pt) throws IOException
+    private Phenotype checkInDb(Phenotype pt) throws IOException, GithubException
     {
 
         Phenotype existing = db.getPhenotype(pt);
@@ -153,7 +154,7 @@ public class PhenotypeManagerImpl implements PhenotypeManager
      * @return the existing phenotype or Phenotype.NULL if none existed.
      * @throws RuntimeException if the phenotype is in github but not in the database.
      */
-    private Phenotype checkInGithub(Phenotype pt) throws IOException
+    private Phenotype checkInGithub(Phenotype pt) throws IOException, GithubException
     {
 
         Optional<String> number = github.searchForIssue(pt);
@@ -176,7 +177,7 @@ public class PhenotypeManagerImpl implements PhenotypeManager
      * @param pt the phenotype
      * @return the phenotype
      */
-    private Phenotype updatePhenotype(Phenotype pt) throws IOException
+    private Phenotype updatePhenotype(Phenotype pt) throws IOException, GithubException
     {
         String msg = "Trying to update not yet saved phenotype";
         checkArgument(pt.getId().isPresent(), msg);
@@ -196,7 +197,7 @@ public class PhenotypeManagerImpl implements PhenotypeManager
                 github.readPhenotype(pt);
                 db.savePhenotype(pt);
             }
-        } catch (IOException e) {
+        } catch (IOException | GithubException e) {
             throw new TermRequesterBackendException(e);
         }
         return pt;

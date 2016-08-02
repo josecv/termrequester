@@ -151,7 +151,7 @@ public class PhenotypeManagerTest
      * TODO So very many cases are missing. Need more test cases.
      */
     @Test
-    public void testCreation() throws InterruptedException, ExecutionException, IOException, TermRequesterBackendException
+    public void testCreation() throws Exception
     {
         when(databaseService.savePhenotype(refEq(pt))).thenReturn(pt);
         when(githubApi.searchForIssue(refEq(pt))).thenReturn(Optional.<String>absent());
@@ -170,7 +170,7 @@ public class PhenotypeManagerTest
      * Test the getPhenotypeById method.
      */
     @Test
-    public void testGetById() throws TermRequesterBackendException, IOException
+    public void testGetById() throws Exception
     {
         String id = "NONHPO_123";
         pt = mock(Phenotype.class);
@@ -187,7 +187,7 @@ public class PhenotypeManagerTest
      * Test the search method.
      */
     @Test
-    public void testSearch() throws TermRequesterBackendException, IOException
+    public void testSearch() throws Exception
     {
         String text = "text search!";
         List<Phenotype> phenotypes = new ArrayList<>();

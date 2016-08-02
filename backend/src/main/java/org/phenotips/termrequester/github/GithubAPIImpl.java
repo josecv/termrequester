@@ -22,7 +22,6 @@ import org.phenotips.termrequester.Phenotype;
 import java.io.IOException;
 import java.io.InputStream;
 
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -87,7 +86,7 @@ class GithubAPIImpl implements GithubAPI
     static {
         try {
             GITHUB_URL = new URL(GITHUB);
-        } catch (MalformedURLException e) {
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
@@ -104,7 +103,7 @@ class GithubAPIImpl implements GithubAPI
     }
 
     @Override
-    public void openIssue(Phenotype phenotype) throws IOException
+    public void openIssue(Phenotype phenotype) throws IOException, GithubException
     {
         if (!phenotype.submittable()) {
             throw new IllegalArgumentException("Phenotype " + phenotype + " is not submittable");
@@ -116,9 +115,9 @@ class GithubAPIImpl implements GithubAPI
         byte[] body = buildRequest(phenotype);
         HttpResponse response = execute(Request.
                 Post(getURI(method)).
-                bodyByteArray(body, ContentType.APPLICATION_JSON)).
-            returnResponse();
-        InputStream is = response.getEntity().getContent();
+                bodyByteArray(body, ContentType.APPLICATION_JSON));
+        checkCode(response, Status.SUCCESS_CREATED);
+        InputStream is = getStream(response);
         DataTypes.Issue result = mapper.readValue(is, DataTypes.Issue.class);
         phenotype.setIssueNumber(Integer.toString(result.number));
         phenotype.setStatus(Phenotype.Status.SUBMITTED);
@@ -126,7 +125,7 @@ class GithubAPIImpl implements GithubAPI
     }
 
     @Override
-    public void patchIssue(Phenotype pt) throws IOException
+    public void patchIssue(Phenotype pt) throws IOException, GithubException
     {
         checkArgument(pt.getIssueNumber().isPresent(), "Phenotype %s has no issueNumber", pt);
         byte[] body = buildRequest(pt);
@@ -135,19 +134,19 @@ class GithubAPIImpl implements GithubAPI
         HttpResponse response = execute(Request.
                 Patch(getURI(method)).
                 bodyByteArray(body, ContentType.APPLICATION_JSON).
-                addHeader(IF_NONE_MATCH, pt.getEtag())).
-            returnResponse();
+                addHeader(IF_NONE_MATCH, pt.getEtag()));
+        checkCode(response, Status.SUCCESS_OK);
         pt.setEtag(response.getFirstHeader(ETAG).getValue());
     }
 
     @Override
-    public Phenotype readPhenotype(Phenotype pt) throws IOException
+    public Phenotype readPhenotype(Phenotype pt) throws IOException, GithubException
     {
         checkArgument(pt.getIssueNumber().isPresent(), "Phenotype %s has no issue number");
         Phenotype.Status status;
         String method = getIssueEndpoint(pt.getIssueNumber().get());
         Request request = Request.Get(getURI(method)).addHeader(IF_NONE_MATCH, pt.getEtag());
-        HttpResponse response = execute(request).returnResponse();
+        HttpResponse response = execute(request);
         if (response.getStatusLine().getStatusCode() == Status.REDIRECTION_NOT_MODIFIED.getCode()) {
             return pt;
         }
@@ -165,7 +164,7 @@ class GithubAPIImpl implements GithubAPI
     }
 
     @Override
-    public Optional<String> searchForIssue(Phenotype candidate) throws IOException
+    public Optional<String> searchForIssue(Phenotype candidate) throws IOException, GithubException
     {
         /* Don't waste any time if it's null */
         if (Phenotype.NULL.equals(candidate)) {
@@ -180,7 +179,7 @@ class GithubAPIImpl implements GithubAPI
         builder.addParameter("q", q);
         InputStream is;
         try {
-            is = execute(Request.Get(builder.build())).returnContent().asStream();
+            is = getStream(execute(Request.Get(builder.build())));
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }
@@ -228,10 +227,35 @@ class GithubAPIImpl implements GithubAPI
      * @param request the request
      * @return the response.
      */
-    private Response execute(Request request) throws IOException
+    private HttpResponse execute(Request request) throws IOException
     {
         request.addHeader("Authorization", "token " + repository.getToken());
-        return request.execute();
+        Response response = request.execute();
+        return response.returnResponse();
+    }
+
+    /**
+     * Check that the response given has the status code given.
+     * @param resp the response
+     * @param code the status code
+     * @throws GithubException if it does not.
+     */
+    private void checkCode(HttpResponse resp, Status code) throws GithubException
+    {
+        if (resp.getStatusLine().getStatusCode() != code.getCode()) {
+            throw new GithubException("Response did not have code " + code);
+        }
+    }
+
+    /**
+     * Get a content stream for the response given.
+     * @param response the http response
+     * @return the content stream
+     * @throws IOException if getting the stream fails
+     */
+    private InputStream getStream(HttpResponse response) throws IOException
+    {
+        return response.getEntity().getContent();
     }
 
     /**
@@ -265,7 +289,7 @@ class GithubAPIImpl implements GithubAPI
     {
         try {
             return new URL(GITHUB_URL, method).toURI();
-        } catch (MalformedURLException | URISyntaxException e) {
+        } catch (IOException | URISyntaxException e) {
             throw new RuntimeException(e);
         }
     }

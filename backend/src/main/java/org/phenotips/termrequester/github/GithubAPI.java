@@ -35,9 +35,11 @@ public interface GithubAPI
      * Update the phenotype given with any changes to its github issue.
      * @param phenotype the phenotype
      * @return the same phenotype
+     * @throws IllegalArgumentException if the phenotype has no issue number
      * @throws IOException on network failure
+     * @throws GithubException on failure on github's end (eg 404)
      */
-    Phenotype readPhenotype(Phenotype phenotype) throws IOException;
+    Phenotype readPhenotype(Phenotype phenotype) throws IOException, GithubException;
 
     /**
      * Open a new issue for the phenotype given.
@@ -46,15 +48,17 @@ public interface GithubAPI
      * @param phenotype the phenotype to create the issue for
      * @throws IllegalArgumentException if the phenotype given has an open issue already
      * @throws IOException on network failure
+     * @throws GithubException on failure on github's end (eg 404)
      */
-    void openIssue(Phenotype phenotype) throws IOException;
+    void openIssue(Phenotype phenotype) throws IOException, GithubException;
 
     /**
      * Patch the issue for the given phenotype.
      * @param phenotype the phenotype to patch the issue for.
      * @throws IOException on network failure
+     * @throws GithubException on failure on github's end (eg 404)
      */
-    void patchIssue(Phenotype phenotype) throws IOException;
+    void patchIssue(Phenotype phenotype) throws IOException, GithubException;
 
     /**
      * Search the github repository for an issue equivalent to this phenotype's, and return
@@ -62,9 +66,10 @@ public interface GithubAPI
      * A new issue should *only* be submitted if this method returns absent.
      * @param phenotype the phenotype we're looking for.
      * @return the issue number for an equivalent issue, if it exists
+     * @throws GithubException on failure on github's end (eg 404)
      * @throws IOException on network failure
      */
-    Optional<String> searchForIssue(Phenotype phenotype) throws IOException;
+    Optional<String> searchForIssue(Phenotype phenotype) throws IOException, GithubException;
 
     /**
      * Get the repository that this instance connects to.
