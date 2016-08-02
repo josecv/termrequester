@@ -22,6 +22,7 @@ import org.phenotips.termrequester.rest.resources.PhenotypeResource;
 import org.phenotips.termrequester.rest.resources.PhenotypesResource;
 
 import org.restlet.Application;
+import org.restlet.Context;
 import org.restlet.Restlet;
 import org.restlet.ext.guice.FinderFactory;
 import org.restlet.ext.guice.RestletGuice;
@@ -54,6 +55,23 @@ public class TermRequesterApplication extends Application
      * The parameter for the home directory.
      */
     public static final String HOME_DIR_PARAM = "org.phenotips.termrequester.homeDir";
+
+    /**
+     * CTOR.
+     * @param parentContext the context
+     */
+    public TermRequesterApplication(Context parentContext)
+    {
+        super(parentContext);
+    }
+
+    /**
+     * CTOR.
+     */
+    public TermRequesterApplication()
+    {
+        super();
+    }
 
     @Override
     public Restlet createInboundRoot()

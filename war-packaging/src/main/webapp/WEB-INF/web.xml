@@ -28,28 +28,30 @@
 
   <servlet>
     <servlet-name>TermRequesterServlet</servlet-name>
-    <servlet-class>org.restlet.ext.servlet.ServerServlet</servlet-class>
-    <init-param>
-      <param-name>org.restlet.applicaiton</param-name>
-      <param-value>org.phenotips.termrequester.rest.TermRequesterApplication</param-value>
-    </init-param>
+    <!--<servlet-class>org.restlet.ext.servlet.ServerServlet</servlet-class>-->
+    <servlet-class>org.phenotips.termrequester.rest.TermRequesterServlet</servlet-class>
     <init-param>
       <param-name>org.phenotips.termrequester.repositoryOwner</param-name>
-      <param-value>CHANGE ME</param-value>
+      <param-value></param-value>
     </init-param>
     <init-param>
       <param-name>org.phenotips.termrequester.repositoryName</param-name>
-      <param-value>CHANGE ME</param-value>
+      <param-value></param-value>
     </init-param>
     <init-param>
       <param-name>org.phenotips.termrequester.oauthToken</param-name>
-      <param-value>CHANGE ME</param-value>
+      <param-value></param-value>
     </init-param>
     <init-param>
       <param-name>org.phenotips.termrequester.homeDir</param-name>
-      <param-value>CHANGE ME</param-value>
+      <param-value></param-value>
     </init-param>
   </servlet>
+
+  <servlet-mapping>
+    <servlet-name>TermRequesterServlet</servlet-name>
+    <url-pattern>/*</url-pattern>
+  </servlet-mapping>
 
 </web-app>
 

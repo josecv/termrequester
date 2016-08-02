@@ -372,7 +372,6 @@ public class Phenotype extends AbstractSaveable implements Serializable
         return "TERM: " + this.name
             + "\nSYNONYMS: " + String.join(",", this.synonyms)
             + "\nPARENT: " + PARENT_JOINER.join(getParentIds())
-            + "\nPT_INTERNAL_ID: " + this.getId().or("NONE")
             + "\nDESCRIPTION: " + this.description.replace("\n", ". ");
     }
 

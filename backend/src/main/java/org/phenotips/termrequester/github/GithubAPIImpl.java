@@ -118,11 +118,11 @@ class GithubAPIImpl implements GithubAPI
                 Post(getURI(method)).
                 bodyByteArray(body, ContentType.APPLICATION_JSON)).
             returnResponse();
-        phenotype.setEtag(response.getFirstHeader(ETAG).getValue());
         InputStream is = response.getEntity().getContent();
         DataTypes.Issue result = mapper.readValue(is, DataTypes.Issue.class);
         phenotype.setIssueNumber(Integer.toString(result.number));
         phenotype.setStatus(Phenotype.Status.SUBMITTED);
+        phenotype.setEtag(response.getFirstHeader(ETAG).getValue());
     }
 
     @Override
@@ -151,7 +151,6 @@ class GithubAPIImpl implements GithubAPI
         if (response.getStatusLine().getStatusCode() == Status.REDIRECTION_NOT_MODIFIED.getCode()) {
             return pt;
         }
-        pt.setEtag(response.getFirstHeader(ETAG).getValue());
         InputStream is = response.getEntity().getContent();
         DataTypes.Issue issue = mapper.readValue(is, DataTypes.Issue.class);
         /* TODO We're assuming no rejection here! Un-assume that */
@@ -161,6 +160,7 @@ class GithubAPIImpl implements GithubAPI
             status = Phenotype.Status.SUBMITTED;
         }
         pt.setStatus(status);
+        pt.setEtag(response.getFirstHeader(ETAG).getValue());
         return pt;
     }
 
