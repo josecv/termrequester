@@ -58,6 +58,7 @@ class SolrMapper
         doc.setField(Schema.PARENT, parents.toArray(new String[parents.size()]));
         doc.setField(Schema.SYNONYM, synonyms.toArray(new String[synonyms.size()]));
         doc.setField(Schema.ID, pt.getId().get());
+        doc.setField(Schema.ETAG, pt.getEtag());
         if (pt.getHpoId().isPresent()) {
             doc.setField(Schema.HPO_ID, pt.getHpoId().get());
         }
@@ -102,6 +103,7 @@ class SolrMapper
         pt.setIssueNumber((String) doc.getFieldValue(Schema.ISSUE_NUMBER));
         pt.setTimeCreated((Date) doc.getFieldValue(Schema.TIME_CREATED));
         pt.setTimeModified((Date) doc.getFieldValue(Schema.TIME_MODIFIED));
+        pt.setEtag((String) doc.getFieldValue(Schema.ETAG));
         Collection<Object> parents = doc.getFieldValues(Schema.PARENT);
         if (parents != null) {
             for (Object parent : parents) {

@@ -167,6 +167,7 @@
     <field name="time_created" type="date" indexed="true" stored="true" default="NOW" multiValued="false" omitNorms="true" />
     <field name="time_modified" type="date" indexed="true" stored="true" default="NOW" multiValued="false" omitNorms="true" />
     <field name="hpoId" type="date" indexed="true" stored="true" multiValued="false" />
+    <field name="etag" type="string" indexed="false" stored="true" multiValued="false" />
 
     <!-- Discard all other fields -->
     <dynamicField name="*" type="ignored" multiValued="true"/>
