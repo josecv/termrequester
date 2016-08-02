@@ -113,4 +113,17 @@ public class PhenotypesResourceTest extends AbstractResourceTest
         assertEquals(1, results.size());
         assertEquals(pt, results.get(0));
     }
+
+    @Test
+    public void testEmptySearch() throws Exception
+    {
+        Request request = new Request(Method.GET, "/phenotypes");
+        Response response = new Response(request);
+        router.handle(request, response);
+        assertEquals(200, response.getStatus().getCode());
+        assertTrue(response.isEntityAvailable());
+        List<Phenotype> results = mapper.readValue(response.getEntity().getStream(),
+                new TypeReference<List<Phenotype>>() { });
+        assertEquals(0, results.size());
+    }
 }

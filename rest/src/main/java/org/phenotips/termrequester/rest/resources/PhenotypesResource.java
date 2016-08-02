@@ -25,6 +25,7 @@ import org.phenotips.termrequester.rest.resources.annotations.OAuthToken;
 import org.phenotips.termrequester.rest.resources.annotations.RepositoryName;
 import org.phenotips.termrequester.rest.resources.annotations.RepositoryOwner;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.restlet.data.Status;
@@ -96,6 +97,9 @@ public class PhenotypesResource extends AbstractTermRequesterResource
     public List<Phenotype> search()
     {
         String text = getQuery().getValues(TEXT_PARAM);
+        if (text == null) {
+            return new ArrayList<>();
+        }
         try {
             List<Phenotype> results = ptManager.search(text);
             getResponse().setStatus(Status.SUCCESS_OK);
