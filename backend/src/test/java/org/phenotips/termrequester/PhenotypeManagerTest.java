@@ -17,12 +17,6 @@
  */
 package org.phenotips.termrequester;
 
-import org.phenotips.termrequester.db.DatabaseService;
-import org.phenotips.termrequester.di.TermRequesterBackendModule;
-import org.phenotips.termrequester.github.GithubAPI;
-import org.phenotips.termrequester.github.GithubAPIFactory;
-import org.phenotips.termrequester.testutils.TestModule;
-
 import java.io.IOException;
 
 import java.util.ArrayList;
@@ -36,6 +30,15 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
+
+import org.phenotips.termrequester.db.DatabaseService;
+import org.phenotips.termrequester.di.TermRequesterBackendModule;
+import org.phenotips.termrequester.github.GithubAPI;
+import org.phenotips.termrequester.github.GithubAPIFactory;
+import org.phenotips.termrequester.testutils.TestModule;
+
 import com.google.common.base.Optional;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
@@ -43,15 +46,18 @@ import com.google.inject.Injector;
 import com.google.inject.util.Modules;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.refEq;
 import static org.mockito.Matchers.same;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -118,6 +124,11 @@ public class PhenotypeManagerTest
     private static final String PT_NUM = "123";
 
     /**
+     * The id of the test phenotype.
+     */
+    private static final String PT_ID = "NONHPO_123";
+
+    /**
      * A temporary folder.
      */
     @Rule
@@ -127,7 +138,7 @@ public class PhenotypeManagerTest
      * Set up the test case.
      */
     @Before
-    public void setUp() throws IOException, TermRequesterBackendException
+    public void setUp() throws Exception
     {
         databaseService = mock(DatabaseService.class);
         githubApi = mock(GithubAPI.class);
@@ -138,10 +149,11 @@ public class PhenotypeManagerTest
         pt = new Phenotype(PT_NAME, PT_DESC);
         when(databaseService.getPhenotypeById(any(String.class))).thenReturn(Phenotype.NULL);
         when(databaseService.getPhenotype(any(Phenotype.class))).thenReturn(Phenotype.NULL);
+        when(githubApi.searchForIssue(any(Phenotype.class))).thenReturn(Optional.<String>absent());
     }
 
     @After
-    public void tearDown() throws TermRequesterBackendException
+    public void tearDown() throws Exception
     {
         client.shutdown();
     }
@@ -154,7 +166,6 @@ public class PhenotypeManagerTest
     public void testCreation() throws Exception
     {
         when(databaseService.savePhenotype(refEq(pt))).thenReturn(pt);
-        when(githubApi.searchForIssue(refEq(pt))).thenReturn(Optional.<String>absent());
         doNothing().when(githubApi).openIssue(refEq(pt));
         PhenotypeManager.PhenotypeCreation created = client.createRequest(pt);
         Phenotype pt2 = created.phenotype;
@@ -167,19 +178,69 @@ public class PhenotypeManagerTest
     }
 
     /**
+     * Test that a new phenotype can be created when it's already in the database and github.
+     */
+    @Test
+    public void testAlreadyExisting() throws Exception
+    {
+        Phenotype pt2 = new Phenotype("Another", "another!");
+        pt2.setId(PT_ID);
+        pt2.setIssueNumber(PT_NUM);
+        pt2.setStatus(Phenotype.Status.SUBMITTED);
+        pt2 = spy(pt2);
+        pt = spy(pt);
+        when(databaseService.getPhenotype(refEq(pt))).thenReturn(pt2);
+        PhenotypeManager.PhenotypeCreation created = client.createRequest(pt);
+        assertFalse(created.isNew);
+        assertTrue(pt2 == created.phenotype);
+        verify(pt2).mergeWith(refEq(pt));
+        verify(databaseService).savePhenotype(refEq(pt2));
+        /* The issue is already submitted to github so nothing should've been opened */
+        verify(githubApi, never()).openIssue(any(Phenotype.class));
+        verify(githubApi).patchIssue(refEq(pt2));
+    }
+
+    /**
+     * Test that a new phenotype can be created when it's already in the database, but not
+     * github.
+     */
+    @Test
+    public void testAlreadyInDb() throws Exception
+    {
+        Phenotype pt2 = new Phenotype("Another", "another");
+        pt2.setId(PT_ID);
+        pt2 = spy(pt2);
+        pt = spy(pt);
+        when(databaseService.getPhenotype(refEq(pt))).thenReturn(pt2);
+        doAnswer(new Answer<Void>() {
+            public Void answer(InvocationOnMock invocation) {
+                Phenotype arg = (Phenotype) invocation.getArguments()[0];
+                arg.setIssueNumber(PT_NUM);
+                arg.setStatus(Phenotype.Status.SUBMITTED);
+                return null;
+            }
+        }).when(githubApi).openIssue(refEq(pt2));
+        PhenotypeManager.PhenotypeCreation created = client.createRequest(pt);
+        assertTrue(pt2 == created.phenotype);
+        assertFalse(created.isNew);
+        verify(pt2).mergeWith(refEq(pt));
+        verify(databaseService).savePhenotype(refEq(pt2));
+        verify(githubApi).openIssue(refEq(pt2));
+    }
+
+    /**
      * Test the getPhenotypeById method.
      */
     @Test
     public void testGetById() throws Exception
     {
-        String id = "NONHPO_123";
         pt = mock(Phenotype.class);
-        when(databaseService.getPhenotypeById(id)).thenReturn(pt);
+        when(databaseService.getPhenotypeById(PT_ID)).thenReturn(pt);
         when(pt.getIssueNumber()).thenReturn(Optional.of(PT_NUM));
-        Phenotype pt2 = client.getPhenotypeById(id);
+        Phenotype pt2 = client.getPhenotypeById(PT_ID);
         assertEquals(pt, pt2);
         verify(githubApi).readPhenotype(same(pt));
-        verify(databaseService).getPhenotypeById(id);
+        verify(databaseService).getPhenotypeById(PT_ID);
         verify(databaseService).savePhenotype(same(pt));
     }
 

@@ -173,7 +173,7 @@ public class PhenotypeManagerImpl implements PhenotypeManager
     }
 
     /**
-     * Persist the phenotype given and return it - does not necessarily create it.
+     * Persist the phenotype given and return it - does not create it.
      * @param pt the phenotype
      * @return the phenotype
      */
