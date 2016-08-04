@@ -357,16 +357,6 @@ public class Phenotype extends AbstractSaveable implements Serializable
         this.timeModified = timeModified;
     }
 
-    /**
-     * Get a long form description of this phenotype, suitable for an issue tracker.
-     * @return a description.
-     */
-    /*public String issueDescribe()
-    {
-        return String.format(ISSUE_BODY_FORMAT, this.name, JOINER.join(this.synonyms),
-                JOINER.join(getParentIds()), this.description.replace("\n", ". "));
-    }*/
-
     @Override
     protected String calculateVersionHash()
     {
