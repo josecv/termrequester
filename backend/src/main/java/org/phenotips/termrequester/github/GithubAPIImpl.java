@@ -142,7 +142,7 @@ class GithubAPIImpl implements GithubAPI
     @Override
     public Phenotype readPhenotype(Phenotype pt) throws IOException, GithubException
     {
-        checkArgument(pt.getIssueNumber().isPresent(), "Phenotype %s has no issue number");
+        checkArgument(pt.getIssueNumber().isPresent(), "Phenotype %s has no issue number", pt);
         Phenotype.Status status;
         String method = getIssueEndpoint(pt.getIssueNumber().get());
         Request request = Request.Get(getURI(method)).addHeader(IF_NONE_MATCH, pt.getEtag());
