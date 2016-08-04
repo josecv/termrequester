@@ -4,7 +4,8 @@ Phenotips HPO TermRequester
 This service is designed to request that new phenotypes be added to the HPO and give a handle
 to requested phenotypes whilst they're being considered for inclusion.
 
-It exposes the following REST api:
+REST API
+========
 
 DATA STRUCTURES
 ---------------
@@ -87,3 +88,12 @@ Search the phenotypes that match a given text.
 ```javascript
 [{...}, ...] /* the results as phenotype instances */
 ```
+
+DEVELOPMENT
+===========
+
+To develop for the termrequester, you should:
+
+- build and install the phenotips variant store
+- populate `backend/src/test/resources/org/phenotips/termrequester/github/credentials.properties`
+  by copying `credentials.template.properties` in that same directory

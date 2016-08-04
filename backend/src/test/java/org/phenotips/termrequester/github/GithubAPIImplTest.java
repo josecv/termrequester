@@ -24,6 +24,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import org.apache.http.client.fluent.Request;
 import org.apache.http.entity.ContentType;
@@ -50,6 +51,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.junit.Assume.assumeTrue;
 
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.never;
@@ -74,19 +76,17 @@ public class GithubAPIImplTest
     /**
      * The github user whose repo we're gonna hit.
      */
-    private static final String USER = "josecv";
+    private static String USER;
 
     /**
      * The base of the name of the repository to hit.
      */
-    private static final String REPO_BASE = "Sandbox";
+    private static String REPO_BASE;
 
     /**
      * The OAuth Token we're using for auth - needs public_repo, repo, and delete_repo privileges.
-     * TODO How can we fill this in when testing?
-     * github revokes it when it makes its way into a commit (for obvious security reasons)
      */
-    private static final String TEST_TOKEN = "";
+    private static String TEST_TOKEN;
 
     /**
      * The guice injector to use.
@@ -129,6 +129,15 @@ public class GithubAPIImplTest
     @BeforeClass
     public static void beforeClass() throws Exception
     {
+        Properties p = new Properties();
+        InputStream stream = GithubAPIImplTest.class.getResourceAsStream("credentials.properties");
+        assumeTrue(stream != null);
+        p.load(stream);
+        /* Skip if there's no token, since everything will fail */
+        assumeTrue(!"replaceme".equals(p.getProperty("token")));
+        USER = p.getProperty("user");
+        REPO_BASE = p.getProperty("repoBase");
+        TEST_TOKEN = p.getProperty("token");
         injector = Guice.createInjector(new TermRequesterBackendModule());
         mapper = injector.getInstance(ObjectMapper.class);
         factory = injector.getInstance(GithubAPIFactoryImpl.class);
@@ -150,6 +159,9 @@ public class GithubAPIImplTest
     @AfterClass
     public static void afterClass() throws Exception
     {
+        if (TEST_TOKEN == null) {
+            return;
+        }
         Request.Delete(String.format("https://api.github.com/repos/%s/%s", USER, repo)).
             addHeader("Authorization", "token " + TEST_TOKEN).
             execute().returnContent();
