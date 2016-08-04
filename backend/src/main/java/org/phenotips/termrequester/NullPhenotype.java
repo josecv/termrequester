@@ -128,12 +128,6 @@ final class NullPhenotype extends Phenotype
     }
 
     @Override
-    public String issueDescribe()
-    {
-        return "NULL PHENOTYPE. YOU SHOULD NOT BE SEEING THIS IN YOUR ISSUE TRACKER. PLEASE REPORT BUG TO PHENOTIPS";
-    }
-
-    @Override
     public Status getStatus()
     {
         return Status.REJECTED;

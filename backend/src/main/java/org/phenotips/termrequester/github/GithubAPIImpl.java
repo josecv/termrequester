@@ -118,8 +118,8 @@ class GithubAPIImpl implements GithubAPI
                 bodyByteArray(body, ContentType.APPLICATION_JSON));
         checkCode(response, Status.SUCCESS_CREATED);
         InputStream is = getStream(response);
-        DataTypes.Issue result = mapper.readValue(is, DataTypes.Issue.class);
-        phenotype.setIssueNumber(Integer.toString(result.number));
+        Issue result = mapper.readValue(is, Issue.class);
+        phenotype.setIssueNumber(Integer.toString(result.getNumber()));
         phenotype.setStatus(Phenotype.Status.SUBMITTED);
         phenotype.setEtag(response.getFirstHeader(ETAG).getValue());
     }
@@ -151,9 +151,9 @@ class GithubAPIImpl implements GithubAPI
             return pt;
         }
         InputStream is = response.getEntity().getContent();
-        DataTypes.Issue issue = mapper.readValue(is, DataTypes.Issue.class);
+        Issue issue = mapper.readValue(is, Issue.class);
         /* TODO We're assuming no rejection here! Un-assume that */
-        if (issue.state.equals("closed")) {
+        if (issue.getState().equals("closed")) {
             status = Phenotype.Status.ACCEPTED;
         } else {
             status = Phenotype.Status.SUBMITTED;
@@ -183,11 +183,12 @@ class GithubAPIImpl implements GithubAPI
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }
-        DataTypes.SearchResults<DataTypes.Issue> results = mapper.readValue(is,
-                new TypeReference<DataTypes.SearchResults<DataTypes.Issue>>() { });
-        for (DataTypes.Issue issue : results) {
-            if (candidate.describedBy(issue.body)) {
-                return Optional.of(Integer.toString(issue.number));
+        DataTypes.SearchResults<Issue> results = mapper.readValue(is,
+                new TypeReference<DataTypes.SearchResults<Issue>>() { });
+        for (Issue issue : results) {
+            Phenotype other = issue.asPhenotype();
+            if (other.equals(candidate)) {
+                return other.getIssueNumber();
             }
         }
         return Optional.<String>absent();
@@ -302,7 +303,7 @@ class GithubAPIImpl implements GithubAPI
     {
         Map<String, String> params = new HashMap<>();
         params.put("title", issueTitle(pt.getName()));
-        params.put("body", pt.issueDescribe());
+        params.put("body", Issue.describe(pt));
         byte[] body = mapper.writeValueAsBytes(params);
         return body;
     }

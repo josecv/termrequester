@@ -215,7 +215,7 @@ public class GithubAPIImplTest
     @Test
     public void testOpenIssue() throws Exception
     {
-        String expectedDescription = pt.issueDescribe();
+        String expectedDescription = Issue.describe(pt);
         client.openIssue(pt);
         assertTrue(pt.getIssueNumber().isPresent());
         String number = pt.getIssueNumber().get();
@@ -226,9 +226,9 @@ public class GithubAPIImplTest
         InputStream is = Request.Get(endpoint).
             addHeader("Authorization", "token " + TEST_TOKEN).
             execute().returnContent().asStream();
-        DataTypes.Issue issue = mapper.readValue(is, DataTypes.Issue.class);
-        assertEquals(expectedDescription, issue.body);
-        assertEquals("open", issue.state);
+        Issue issue = mapper.readValue(is, Issue.class);
+        assertEquals(expectedDescription, issue.getBody());
+        assertEquals("open", issue.getState());
     }
 
     /**
@@ -260,7 +260,7 @@ public class GithubAPIImplTest
         cleanupIssues.add(number);
         Thread.sleep(2000);
         pt.setName("different name!");
-        String expectedDescription = pt.issueDescribe();
+        String expectedDescription = Issue.describe(pt);
         String etag = pt.getEtag();
         client.patchIssue(pt);
         Thread.sleep(2000);
@@ -268,8 +268,8 @@ public class GithubAPIImplTest
         InputStream is = Request.Get(endpoint).
             addHeader("Authorization", "token " + TEST_TOKEN).
             execute().returnContent().asStream();
-        DataTypes.Issue issue = mapper.readValue(is, DataTypes.Issue.class);
-        assertEquals(expectedDescription, issue.body);
+        Issue issue = mapper.readValue(is, Issue.class);
+        assertEquals(expectedDescription, issue.getBody());
         assertNotNull(etag, pt.getEtag());
     }
 

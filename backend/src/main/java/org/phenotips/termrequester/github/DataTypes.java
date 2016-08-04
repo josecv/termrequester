@@ -40,37 +40,6 @@ final class DataTypes
     }
 
     /**
-     * A github representation of an issue.
-     */
-    public static final class Issue
-    {
-        /**
-         * The issue number within the tracker.
-         */
-        public int number;
-
-        /**
-         * The reported state of the issue.
-         */
-        public String state;
-
-        /**
-         * The labels.
-         */
-        public List<String> labels;
-
-        /**
-         * This issue's description.
-         */
-        public String body;
-
-        /**
-         * This issue's title.
-         */
-        public String title;
-    }
-
-    /**
      * A list of results from a github search.
      */
     public static final class SearchResults<T> implements Iterable<T>
