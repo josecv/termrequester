@@ -63,6 +63,8 @@ public interface PhenotypeManager
 
     /**
      * Fuzzily search for phenotypes matching the text given.
+     * Will not read github, so the status may be inacurate - once a phenotype is selected, it should
+     * probably go through getPhenotypeById.
      * @param text the text to search for
      * @return the list of phenotypes
      * @throws TermRequesterBackendException if something goes wrong in the backend.

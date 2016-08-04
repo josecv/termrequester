@@ -26,6 +26,8 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.text.WordUtils;
 
@@ -34,6 +36,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
+import com.google.common.base.Splitter;
 import com.google.common.collect.Sets;
 
 /**
@@ -66,14 +69,34 @@ public class Phenotype extends AbstractSaveable implements Serializable
     public static final Phenotype NULL = NullPhenotype.INSTANCE;
 
     /**
+     * The format for the github issue body for a phenotype.
+     */
+    public static final String ISSUE_BODY_FORMAT = "TERM: %s"
+        + "\nSYNONYMS: %s"
+        + "\nPARENTS: %s"
+        + "\nDESCRIPTION: %s";
+
+    /**
+     * A pattern to parse out the issue description.
+     */
+    public static final Pattern ISSUE_DESC_PATTERN = Pattern.compile(String.format(
+                ISSUE_BODY_FORMAT,
+                "(?<name>.*)", "(?<synonyms>.*)", "(?<parents>.*)", "(?<description>.*)"));
+
+    /**
      * The serial version uid.
      */
     private static final long serialVersionUID = 1789L;
 
     /**
-     * Joins all the parent ids with commas.
+     * Joins stuff with commas.
      */
-    private static final Joiner PARENT_JOINER = Joiner.on(", ").skipNulls();
+    private static final Joiner JOINER = Joiner.on(", ").skipNulls();
+
+    /**
+     * Splits strings joined by the JOINER.
+     */
+    private static final Splitter SPLITTER = Splitter.on(",").trimResults().omitEmptyStrings();
 
     /**
      * The hpo id of this phenotype.
@@ -369,10 +392,8 @@ public class Phenotype extends AbstractSaveable implements Serializable
      */
     public String issueDescribe()
     {
-        return "TERM: " + this.name
-            + "\nSYNONYMS: " + String.join(",", this.synonyms)
-            + "\nPARENT: " + PARENT_JOINER.join(getParentIds())
-            + "\nDESCRIPTION: " + this.description.replace("\n", ". ");
+        return String.format(ISSUE_BODY_FORMAT, this.name, JOINER.join(this.synonyms),
+                JOINER.join(getParentIds()), this.description.replace("\n", ". "));
     }
 
     @Override
@@ -416,6 +437,29 @@ public class Phenotype extends AbstractSaveable implements Serializable
     {
         return Objects.hash(getId().or(EMPTY_ID), name, description, synonyms,
                 parentIds, getIssueNumber().or(EMPTY_ISSUE), status, hpoId);
+    }
+
+    /**
+     * Return whether this phenotype is described by the issue description given.
+     * This is equivalent to asking if the set of names given in the description (term + synonyms)
+     * intersects with the set of names of this phenotype.
+     * @param description the issue description
+     * @return whether this phenotype is described by the description
+     */
+    public boolean describedBy(String description)
+    {
+        /* TODO Similar pattern to equals() */
+        Set<String> ourNames = getSynonyms();
+        ourNames.add(getName());
+        Matcher m = ISSUE_DESC_PATTERN.matcher(description);
+        m.find();
+        if (!m.matches()) {
+            return false;
+        }
+        String theirSynonyms = m.group("synonyms");
+        Set<String> theirNames = new TitleCaseSet(SPLITTER.splitToList(theirSynonyms));
+        theirNames.add(m.group("name"));
+        return !Sets.intersection(theirNames, ourNames).isEmpty();
     }
 
     /**

@@ -55,7 +55,7 @@ public class TitleCaseSet extends ForwardingSet<String>
      *
      * @param initial the set to gobble up
      */
-    public TitleCaseSet(Set<String> initial)
+    public TitleCaseSet(Collection<String> initial)
     {
         super();
         /* We can't just HashSet<>(initial), since that wouldn't decorate the elements */

@@ -35,7 +35,6 @@ import org.apache.http.client.fluent.Response;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.ContentType;
 
-/* To get the nice HTTP status code constants */
 import org.restlet.data.Status;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -43,6 +42,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import com.google.common.base.Optional;
 
+/* To get the nice HTTP status code constants */
 import static com.google.common.base.Preconditions.checkArgument;
 
 
@@ -111,7 +111,7 @@ class GithubAPIImpl implements GithubAPI
         if (searchForIssue(phenotype).isPresent()) {
             throw new IllegalArgumentException("Issue for " + phenotype + " already exists");
         }
-        String method = getRepoMethod("/issues");
+        String method = getRepoMethod("issues");
         byte[] body = buildRequest(phenotype);
         HttpResponse response = execute(Request.
                 Post(getURI(method)).
@@ -186,8 +186,7 @@ class GithubAPIImpl implements GithubAPI
         DataTypes.SearchResults<DataTypes.Issue> results = mapper.readValue(is,
                 new TypeReference<DataTypes.SearchResults<DataTypes.Issue>>() { });
         for (DataTypes.Issue issue : results) {
-            /* TODO This needs to check the synonyms as well. */
-            if (issue.title.equals(issueTitle(candidate))) {
+            if (candidate.describedBy(issue.body)) {
                 return Optional.of(Integer.toString(issue.number));
             }
         }
@@ -201,13 +200,13 @@ class GithubAPIImpl implements GithubAPI
     }
 
     /**
-     * Get an issue title for the phenotype given.
-     * @param pt the phenotype
+     * Get an issue title for the phenotype with the name given.
+     * @param name the name
      * @return the issue title
      */
-    private String issueTitle(Phenotype pt)
+    private String issueTitle(String name)
     {
-        return "Add term " + pt.getName();
+        return "Add term " + name;
     }
 
     /**
@@ -265,7 +264,7 @@ class GithubAPIImpl implements GithubAPI
      */
     private String getIssueEndpoint(String issueNumber)
     {
-        return getRepoMethod("/issues/" + issueNumber);
+        return getRepoMethod("issues/" + issueNumber);
     }
 
     /**
@@ -275,8 +274,8 @@ class GithubAPIImpl implements GithubAPI
      */
     private String getRepoMethod(String method)
     {
-        /* TODO THERE HAS TO BE A PATH BUILDER OF SOME KIND, THIS IS INSANE! */
-        String retval = "/repos/" + repository.getOwner() + "/" + repository.getRepository() + method;
+        String retval = String.format("/repos/%s/%s/%s", repository.getOwner(),
+                repository.getRepository(), method);
         return retval;
     }
 
@@ -302,7 +301,7 @@ class GithubAPIImpl implements GithubAPI
     private byte[] buildRequest(Phenotype pt) throws IOException
     {
         Map<String, String> params = new HashMap<>();
-        params.put("title", issueTitle(pt));
+        params.put("title", issueTitle(pt.getName()));
         params.put("body", pt.issueDescribe());
         byte[] body = mapper.writeValueAsBytes(params);
         return body;

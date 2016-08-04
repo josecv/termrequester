@@ -190,6 +190,7 @@ public class GithubAPIImplTest
         Map<String, String> params = new HashMap<>();
         params.put("state", "closed");
         params.put("title", "Unit testing auto-opened issue");
+        params.put("body", "Closed!");
         byte[] bytes = mapper.writeValueAsBytes(params);
         Request.Patch(endpoint).bodyByteArray(bytes, ContentType.APPLICATION_JSON).
             addHeader("Authorization", "token " + TEST_TOKEN).
