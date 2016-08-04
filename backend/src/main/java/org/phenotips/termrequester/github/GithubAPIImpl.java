@@ -152,12 +152,7 @@ class GithubAPIImpl implements GithubAPI
         }
         InputStream is = response.getEntity().getContent();
         Issue issue = mapper.readValue(is, Issue.class);
-        /* TODO We're assuming no rejection here! Un-assume that */
-        if (issue.getState().equals("closed")) {
-            status = Phenotype.Status.ACCEPTED;
-        } else {
-            status = Phenotype.Status.SUBMITTED;
-        }
+        status = issue.getPTStatus();
         pt.setStatus(status);
         pt.setEtag(response.getFirstHeader(ETAG).getValue());
         return pt;

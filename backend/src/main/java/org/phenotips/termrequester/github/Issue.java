@@ -113,9 +113,22 @@ public class Issue
         pt.addAllParentIds(SPLITTER.splitToList(m.group("parents")));
         pt.setDescription(m.group("description"));
         pt.setIssueNumber(Integer.toString(number));
-        /* TODO Set this properly? */
-        pt.setStatus(Phenotype.Status.SUBMITTED);
+        pt.setStatus(getPTStatus());
         return pt;
+    }
+
+    /**
+     * Get the phenotype status for this issue.
+     * @return the status
+     */
+    public Phenotype.Status getPTStatus()
+    {
+        /* TODO We're assuming no rejection here! Un-assume that */
+        if ("closed".equals(state)) {
+            return Phenotype.Status.ACCEPTED;
+        } else {
+            return Phenotype.Status.SUBMITTED;
+        }
     }
 
     /**
