@@ -37,13 +37,10 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import org.phenotips.termrequester.Phenotype;
-import org.phenotips.termrequester.di.TermRequesterBackendModule;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import com.google.common.base.Optional;
-import com.google.inject.Guice;
 import com.google.inject.Injector;
 
 import static org.junit.Assert.assertEquals;
@@ -51,7 +48,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.junit.Assume.assumeTrue;
 
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.never;
@@ -67,36 +63,12 @@ import static org.mockito.Mockito.verify;
  *
  * @version $Id$
  */
-public class GithubAPIImplTest
+public class GithubAPIImplTest extends AbstractGithubTest
 {
     /* You'll notice there's a fair few sleep()s here. Unfortunately, github takes a little
      * while to sync changes so we have to pause to make sure we don't get a false negative
      * just because something wasn't updated on their end */
 
-    /**
-     * The github user whose repo we're gonna hit.
-     */
-    private static String USER;
-
-    /**
-     * The base of the name of the repository to hit.
-     */
-    private static String REPO_BASE;
-
-    /**
-     * The OAuth Token we're using for auth - needs public_repo, repo, and delete_repo privileges.
-     */
-    private static String TEST_TOKEN;
-
-    /**
-     * The guice injector to use.
-     */
-    private static Injector injector;
-
-    /**
-     * An object mapper to deserialize from json.
-     */
-    private static ObjectMapper mapper;
 
     /**
      * The factory to build clients.
@@ -104,7 +76,7 @@ public class GithubAPIImplTest
     private static GithubAPIFactory factory;
 
     /**
-     * The actual name of the repo.
+     * The github repository we're hitting.
      */
     private static String repo;
 
@@ -129,28 +101,8 @@ public class GithubAPIImplTest
     @BeforeClass
     public static void beforeClass() throws Exception
     {
-        Properties p = new Properties();
-        InputStream stream = GithubAPIImplTest.class.getResourceAsStream("credentials.properties");
-        assumeTrue(stream != null);
-        p.load(stream);
-        /* Skip if there's no token, since everything will fail */
-        assumeTrue(!"replaceme".equals(p.getProperty("token")));
-        USER = p.getProperty("user");
-        REPO_BASE = p.getProperty("repoBase");
-        TEST_TOKEN = p.getProperty("token");
-        injector = Guice.createInjector(new TermRequesterBackendModule());
-        mapper = injector.getInstance(ObjectMapper.class);
+        repo = initialize("githubapi");
         factory = injector.getInstance(GithubAPIFactoryImpl.class);
-        /* We now gotta create the repository we'll be using to test. */
-        String ts = Long.toString((new Date()).getTime());
-        repo = REPO_BASE + ts;
-        Map<String, String> params = new HashMap<>(1);
-        params.put("name", repo);
-        Request.Post("https://api.github.com/user/repos").
-            bodyByteArray(mapper.writeValueAsBytes(params), ContentType.APPLICATION_JSON).
-            addHeader("Authorization", "token " + TEST_TOKEN).
-            execute().returnContent();
-        Thread.sleep(2000);
     }
 
     /**
@@ -159,12 +111,7 @@ public class GithubAPIImplTest
     @AfterClass
     public static void afterClass() throws Exception
     {
-        if (TEST_TOKEN == null) {
-            return;
-        }
-        Request.Delete(String.format("https://api.github.com/repos/%s/%s", USER, repo)).
-            addHeader("Authorization", "token " + TEST_TOKEN).
-            execute().returnContent();
+        shutdown(repo);
     }
 
     /**
@@ -188,25 +135,8 @@ public class GithubAPIImplTest
     public void tearDown() throws Exception
     {
         for (String issue : cleanupIssues) {
-            closeIssue(issue);
+            closeIssue(issue, true);
         }
-    }
-
-    /**
-     * Close the issue with the number given.
-     * @param number the number
-     */
-    private void closeIssue(String number) throws Exception
-    {
-        String endpoint = String.format("https://api.github.com/repos/%s/%s/issues/%s", USER, repo, number);
-        Map<String, String> params = new HashMap<>();
-        params.put("state", "closed");
-        params.put("title", "Unit testing auto-opened issue");
-        params.put("body", "Closed!");
-        byte[] bytes = mapper.writeValueAsBytes(params);
-        Request.Patch(endpoint).bodyByteArray(bytes, ContentType.APPLICATION_JSON).
-            addHeader("Authorization", "token " + TEST_TOKEN).
-            execute().returnContent();
     }
 
     /**
@@ -314,11 +244,15 @@ public class GithubAPIImplTest
     @Test
     public void testStatus() throws Exception
     {
+        Phenotype original = new Phenotype(pt.getName(), pt.getDescription());
         client.openIssue(pt);
         assertEquals(Phenotype.Status.SUBMITTED, pt.getStatus());
-        closeIssue(pt.getIssueNumber().get());
+        closeIssue(pt.getIssueNumber().get(), false);
         client.readPhenotype(pt);
+        assertEquals(original.getName(), pt.getName());
+        assertEquals(original.getDescription(), pt.getDescription());
         assertEquals(Phenotype.Status.ACCEPTED, pt.getStatus());
+        closeIssue(pt.getIssueNumber().get(), true);
     }
 
     /**
@@ -365,4 +299,25 @@ public class GithubAPIImplTest
 
         }
     }
+
+    /**
+     * Close the issue with the number given.
+     * @param number the number
+     * @param replaceBody whether to also replace the body
+     */
+    private void closeIssue(String number, boolean replaceBody) throws Exception
+    {
+        String endpoint = String.format("https://api.github.com/repos/%s/%s/issues/%s", USER, repo, number);
+        Map<String, String> params = new HashMap<>(3);
+        params.put("state", "closed");
+        params.put("title", "Unit testing auto-opened issue");
+        if (replaceBody) {
+            params.put("body", "Closed!");
+        }
+        byte[] bytes = mapper.writeValueAsBytes(params);
+        Request.Patch(endpoint).bodyByteArray(bytes, ContentType.APPLICATION_JSON).
+            addHeader("Authorization", "token " + TEST_TOKEN).
+            execute().returnContent();
+    }
+
 }
