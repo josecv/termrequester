@@ -242,16 +242,18 @@ public class GithubAPIImplTest extends AbstractGithubTest
      * Test that the status is properly updated.
      */
     @Test
-    public void testStatus() throws Exception
+    public void testReadPhenotype() throws Exception
     {
         Phenotype original = new Phenotype(pt.getName(), pt.getDescription());
         client.openIssue(pt);
+        String number = pt.getIssueNumber().get();
         assertEquals(Phenotype.Status.SUBMITTED, pt.getStatus());
         closeIssue(pt.getIssueNumber().get(), false);
         client.readPhenotype(pt);
         assertEquals(original.getName(), pt.getName());
         assertEquals(original.getDescription(), pt.getDescription());
         assertEquals(Phenotype.Status.ACCEPTED, pt.getStatus());
+        assertEquals(number, pt.getIssueNumber().get());
         closeIssue(pt.getIssueNumber().get(), true);
     }
 
@@ -270,19 +272,17 @@ public class GithubAPIImplTest extends AbstractGithubTest
     }
 
     /**
-     * Test that we won't re-write the phenotype if it's not necessary.
-     * Marked as ignore because github doesn't actually return a 304 when we patch
-     * without it being necessary. Ideally we need a concept of "github-dirty".
+     * Test that rewriting the phenotype doesn't cause trouble.
      */
     @Test
-    @Ignore
     public void testNoReWrite() throws Exception
     {
         client.openIssue(pt);
         cleanupIssues.add(pt.getIssueNumber().get());
-        Phenotype ptSpy = spy(pt);
-        client.patchIssue(ptSpy);
-        verify(ptSpy, never()).setEtag(any(String.class));
+        String etag = pt.getEtag();
+        client.patchIssue(pt);
+        System.out.println(pt.getEtag());
+        assertEquals(etag, pt.getEtag());
     }
 
     /**

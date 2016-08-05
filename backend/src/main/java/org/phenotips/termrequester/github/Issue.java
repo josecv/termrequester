@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.http.HttpResponse;
+
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 
@@ -60,6 +62,16 @@ public class Issue
     private static final Splitter SPLITTER = Splitter.on(",").trimResults().omitEmptyStrings();
 
     /**
+     * The Etag header.
+     */
+    private static final String ETAG = "Etag";
+
+    /**
+     * A pattern to parse the etag.
+     */
+    private static final Pattern ETAG_PATTERN = Pattern.compile(".*(\".*\")");
+
+    /**
      * The issue number within the tracker.
      */
     private int number;
@@ -93,6 +105,24 @@ public class Issue
     {
         return String.format(BODY_FORMAT, pt.getName(), JOINER.join(pt.getSynonyms()),
                 JOINER.join(pt.getParentIds()), pt.getDescription().replace("\n", ". "));
+    }
+
+    /**
+     * Read the etag contained in the http response given into the phenotype given.
+     *
+     * @param pt the phenotype
+     * @param response the http response
+     */
+    public static void readEtag(Phenotype pt, HttpResponse response)
+    {
+        if (response.getFirstHeader(ETAG) == null) {
+            return;
+        }
+        String etag = response.getFirstHeader(ETAG).getValue();
+        Matcher m = ETAG_PATTERN.matcher(etag);
+        m.find();
+        etag = m.group(1);
+        pt.setEtag(etag);
     }
 
     /**

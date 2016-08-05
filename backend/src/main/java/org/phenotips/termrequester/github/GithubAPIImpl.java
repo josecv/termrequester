@@ -28,6 +28,7 @@ import java.net.URL;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.fluent.Request;
@@ -41,6 +42,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import com.google.common.base.Optional;
+import com.google.common.collect.Sets;
 
 /* To get the nice HTTP status code constants */
 import static com.google.common.base.Preconditions.checkArgument;
@@ -62,11 +64,6 @@ class GithubAPIImpl implements GithubAPI
      * The URL for the github api, as a java.net.URL instance.
      */
     private static final URL GITHUB_URL;
-
-    /**
-     * The Etag header.
-     */
-    private static final String ETAG = "Etag";
 
     /**
      * The if-none-match header.
@@ -121,7 +118,7 @@ class GithubAPIImpl implements GithubAPI
         Issue result = mapper.readValue(is, Issue.class);
         phenotype.setIssueNumber(Integer.toString(result.getNumber()));
         phenotype.setStatus(Phenotype.Status.SUBMITTED);
-        phenotype.setEtag(response.getFirstHeader(ETAG).getValue());
+        Issue.readEtag(phenotype, response);
     }
 
     @Override
@@ -133,10 +130,10 @@ class GithubAPIImpl implements GithubAPI
         String method = getIssueEndpoint(pt.getIssueNumber().get());
         HttpResponse response = execute(Request.
                 Patch(getURI(method)).
-                bodyByteArray(body, ContentType.APPLICATION_JSON).
-                addHeader(IF_NONE_MATCH, pt.getEtag()));
+                bodyByteArray(body, ContentType.APPLICATION_JSON)
+                );
         checkCode(response, Status.SUCCESS_OK);
-        pt.setEtag(response.getFirstHeader(ETAG).getValue());
+        Issue.readEtag(pt, response);
     }
 
     @Override
@@ -151,7 +148,7 @@ class GithubAPIImpl implements GithubAPI
         }
         InputStream is = response.getEntity().getContent();
         Issue issue = mapper.readValue(is, Issue.class);
-        pt.setEtag(response.getFirstHeader(ETAG).getValue());
+        Issue.readEtag(pt, response);
         /* Github and the HPO are the ultimate authorities, so take everything from there */
         pt.replaceBy(issue.asPhenotype());
         return pt;
@@ -229,15 +226,19 @@ class GithubAPIImpl implements GithubAPI
     }
 
     /**
-     * Check that the response given has the status code given.
+     * Check that the response given has one of the status codes given.
+     *
      * @param resp the response
-     * @param code the status code
+     * @param codes the acceptable codes
      * @throws GithubException if it does not.
      */
-    private void checkCode(HttpResponse resp, Status code) throws GithubException
+    private void checkCode(HttpResponse resp, Status... codes) throws GithubException
     {
-        if (resp.getStatusLine().getStatusCode() != code.getCode()) {
-            throw new GithubException("Response did not have code " + code);
+        Status actual = new Status(resp.getStatusLine().getStatusCode());
+        Set<Status> set = Sets.newHashSet(codes);
+        if (!set.contains(actual)) {
+            throw new GithubException(String.format("Response code %d was not in %s",
+                        actual.getCode(), set.toString()));
         }
     }
 
