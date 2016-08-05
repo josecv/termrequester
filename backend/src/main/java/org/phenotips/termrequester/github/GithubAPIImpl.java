@@ -143,7 +143,6 @@ class GithubAPIImpl implements GithubAPI
     public Phenotype readPhenotype(Phenotype pt) throws IOException, GithubException
     {
         checkArgument(pt.getIssueNumber().isPresent(), "Phenotype %s has no issue number", pt);
-        Phenotype.Status status;
         String method = getIssueEndpoint(pt.getIssueNumber().get());
         Request request = Request.Get(getURI(method)).addHeader(IF_NONE_MATCH, pt.getEtag());
         HttpResponse response = execute(request);
@@ -152,10 +151,9 @@ class GithubAPIImpl implements GithubAPI
         }
         InputStream is = response.getEntity().getContent();
         Issue issue = mapper.readValue(is, Issue.class);
-        status = issue.getPTStatus();
-        pt.setStatus(status);
         pt.setEtag(response.getFirstHeader(ETAG).getValue());
-        pt.mergeWith(issue.asPhenotype());
+        /* Github and the HPO are the ultimate authorities, so take everything from there */
+        pt.replaceBy(issue.asPhenotype());
         return pt;
     }
 

@@ -59,7 +59,6 @@ public class Issue
      */
     private static final Splitter SPLITTER = Splitter.on(",").trimResults().omitEmptyStrings();
 
-
     /**
      * The issue number within the tracker.
      */

@@ -439,6 +439,31 @@ public class Phenotype extends AbstractSaveable implements Serializable
     }
 
     /**
+     * Turn this phenotype into the one given.
+     *
+     * @param other the phenotype to emualte. Will be left unchanged.
+     */
+    public void replaceBy(Phenotype other)
+    {
+        setName(other.getName());
+        setDescription(other.getDescription());
+        synonyms.clear();
+        addAllSynonyms(other.getSynonyms());
+        parentIds.clear();
+        addAllParentIds(other.getParentIds());
+        setStatus(other.getStatus());
+        if (other.getIssueNumber().isPresent()) {
+            setIssueNumber(other.getIssueNumber().get());
+        }
+        if (other.getId().isPresent()) {
+            setId(other.getId().get());
+        }
+        if (other.getHpoId().isPresent()) {
+            setHpoId(other.getHpoId().get());
+        }
+    }
+
+    /**
      * Get an id whether or not there is one; will return null if there's no id.
      *
      * @return the id or null
