@@ -17,9 +17,6 @@
  */
 package org.phenotips.termrequester;
 
-import com.google.common.base.Optional;
-
-
 /**
  * A phenotype that has been added to the HPO.
  * TODO Is this still a thing we need.

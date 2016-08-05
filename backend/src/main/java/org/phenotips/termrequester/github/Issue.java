@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpResponse;
 
 import com.google.common.base.Joiner;
@@ -48,8 +49,11 @@ public class Issue
      * A pattern to parse out the issue description.
      */
     public static final Pattern BODY_PATTERN = Pattern.compile(String.format(
-                BODY_FORMAT,
-                "(?<name>.*)", "(?<synonyms>.*)", "(?<parents>.*)", "(?<description>.*)"));
+                BODY_FORMAT.replace(StringUtils.LF, ""),
+                "(?<name>.*)", "(?<synonyms>.*)", "(?<parents>.*)", "(?<description>.*)"),
+            /* Newlines are ridiciulously painful to deal with properly so we'll just match
+             * through them and trim later */
+            Pattern.DOTALL);
 
     /**
      * Joins stuff with commas.
@@ -104,7 +108,7 @@ public class Issue
     public static String describe(Phenotype pt)
     {
         return String.format(BODY_FORMAT, pt.getName(), JOINER.join(pt.getSynonyms()),
-                JOINER.join(pt.getParentIds()), pt.getDescription().replace("\n", ". "));
+                JOINER.join(pt.getParentIds()), pt.getDescription().replace(StringUtils.LF, ". "));
     }
 
     /**
@@ -138,10 +142,10 @@ public class Issue
             return Phenotype.NULL;
         }
         Phenotype pt = new Phenotype();
-        pt.addAllSynonyms(SPLITTER.splitToList(m.group("synonyms")));
-        pt.setName(m.group("name"));
-        pt.addAllParentIds(SPLITTER.splitToList(m.group("parents")));
-        pt.setDescription(m.group("description"));
+        pt.addAllSynonyms(SPLITTER.splitToList(m.group("synonyms").trim()));
+        pt.setName(m.group("name").trim());
+        pt.addAllParentIds(SPLITTER.splitToList(m.group("parents").trim()));
+        pt.setDescription(m.group("description").trim());
         pt.setIssueNumber(Integer.toString(number));
         pt.setStatus(getPTStatus());
         return pt;

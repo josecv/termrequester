@@ -104,17 +104,18 @@ public class IntegrationTest extends AbstractGithubTest
     {
         Phenotype pt = new Phenotype("wow", "yay");
         client.createRequest(pt);
+        injector.getInstance(DatabaseService.class).commit();
         assertTrue(pt.getIssueNumber().isPresent());
         closeIssue(repo, pt.getIssueNumber().get(), false);
         Phenotype pt2 = client.getPhenotypeById(pt.getId().get());
         assertTrue(pt.getIssueNumber().isPresent());
-        assertTrue(pt2.getIssueNumber().isPresent());
+        assertTrue("No issue number", pt2.getIssueNumber().isPresent());
         assertEquals(pt.getIssueNumber().get(), pt2.getIssueNumber().get());
         assertEquals(Phenotype.Status.ACCEPTED, pt2.getStatus());
 
         pt2 = client.getPhenotypeById(pt.getId().get());
         assertTrue(pt.getIssueNumber().isPresent());
-        assertTrue(pt2.getIssueNumber().isPresent());
+        assertTrue("No issue number", pt2.getIssueNumber().isPresent());
         assertEquals(pt.getIssueNumber().get(), pt2.getIssueNumber().get());
         assertEquals(Phenotype.Status.ACCEPTED, pt2.getStatus());
         closeIssue(repo, pt.getIssueNumber().get(), true);
