@@ -111,4 +111,27 @@ public abstract class AbstractGithubTest
             addHeader("Authorization", "token " + TEST_TOKEN).
             execute().returnContent();
     }
+
+    /**
+     * Close the issue with the number given.
+     * @param repo the repository
+     * @param number the number
+     * @param replaceBody whether to also replace the body
+     */
+    protected void closeIssue(String repo, String number, boolean replaceBody) throws Exception
+    {
+        String endpoint = String.format("https://api.github.com/repos/%s/%s/issues/%s", USER,
+                repo, number);
+        Map<String, String> params = new HashMap<>(3);
+        params.put("state", "closed");
+        params.put("title", "Unit testing auto-opened issue");
+        if (replaceBody) {
+            params.put("body", "Closed!");
+        }
+        byte[] bytes = mapper.writeValueAsBytes(params);
+        Request.Patch(endpoint).bodyByteArray(bytes, ContentType.APPLICATION_JSON).
+            addHeader("Authorization", "token " + TEST_TOKEN).
+            execute().returnContent();
+    }
+
 }

@@ -135,7 +135,7 @@ public class GithubAPIImplTest extends AbstractGithubTest
     public void tearDown() throws Exception
     {
         for (String issue : cleanupIssues) {
-            closeIssue(issue, true);
+            closeIssue(repo, issue, true);
         }
     }
 
@@ -248,13 +248,13 @@ public class GithubAPIImplTest extends AbstractGithubTest
         client.openIssue(pt);
         String number = pt.getIssueNumber().get();
         assertEquals(Phenotype.Status.SUBMITTED, pt.getStatus());
-        closeIssue(pt.getIssueNumber().get(), false);
+        closeIssue(repo, pt.getIssueNumber().get(), false);
         client.readPhenotype(pt);
         assertEquals(original.getName(), pt.getName());
         assertEquals(original.getDescription(), pt.getDescription());
         assertEquals(Phenotype.Status.ACCEPTED, pt.getStatus());
         assertEquals(number, pt.getIssueNumber().get());
-        closeIssue(pt.getIssueNumber().get(), true);
+        closeIssue(repo, pt.getIssueNumber().get(), true);
     }
 
     /**
@@ -299,25 +299,4 @@ public class GithubAPIImplTest extends AbstractGithubTest
 
         }
     }
-
-    /**
-     * Close the issue with the number given.
-     * @param number the number
-     * @param replaceBody whether to also replace the body
-     */
-    private void closeIssue(String number, boolean replaceBody) throws Exception
-    {
-        String endpoint = String.format("https://api.github.com/repos/%s/%s/issues/%s", USER, repo, number);
-        Map<String, String> params = new HashMap<>(3);
-        params.put("state", "closed");
-        params.put("title", "Unit testing auto-opened issue");
-        if (replaceBody) {
-            params.put("body", "Closed!");
-        }
-        byte[] bytes = mapper.writeValueAsBytes(params);
-        Request.Patch(endpoint).bodyByteArray(bytes, ContentType.APPLICATION_JSON).
-            addHeader("Authorization", "token " + TEST_TOKEN).
-            execute().returnContent();
-    }
-
 }

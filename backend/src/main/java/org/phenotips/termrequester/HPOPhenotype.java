@@ -22,6 +22,7 @@ import com.google.common.base.Optional;
 
 /**
  * A phenotype that has been added to the HPO.
+ * TODO Is this still a thing we need.
  *
  * @version $Id$
  */
@@ -61,18 +62,5 @@ public class HPOPhenotype extends Phenotype
     {
         /* Forbid submission of something already there, for obvious reasons */
         return false;
-    }
-
-    @Override
-    public Optional<String> getIssueNumber()
-    {
-        return Optional.<String>absent();
-    }
-
-    @Override
-    public Status getStatus()
-    {
-        /* It's already in the HPO, so it's been accepted */
-        return Status.ACCEPTED;
     }
 }
