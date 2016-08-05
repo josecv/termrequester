@@ -152,6 +152,7 @@ public class SolrDatabaseService implements DatabaseService
     {
         if (up) {
             commit();
+            server.close();
             cores.shutdown();
             up = false;
         }

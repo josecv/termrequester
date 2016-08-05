@@ -95,7 +95,7 @@ public class TermRequesterApplication extends Application
      */
     public TermRequesterApplication(Context parentContext)
     {
-        super(parentContext);
+        super(parentContext.createChildContext());
     }
 
     /**
