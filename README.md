@@ -89,6 +89,31 @@ Search the phenotypes that match a given text.
 [{...}, ...] /* the results as phenotype instances */
 ```
 
+CONFIGURATION
+=============
+
+In order to run the webapp, you need to edit its web.xml. In particular, these parameters must
+be set on the TermRequester servlet:
+
+```xml
+    <init-param>
+      <param-name>org.phenotips.termrequester.repositoryOwner</param-name>
+      <param-value></param-value>
+    </init-param>
+    <init-param>
+      <param-name>org.phenotips.termrequester.repositoryName</param-name>
+      <param-value></param-value>
+    </init-param>
+    <init-param>
+      <param-name>org.phenotips.termrequester.oauthToken</param-name>
+      <param-value></param-value>
+    </init-param>
+    <init-param>
+      <param-name>org.phenotips.termrequester.homeDir</param-name>
+      <param-value></param-value>
+    </init-param>
+```
+
 DEVELOPMENT
 ===========
 
