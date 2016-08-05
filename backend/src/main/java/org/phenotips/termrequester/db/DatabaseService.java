@@ -35,6 +35,7 @@ public interface DatabaseService
 
     /**
      * Initialize this service.
+     *
      * @param path the path to run under
      * @throws IOException on io/solr failure
      */
@@ -42,12 +43,14 @@ public interface DatabaseService
 
     /**
      * Shut the service down.
+     *
      * @throws IOException on io/solr failure
      */
     void shutdown() throws IOException;
 
     /**
      * Write any changes made since the last commit. Will block while doing so.
+     *
      * @throws IOException on solr failure
      */
     void commit() throws IOException;
@@ -64,6 +67,7 @@ public interface DatabaseService
 
     /**
      * Delete a phenotype from the db.
+     *
      * @param phenotype the phenotype to delete
      * @return whether it worked
      * @throws IOException on solr failure
@@ -72,6 +76,7 @@ public interface DatabaseService
 
     /**
      * Get a phenotype matching the id given.
+     *
      * @param id the id
      * @return the phenotype - might be the null phenotype if nothing matches
      * @throws IOException on solr failure
@@ -80,6 +85,7 @@ public interface DatabaseService
 
     /**
      * Get a phenotype that's equivalent to the one given (this may include ids, names or synonyms).
+     *
      * @param phenotype the phenotype to look for
      * @return the existing phenotype, if it's there, or the null phenotype if not
      * @throws IOException on solr failure
@@ -88,6 +94,7 @@ public interface DatabaseService
 
     /**
      * Get a phenotype by issue number.
+     *
      * @param number the issue number
      * @return the phenotype, or null if there's nothing there.
      * @throws IOException on solr failure
@@ -96,6 +103,7 @@ public interface DatabaseService
 
     /**
      * Search the database for the text given.
+     *
      * @param text the text to search for.
      * @return the list of results.
      * @throws IOException on solr failure
@@ -104,12 +112,14 @@ public interface DatabaseService
 
     /**
      * Set whether the service ought to commit at the end of every write.
+     *
      * @param autocommit whether to autocommit.
      */
     void setAutocommit(boolean autocommit);
 
     /**
      * Get whether autocommit is turned on.
+     *
      * @return whether we're committing at the end of every write.
      */
     boolean getAutocommit();
