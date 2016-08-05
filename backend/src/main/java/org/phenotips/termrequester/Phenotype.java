@@ -429,6 +429,9 @@ public class Phenotype extends AbstractSaveable implements Serializable
      */
     public void mergeWith(Phenotype other)
     {
+        if (NULL.equals(other)) {
+            return;
+        }
         addAllSynonyms(other.getSynonyms());
         addSynonym(other.getName());
         /* TODO Merge description a bit better */

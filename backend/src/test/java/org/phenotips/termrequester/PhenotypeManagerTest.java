@@ -53,6 +53,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.refEq;
 import static org.mockito.Matchers.same;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
@@ -178,7 +179,7 @@ public class PhenotypeManagerTest
     }
 
     /**
-     * Test that a new phenotype can be created when it's already in the database and github.
+     * Test that a new phenotype can be "created" when it's already in the database and github.
      */
     @Test
     public void testAlreadyExisting() throws Exception
@@ -256,5 +257,35 @@ public class PhenotypeManagerTest
         List<Phenotype> results = client.search(text);
         verify(databaseService).searchPhenotypes(text);
         assertEquals(phenotypes, results);
+    }
+
+    @Test
+    public void testSync() throws Exception
+    {
+        Phenotype pt2 = new Phenotype("test2", "test2");
+        Phenotype pt3 = new Phenotype("test3", "test3");
+        Phenotype pt4 = new Phenotype("test4", "test4");
+        pt.setStatus(Phenotype.Status.SUBMITTED);
+        pt2.setStatus(Phenotype.Status.SUBMITTED);
+        pt3.setStatus(Phenotype.Status.SUBMITTED);
+        pt4.setStatus(Phenotype.Status.SUBMITTED);
+        List<Phenotype> submitted = new ArrayList<>();
+        submitted.add(pt);
+        submitted.add(pt2);
+        submitted.add(pt3);
+        submitted.add(pt4);
+        when(databaseService.getPhenotypesByStatus(Phenotype.Status.SUBMITTED)).thenReturn(submitted);
+        client.syncPhenotypes();
+        verify(githubApi, times(4)).readPhenotype(any(Phenotype.class));
+        verify(githubApi).readPhenotype(same(pt));
+        verify(githubApi).readPhenotype(same(pt2));
+        verify(githubApi).readPhenotype(same(pt3));
+        verify(githubApi).readPhenotype(same(pt4));
+        verify(databaseService, times(4)).savePhenotype(any(Phenotype.class));
+        verify(databaseService).savePhenotype(same(pt));
+        verify(databaseService).savePhenotype(same(pt2));
+        verify(databaseService).savePhenotype(same(pt3));
+        verify(databaseService).savePhenotype(same(pt4));
+        verify(databaseService).commit();
     }
 }

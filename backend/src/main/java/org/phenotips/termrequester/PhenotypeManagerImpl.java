@@ -213,4 +213,24 @@ public class PhenotypeManagerImpl implements PhenotypeManager
             throw new TermRequesterBackendException(e);
         }
     }
+
+    @Override
+    public void syncPhenotypes() throws TermRequesterBackendException
+    {
+        try {
+            synchronized (db) {
+                boolean autocommit = db.getAutocommit();
+                db.setAutocommit(false);
+                List<Phenotype> phenotypes = db.getPhenotypesByStatus(Phenotype.Status.SUBMITTED);
+                for (Phenotype pt : phenotypes) {
+                    github.readPhenotype(pt);
+                    db.savePhenotype(pt);
+                }
+                db.commit();
+                db.setAutocommit(autocommit);
+            }
+        } catch (IOException | GithubException e) {
+            throw new TermRequesterBackendException(e);
+        }
+    }
 }

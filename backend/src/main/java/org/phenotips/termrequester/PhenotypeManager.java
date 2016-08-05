@@ -72,6 +72,12 @@ public interface PhenotypeManager
     List<Phenotype> search(String text) throws TermRequesterBackendException;
 
     /**
+     * Sync all the phenotypes in the database so that they match the stuff in github.
+     * @throws TermRequesterBackendException if something goes wrong
+     */
+    void syncPhenotypes() throws TermRequesterBackendException;
+
+    /**
      * A response to the createRequest method, containing the phenotype and whether
      * or not it was just created.
      *

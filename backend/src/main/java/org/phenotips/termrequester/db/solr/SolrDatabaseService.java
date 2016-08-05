@@ -89,6 +89,11 @@ public class SolrDatabaseService implements DatabaseService
     private static final Joiner OR_QUERY_JOINER = Joiner.on(' ').skipNulls();
 
     /**
+     * A query string format to check for field equality.
+     */
+    private static final String FIELD_IS = "%s:\"%s\"";
+
+    /**
      * The path where the database is.
      */
     private Path path;
@@ -170,9 +175,6 @@ public class SolrDatabaseService implements DatabaseService
                 String id = pt.getId().get();
                 checkState(server.getById(id) != null, "ID %s does not exist when expected to", id);
                 server.deleteById(pt.getId().get());
-                /* We don't wanna trigger anything (two versions of the same document co-existing) a
-                 * little later when saving, so just commit now */
-                commit();
             } catch (SolrServerException e) {
                 throw new IOException(e);
             }
@@ -232,20 +234,11 @@ public class SolrDatabaseService implements DatabaseService
     @Override
     public Phenotype getPhenotypeByIssueNumber(String issueNumber) throws IOException
     {
-        try {
-            String queryString = String.format("%s:%s", Schema.ISSUE_NUMBER, issueNumber);
-            SolrQuery q = new SolrQuery().
-                setQuery(queryString);
-            QueryResponse resp = server.query(q);
-            List<SolrDocument> results = resp.getResults();
-            checkState(results.size() <= 1, "Multiple documents with issue number %s", issueNumber);
-            if (results.size() == 0) {
-                return Phenotype.NULL;
-            }
-            return mapper.fromDoc(results.get(0));
-        } catch (SolrServerException e) {
-            throw new IOException(e);
+        List<Phenotype> pt = getPhenotypesByField(Schema.ISSUE_NUMBER, issueNumber, true);
+        if (pt.size() == 0) {
+            return Phenotype.NULL;
         }
+        return pt.get(0);
     }
 
     @Override
@@ -254,20 +247,18 @@ public class SolrDatabaseService implements DatabaseService
         Set<String> names = other.getSynonyms();
         names.add(other.getName());
         List<String> queryPieces = new ArrayList<>(names.size() * 2 + 2);
-        /* To test for field equality */
-        String fieldIs = "%s:\"%s\"";
         if (other.getId().isPresent()) {
-            queryPieces.add(String.format(fieldIs, Schema.ID,
+            queryPieces.add(String.format(FIELD_IS, Schema.ID,
                         ClientUtils.escapeQueryChars(other.getId().get())));
         }
         if (other.getIssueNumber().isPresent()) {
-            queryPieces.add(String.format(fieldIs, Schema.ISSUE_NUMBER,
+            queryPieces.add(String.format(FIELD_IS, Schema.ISSUE_NUMBER,
                         ClientUtils.escapeQueryChars(other.getIssueNumber().get())));
         }
         for (String name : names) {
-            queryPieces.add(String.format(fieldIs, Schema.NAME_EXACT,
+            queryPieces.add(String.format(FIELD_IS, Schema.NAME_EXACT,
                         ClientUtils.escapeQueryChars(name)));
-            queryPieces.add(String.format(fieldIs, Schema.SYNONYM_EXACT,
+            queryPieces.add(String.format(FIELD_IS, Schema.SYNONYM_EXACT,
                         ClientUtils.escapeQueryChars(name)));
         }
         String queryString = OR_QUERY_JOINER.join(queryPieces);
@@ -329,6 +320,42 @@ public class SolrDatabaseService implements DatabaseService
     public void setAutocommit(boolean autocommit)
     {
         this.autocommit = autocommit;
+    }
+
+    @Override
+    public List<Phenotype> getPhenotypesByStatus(Phenotype.Status status) throws IOException
+    {
+        return getPhenotypesByField(Schema.STATUS, status.toString(), false);
+    }
+
+    /**
+     * Get all the phenotypes where the field given has the value given.
+     * @param field the field
+     * @param value the value
+     * @param limitOne whether to make sure only one result comes back
+     * @return the results
+     */
+    private List<Phenotype> getPhenotypesByField(String field, String value, boolean limitOne)
+        throws IOException
+    {
+        try {
+            String queryString = String.format(FIELD_IS, field, value);
+            SolrQuery q = new SolrQuery().
+                setQuery(queryString);
+            if (limitOne)
+            {
+                q = q.setRows(1);
+            }
+            QueryResponse resp = server.query(q);
+            List<SolrDocument> documents = resp.getResults();
+            List<Phenotype> results = new ArrayList<>(documents.size());
+            for (SolrDocument doc : documents) {
+                results.add(mapper.fromDoc(doc));
+            }
+            return results;
+        } catch (SolrServerException e) {
+            throw new IOException(e);
+        }
     }
 
     /**

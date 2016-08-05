@@ -155,6 +155,7 @@ class GithubAPIImpl implements GithubAPI
         status = issue.getPTStatus();
         pt.setStatus(status);
         pt.setEtag(response.getFirstHeader(ETAG).getValue());
+        pt.mergeWith(issue.asPhenotype());
         return pt;
     }
 

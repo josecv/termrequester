@@ -111,6 +111,15 @@ public interface DatabaseService
     List<Phenotype> searchPhenotypes(String text) throws IOException;
 
     /**
+     * Get all phenotypes with the status given.
+     *
+     * @param status the desired phenotype status
+     * @return the list of phenotypes with the status given
+     * @throws IOException on solr failure
+     */
+    List<Phenotype> getPhenotypesByStatus(Phenotype.Status status) throws IOException;
+
+    /**
      * Set whether the service ought to commit at the end of every write.
      *
      * @param autocommit whether to autocommit.
