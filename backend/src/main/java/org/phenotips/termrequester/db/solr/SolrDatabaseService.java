@@ -124,7 +124,7 @@ public class SolrDatabaseService implements DatabaseService
     private SolrMapper mapper;
 
     @Override
-    public void init(Path path) throws IOException
+    public synchronized void init(Path path) throws IOException
     {
         /* Make sure initialization is idempotent */
         if (!up) {
@@ -139,12 +139,16 @@ public class SolrDatabaseService implements DatabaseService
             cores = new CoreContainer(this.path.toString());
             cores.load();
             server = new EmbeddedSolrServer(cores, CORE_NAME);
+            if (server == null) {
+                up = false;
+                throw new IOException("Solr returned null server");
+            }
             mapper = new SolrMapper();
         }
     }
 
     @Override
-    public void shutdown() throws IOException
+    public synchronized void shutdown() throws IOException
     {
         if (up) {
             commit();
@@ -156,6 +160,7 @@ public class SolrDatabaseService implements DatabaseService
     @Override
     public void commit() throws IOException
     {
+        checkUp();
         try {
             server.commit();
         } catch (SolrServerException e) {
@@ -166,6 +171,7 @@ public class SolrDatabaseService implements DatabaseService
     @Override
     public Phenotype savePhenotype(Phenotype pt) throws IOException
     {
+        checkUp();
         /* Nothing to do, it hasn't been changed */
         if (!pt.isDirty()) {
             return pt;
@@ -200,6 +206,7 @@ public class SolrDatabaseService implements DatabaseService
     @Override
     public boolean deletePhenotype(Phenotype pt) throws IOException
     {
+        checkUp();
         checkArgument(pt.getId().isPresent(), "Phenotype %s cannot be deleted without an id", pt);
         try {
             SolrDocument doc = server.getById(pt.getId().get());
@@ -219,6 +226,7 @@ public class SolrDatabaseService implements DatabaseService
     @Override
     public Phenotype getPhenotypeById(String id) throws IOException
     {
+        checkUp();
         try {
             SolrDocument doc = server.getById(id);
             if (doc == null) {
@@ -234,6 +242,7 @@ public class SolrDatabaseService implements DatabaseService
     @Override
     public Phenotype getPhenotypeByIssueNumber(String issueNumber) throws IOException
     {
+        checkUp();
         List<Phenotype> pt = getPhenotypesByField(Schema.ISSUE_NUMBER, issueNumber, true);
         if (pt.size() == 0) {
             return Phenotype.NULL;
@@ -244,6 +253,7 @@ public class SolrDatabaseService implements DatabaseService
     @Override
     public Phenotype getPhenotype(Phenotype other) throws IOException
     {
+        checkUp();
         Set<String> names = other.getSynonyms();
         names.add(other.getName());
         List<String> queryPieces = new ArrayList<>(names.size() * 2 + 2);
@@ -280,6 +290,7 @@ public class SolrDatabaseService implements DatabaseService
     @Override
     public List<Phenotype> searchPhenotypes(String text) throws IOException
     {
+        checkUp();
         try {
             SolrQuery q = new SolrQuery();
             String escaped = ClientUtils.escapeQueryChars(text);
@@ -311,6 +322,13 @@ public class SolrDatabaseService implements DatabaseService
     }
 
     @Override
+    public List<Phenotype> getPhenotypesByStatus(Phenotype.Status status) throws IOException
+    {
+        checkUp();
+        return getPhenotypesByField(Schema.STATUS, status.toString(), false);
+    }
+
+    @Override
     public boolean getAutocommit()
     {
         return autocommit;
@@ -320,12 +338,6 @@ public class SolrDatabaseService implements DatabaseService
     public void setAutocommit(boolean autocommit)
     {
         this.autocommit = autocommit;
-    }
-
-    @Override
-    public List<Phenotype> getPhenotypesByStatus(Phenotype.Status status) throws IOException
-    {
-        return getPhenotypesByField(Schema.STATUS, status.toString(), false);
     }
 
     /**
@@ -387,5 +399,15 @@ public class SolrDatabaseService implements DatabaseService
         number++;
         String newId = String.format("NONHPO_%06d", number);
         return newId;
+    }
+
+    /**
+     * Check that the solr is up and throw if it isn't.
+     *
+     * @throws IllegalStateException if it's down.
+     */
+    private void checkUp()
+    {
+        checkState(up, "Solr service is down");
     }
 }

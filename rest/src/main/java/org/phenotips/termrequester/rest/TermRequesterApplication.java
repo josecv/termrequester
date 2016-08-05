@@ -17,9 +17,20 @@
  */
 package org.phenotips.termrequester.rest;
 
+import org.phenotips.termrequester.PhenotypeManager;
+import org.phenotips.termrequester.TermRequesterBackendException;
+import org.phenotips.termrequester.github.GithubAPI;
 import org.phenotips.termrequester.rest.di.TermRequesterRESTModule;
 import org.phenotips.termrequester.rest.resources.PhenotypeResource;
 import org.phenotips.termrequester.rest.resources.PhenotypesResource;
+
+import java.nio.file.Paths;
+
+import org.quartz.JobDetail;
+import org.quartz.Scheduler;
+import org.quartz.SchedulerException;
+import org.quartz.Trigger;
+import org.quartz.impl.StdSchedulerFactory;
 
 import org.restlet.Application;
 import org.restlet.Context;
@@ -28,6 +39,11 @@ import org.restlet.ext.guice.FinderFactory;
 import org.restlet.ext.guice.RestletGuice;
 import org.restlet.routing.Router;
 
+import static org.quartz.JobBuilder.newJob;
+import static org.quartz.SimpleScheduleBuilder.simpleSchedule;
+import static org.quartz.TriggerBuilder.newTrigger;
+
+import com.google.inject.Injector;
 
 /**
  * The main restlet application for the term requester.
@@ -57,6 +73,23 @@ public class TermRequesterApplication extends Application
     public static final String HOME_DIR_PARAM = "org.phenotips.termrequester.homeDir";
 
     /**
+     * The quartz scheduler.
+     * TODO This is probably a bad place for the Scheduler, partly because this
+     * is tied down to the rest api
+     */
+    private Scheduler sched;
+
+    /**
+     * The guice injector.
+     */
+    private Injector injector;
+
+    /**
+     * The phenotype manager.
+     */
+    private PhenotypeManager manager;
+
+    /**
      * CTOR.
      * @param parentContext the context
      */
@@ -76,15 +109,74 @@ public class TermRequesterApplication extends Application
     @Override
     public Restlet createInboundRoot()
     {
+        FinderFactory finder = injector.getInstance(FinderFactory.class);
         Router router = new Router(getContext());
+        router.attach("/phenotypes", finder.finder(PhenotypesResource.class));
+        router.attach("/phenotype/{id}", finder.finder(PhenotypeResource.class));
+        return router;
+    }
+
+    @Override
+    public void start() throws Exception
+    {
         String repoOwner = getContext().getParameters().getFirstValue(REPO_OWNER_PARAM);
         String repoName = getContext().getParameters().getFirstValue(REPO_NAME_PARAM);
         String token = getContext().getParameters().getFirstValue(OAUTH_TOKEN_PARAM);
         String homeDir = getContext().getParameters().getFirstValue(HOME_DIR_PARAM);
-        FinderFactory finder = new RestletGuice.Module(
-                new TermRequesterRESTModule(repoOwner, repoName, token, homeDir));
-        router.attach("/phenotypes", finder.finder(PhenotypesResource.class));
-        router.attach("/phenotype/{id}", finder.finder(PhenotypeResource.class));
-        return router;
+        /* The phenotype manager is a singleton, because stateful (or at least transitively stateful,
+         * since the database is for sure stateful), so we're gonna initialize it ourselves and
+         * ensure the server resources don't do anything to it by passing @OwnResources as false
+         */
+        injector = RestletGuice.createInjector(new TermRequesterRESTModule(repoOwner, repoName,
+                    token, homeDir, false));
+        startPhenotypeManager(repoOwner, repoName, token, homeDir);
+        super.start();
+        sched = StdSchedulerFactory.getDefaultScheduler();
+        sched.setJobFactory(injector.getInstance(PTJobFactory.class));
+        sched.start();
+        schedulePoll();
+    }
+
+    @Override
+    public void stop() throws Exception
+    {
+        super.stop();
+        sched.shutdown(true);
+        manager.shutdown();
+    }
+
+    /**
+     * initialize the phenotype manager.
+     * @param repoOwner the owner of the repository
+     * @param repoName the name of the repository
+     * @param token the oauth token
+     * @param homeDir the home directory
+     */
+    private void startPhenotypeManager(String repoOwner, String repoName, String token, String homeDir)
+        throws TermRequesterBackendException
+    {
+        GithubAPI.Repository repo = new GithubAPI.Repository(repoOwner, repoName, token);
+        manager = injector.getInstance(PhenotypeManager.class);
+        manager.init(repo, Paths.get(homeDir));
+    }
+
+    /**
+     * Schedule the poll job.
+     * @throws SchedulerException on scheduler error
+     */
+    private void schedulePoll() throws SchedulerException
+    {
+        String groupName = "termrequester";
+        JobDetail job = newJob(PollJob.class).
+            withIdentity("githubPoll", groupName).
+            build();
+        Trigger trigger = newTrigger().
+            withIdentity("githubPollTrigger", groupName).
+            startNow().
+            withSchedule(simpleSchedule().
+                    withIntervalInSeconds(60 * 2).
+                    repeatForever()).
+            build();
+        sched.scheduleJob(job, trigger);
     }
 }

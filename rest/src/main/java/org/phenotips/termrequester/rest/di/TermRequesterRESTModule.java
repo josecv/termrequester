@@ -18,9 +18,9 @@
 package org.phenotips.termrequester.rest.di;
 
 import org.phenotips.termrequester.di.TermRequesterBackendModule;
-
 import org.phenotips.termrequester.rest.resources.annotations.HomeDir;
 import org.phenotips.termrequester.rest.resources.annotations.OAuthToken;
+import org.phenotips.termrequester.rest.resources.annotations.OwnResources;
 import org.phenotips.termrequester.rest.resources.annotations.RepositoryName;
 import org.phenotips.termrequester.rest.resources.annotations.RepositoryOwner;
 
@@ -54,6 +54,30 @@ public class TermRequesterRESTModule extends AbstractModule
     private String homeDir;
 
     /**
+     * Whether individual Resource instances own their own resources,
+     * such as databases, etc.
+     */
+    private Boolean ownResources;
+
+    /**
+     * CTOR.
+     * @param repositoryOwner the onwer of the repository we'll post to
+     * @param repositoryName the name of the repository we'll post to
+     * @param oauthToken the oauth token we'll use to access github
+     * @param homeDir the directory for permanent files
+     * @param ownResources whether ServerResources own their own resources
+     */
+    public TermRequesterRESTModule(String repositoryOwner, String repositoryName,
+            String oauthToken, String homeDir, boolean ownResources)
+    {
+        this.repositoryOwner = repositoryOwner;
+        this.repositoryName = repositoryName;
+        this.oauthToken = oauthToken;
+        this.homeDir = homeDir;
+        this.ownResources = ownResources;
+    }
+
+    /**
      * CTOR.
      * @param repositoryOwner the onwer of the repository we'll post to
      * @param repositoryName the name of the repository we'll post to
@@ -63,10 +87,7 @@ public class TermRequesterRESTModule extends AbstractModule
     public TermRequesterRESTModule(String repositoryOwner, String repositoryName,
             String oauthToken, String homeDir)
     {
-        this.repositoryOwner = repositoryOwner;
-        this.repositoryName = repositoryName;
-        this.oauthToken = oauthToken;
-        this.homeDir = homeDir;
+        this(repositoryOwner, repositoryName, oauthToken, homeDir, true);
     }
 
     @Override
@@ -77,5 +98,6 @@ public class TermRequesterRESTModule extends AbstractModule
         bindConstant().annotatedWith(OAuthToken.class).to(oauthToken);
         bindConstant().annotatedWith(RepositoryName.class).to(repositoryName);
         bindConstant().annotatedWith(RepositoryOwner.class).to(repositoryOwner);
+        bindConstant().annotatedWith(OwnResources.class).to(ownResources);
     }
 }

@@ -30,6 +30,7 @@ import java.util.List;
 
 import com.google.common.base.Optional;
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
@@ -40,6 +41,7 @@ import static com.google.common.base.Preconditions.checkState;
  *
  * @version $Id$
  */
+@Singleton
 public class PhenotypeManagerImpl implements PhenotypeManager
 {
     /**
@@ -75,7 +77,7 @@ public class PhenotypeManagerImpl implements PhenotypeManager
     }
 
     @Override
-    public void init(GithubAPI.Repository repo, Path home) throws TermRequesterBackendException
+    public synchronized void init(GithubAPI.Repository repo, Path home) throws TermRequesterBackendException
     {
         if (!up) {
             github = factory.create(repo);
@@ -89,7 +91,7 @@ public class PhenotypeManagerImpl implements PhenotypeManager
     }
 
     @Override
-    public void shutdown() throws TermRequesterBackendException
+    public synchronized void shutdown() throws TermRequesterBackendException
     {
         if (up) {
             try {
@@ -221,6 +223,7 @@ public class PhenotypeManagerImpl implements PhenotypeManager
             synchronized (db) {
                 boolean autocommit = db.getAutocommit();
                 db.setAutocommit(false);
+                /* TODO: Is this a good idea, or should we just get them all? */
                 List<Phenotype> phenotypes = db.getPhenotypesByStatus(Phenotype.Status.SUBMITTED);
                 for (Phenotype pt : phenotypes) {
                     github.readPhenotype(pt);

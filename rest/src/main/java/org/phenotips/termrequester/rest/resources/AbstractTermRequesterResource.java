@@ -22,6 +22,7 @@ import org.phenotips.termrequester.TermRequesterBackendException;
 import org.phenotips.termrequester.github.GithubAPI;
 import org.phenotips.termrequester.rest.resources.annotations.HomeDir;
 import org.phenotips.termrequester.rest.resources.annotations.OAuthToken;
+import org.phenotips.termrequester.rest.resources.annotations.OwnResources;
 import org.phenotips.termrequester.rest.resources.annotations.RepositoryName;
 import org.phenotips.termrequester.rest.resources.annotations.RepositoryOwner;
 
@@ -56,6 +57,11 @@ public abstract class AbstractTermRequesterResource extends ServerResource
     private GithubAPI.Repository repo;
 
     /**
+     * Whether we own the resources we use.
+     */
+    private boolean owned;
+
+    /**
      * CTOR.
      *
      * @param ptManager the injected phenotype manager.
@@ -63,34 +69,40 @@ public abstract class AbstractTermRequesterResource extends ServerResource
      * @param token the oauth token
      * @param repoName the name of the repo
      * @param repoOwner the owner of the repo
+     * @param owned whether we are responsible for creating/destroying resources
      */
     @Inject
     public AbstractTermRequesterResource(PhenotypeManager ptManager, @HomeDir String homeDir,
             @OAuthToken String token, @RepositoryName String repoName,
-            @RepositoryOwner String repoOwner)
+            @RepositoryOwner String repoOwner, @OwnResources Boolean owned)
     {
         this.ptManager = ptManager;
         this.homeDir = homeDir;
         repo = new GithubAPI.Repository(repoOwner, repoName, token);
+        this.owned = owned;
     }
 
     @Override
     protected void doInit()
     {
-        try {
-            ptManager.init(repo, Paths.get(homeDir));
-        } catch (TermRequesterBackendException e) {
-            throw new ResourceException(e);
+        if (owned) {
+            try {
+                ptManager.init(repo, Paths.get(homeDir));
+            } catch (TermRequesterBackendException e) {
+                throw new ResourceException(e);
+            }
         }
     }
 
     @Override
     protected void doRelease()
     {
-        try {
-            ptManager.shutdown();
-        } catch (TermRequesterBackendException e) {
-            throw new ResourceException(e);
+        if (owned) {
+            try {
+                ptManager.shutdown();
+            } catch (TermRequesterBackendException e) {
+                throw new ResourceException(e);
+            }
         }
     }
 }

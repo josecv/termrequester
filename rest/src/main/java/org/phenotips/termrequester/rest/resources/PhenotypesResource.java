@@ -22,6 +22,7 @@ import org.phenotips.termrequester.PhenotypeManager;
 import org.phenotips.termrequester.TermRequesterBackendException;
 import org.phenotips.termrequester.rest.resources.annotations.HomeDir;
 import org.phenotips.termrequester.rest.resources.annotations.OAuthToken;
+import org.phenotips.termrequester.rest.resources.annotations.OwnResources;
 import org.phenotips.termrequester.rest.resources.annotations.RepositoryName;
 import org.phenotips.termrequester.rest.resources.annotations.RepositoryOwner;
 
@@ -56,13 +57,14 @@ public class PhenotypesResource extends AbstractTermRequesterResource
      * @param token the oauth token
      * @param repoName the name of the repo
      * @param repoOwner the owner of the repo
+     * @param owned whether we should own the resources needed
      */
     @Inject
     public PhenotypesResource(PhenotypeManager ptManager, @HomeDir String homeDir,
             @OAuthToken String token, @RepositoryName String repoName,
-            @RepositoryOwner String repoOwner)
+            @RepositoryOwner String repoOwner, @OwnResources Boolean owned)
     {
-        super(ptManager, homeDir, token, repoName, repoOwner);
+        super(ptManager, homeDir, token, repoName, repoOwner, owned);
     }
 
     /**
