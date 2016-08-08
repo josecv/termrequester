@@ -102,15 +102,6 @@ public interface DatabaseService
     Phenotype getPhenotypeByIssueNumber(String number) throws IOException;
 
     /**
-     * Search the database for the text given.
-     *
-     * @param text the text to search for.
-     * @return the list of results.
-     * @throws IOException on solr failure
-     */
-    List<Phenotype> searchPhenotypes(String text) throws IOException;
-
-    /**
      * Get all phenotypes with the status given.
      *
      * @param status the desired phenotype status
@@ -118,6 +109,24 @@ public interface DatabaseService
      * @throws IOException on solr failure
      */
     List<Phenotype> getPhenotypesByStatus(Phenotype.Status status) throws IOException;
+
+    /**
+     * Get the phenotype with the hpo id given.
+     *
+     * @param hpoId the hpoid
+     * @return the phenotype, or Phenotype.NULL if there isn't one
+     * @throws IOException on solr failure
+     */
+    Phenotype getPhenotypeByHpoId(String hpoId) throws IOException;
+
+    /**
+     * Search the database for the text given.
+     *
+     * @param text the text to search for.
+     * @return the list of results.
+     * @throws IOException on solr failure
+     */
+    List<Phenotype> searchPhenotypes(String text) throws IOException;
 
     /**
      * Set whether the service ought to commit at the end of every write.

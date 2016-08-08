@@ -130,6 +130,11 @@ public class PhenotypeManagerTest
     private static final String PT_ID = "NONHPO_123";
 
     /**
+     * The HPO id of the test phenotype.
+     */
+    private static final String PT_HPO_ID = "HPO_1234";
+
+    /**
      * A temporary folder.
      */
     @Rule
@@ -238,11 +243,42 @@ public class PhenotypeManagerTest
         pt = mock(Phenotype.class);
         when(databaseService.getPhenotypeById(PT_ID)).thenReturn(pt);
         when(pt.getIssueNumber()).thenReturn(Optional.of(PT_NUM));
+        when(pt.getStatus()).thenReturn(Phenotype.Status.SUBMITTED);
         Phenotype pt2 = client.getPhenotypeById(PT_ID);
         assertEquals(pt, pt2);
         verify(githubApi).readPhenotype(same(pt));
         verify(databaseService).getPhenotypeById(PT_ID);
         verify(databaseService).savePhenotype(same(pt));
+    }
+
+    /**
+     * Test that things work properly when the phenotype is accepted as a
+     * synonym.
+     */
+    @Test
+    public void testAcceptedAsSynonym() throws Exception
+    {
+        pt.setId(PT_ID);
+        pt.setStatus(Phenotype.Status.SUBMITTED);
+        pt.setIssueNumber(PT_NUM);
+        Phenotype existing = spy(new Phenotype("Already there", "yes"));
+        existing.setStatus(Phenotype.Status.ACCEPTED);
+        existing.setHpoId(PT_HPO_ID);
+        when(databaseService.getPhenotypeByHpoId(PT_HPO_ID)).thenReturn(existing);
+        when(databaseService.getPhenotypeById(PT_ID)).thenReturn(pt);
+        doAnswer(new Answer<Void>() {
+            public Void answer(InvocationOnMock invocation) {
+                Phenotype arg = (Phenotype) invocation.getArguments()[0];
+                arg.setStatus(Phenotype.Status.SYNONYM);
+                arg.setHpoId(PT_HPO_ID);
+                return null;
+            }
+        }).when(githubApi).readPhenotype(same(pt));
+        Phenotype pt2 = client.getPhenotypeById(PT_ID);
+        assertEquals(pt, pt2);
+        verify(databaseService).getPhenotypeByHpoId(PT_HPO_ID);
+        verify(existing).mergeWith(same(pt));
+        verify(databaseService).savePhenotype(same(existing));
     }
 
     /**
@@ -259,6 +295,9 @@ public class PhenotypeManagerTest
         assertEquals(phenotypes, results);
     }
 
+    /**
+     * Test the sync method.
+     */
     @Test
     public void testSync() throws Exception
     {

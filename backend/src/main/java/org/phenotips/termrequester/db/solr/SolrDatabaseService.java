@@ -244,11 +244,27 @@ public class SolrDatabaseService implements DatabaseService
     public Phenotype getPhenotypeByIssueNumber(String issueNumber) throws IOException
     {
         checkUp();
-        List<Phenotype> pt = getPhenotypesByField(Schema.ISSUE_NUMBER, issueNumber, true);
-        if (pt.size() == 0) {
-            return Phenotype.NULL;
+        return getPhenotypeByField(Schema.ISSUE_NUMBER, issueNumber);
+    }
+
+    @Override
+    public Phenotype getPhenotypeByHpoId(String hpoId) throws IOException
+    {
+        checkUp();
+        String queryString = String.format("%s AND %s",
+                String.format(FIELD_IS, Schema.STATUS, Phenotype.Status.ACCEPTED.toString()),
+                String.format(FIELD_IS, Schema.HPO_ID, hpoId));
+        SolrQuery q = new SolrQuery().setQuery(queryString).setRows(1);
+        try {
+            QueryResponse resp = server.query(q);
+            List<SolrDocument> results = resp.getResults();
+            if (results.size() == 0) {
+                return Phenotype.NULL;
+            }
+            return mapper.fromDoc(results.get(0));
+        } catch (SolrServerException e) {
+            throw new IOException(e);
         }
-        return pt.get(0);
     }
 
     @Override
@@ -339,6 +355,23 @@ public class SolrDatabaseService implements DatabaseService
     public void setAutocommit(boolean autocommit)
     {
         this.autocommit = autocommit;
+    }
+
+    /**
+     * Get one single phenotype where the field given has the value given.
+     *
+     * @param field the field
+     * @param value the value
+     * @return the phenotype
+     */
+    private Phenotype getPhenotypeByField(String field, String value)
+        throws IOException
+    {
+        List<Phenotype> phenotypes = getPhenotypesByField(field, value, true);
+        if (phenotypes.size() == 0) {
+            return Phenotype.NULL;
+        }
+        return phenotypes.get(0);
     }
 
     /**

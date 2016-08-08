@@ -196,8 +196,7 @@ public class PhenotypeManagerImpl implements PhenotypeManager
         try {
             pt = db.getPhenotypeById(id);
             if (pt.getIssueNumber().isPresent()) {
-                github.readPhenotype(pt);
-                db.savePhenotype(pt);
+                syncPhenotype(pt);
             }
         } catch (IOException | GithubException e) {
             throw new TermRequesterBackendException(e);
@@ -226,8 +225,7 @@ public class PhenotypeManagerImpl implements PhenotypeManager
                 /* TODO: Is this a good idea, or should we just get them all? */
                 List<Phenotype> phenotypes = db.getPhenotypesByStatus(Phenotype.Status.SUBMITTED);
                 for (Phenotype pt : phenotypes) {
-                    github.readPhenotype(pt);
-                    db.savePhenotype(pt);
+                    syncPhenotype(pt);
                 }
                 db.commit();
                 db.setAutocommit(autocommit);
@@ -235,5 +233,27 @@ public class PhenotypeManagerImpl implements PhenotypeManager
         } catch (IOException | GithubException e) {
             throw new TermRequesterBackendException(e);
         }
+    }
+
+    /**
+     * Sync the phenotype given via github and save it to the db.
+     * @param pt the phenotype
+     * @throws IOException if the database throws
+     * @throws GithubException if github throws
+     */
+    private void syncPhenotype(Phenotype pt) throws IOException, GithubException
+    {
+        Phenotype.Status oldStatus = pt.getStatus();
+        github.readPhenotype(pt);
+        Phenotype.Status newStatus = pt.getStatus();
+        if (newStatus.equals(Phenotype.Status.SYNONYM) && !newStatus.equals(oldStatus)) {
+            String hpoId = pt.getHpoId().get();
+            /* Check if it's been added as a synonym : because it's just been accepted, and we
+             * haven't synced yet, we can be sure this is ok */
+            Phenotype existing = db.getPhenotypeByHpoId(hpoId);
+            existing.mergeWith(pt);
+            db.savePhenotype(existing);
+        }
+        db.savePhenotype(pt);
     }
 }

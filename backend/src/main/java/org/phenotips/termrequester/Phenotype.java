@@ -431,17 +431,32 @@ public class Phenotype extends AbstractSaveable implements Serializable
 
     /**
      * Consume the phenotype given, merging it with this one.
+     * Will merge the descriptions.
+     *
      * @param other the phenotype to merge this one to. Will be left unchanged
      */
     public void mergeWith(Phenotype other)
+    {
+        mergeWith(other, true);
+    }
+
+    /**
+     * Consume the phenotype given, merging it with this one.
+     *
+     * @param other the phenotype to merge this one to. Will be left unchanged
+     * @param mergeDescription whether the descriptions should be merged too
+     */
+    public void mergeWith(Phenotype other, boolean mergeDescription)
     {
         if (NULL.equals(other)) {
             return;
         }
         addAllSynonyms(other.getSynonyms());
         addSynonym(other.getName());
-        /* TODO Merge description a bit better */
-        description += " " + other.getDescription();
+        if (mergeDescription) {
+            /* TODO Merge description a bit better */
+            description += " " + other.getDescription();
+        }
     }
 
     /**
@@ -521,6 +536,10 @@ public class Phenotype extends AbstractSaveable implements Serializable
         /**
          * The phenotype has been accpted.
          */
-        ACCEPTED
+        ACCEPTED,
+        /**
+         * The phenotype has been accepted as a synonym of another.
+         */
+        SYNONYM
     }
 }

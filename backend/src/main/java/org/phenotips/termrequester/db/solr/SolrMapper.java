@@ -54,7 +54,7 @@ class SolrMapper
         doc.setField(Schema.NAME, pt.getName());
         doc.setField(Schema.DEFINITION, pt.getDescription());
         doc.setField(Schema.STATUS, pt.getStatus().name());
-        doc.setField(Schema.ISSUE_NUMBER, pt.getIssueNumber().or(Phenotype.EMPTY_ISSUE));
+        doc.setField(Schema.ISSUE_NUMBER, pt.getIssueNumber().orNull());
         doc.setField(Schema.PARENT, parents.toArray(new String[parents.size()]));
         doc.setField(Schema.SYNONYM, synonyms.toArray(new String[synonyms.size()]));
         doc.setField(Schema.ID, pt.getId().get());

@@ -17,6 +17,8 @@
  */
 package org.phenotips.termrequester;
 
+import com.google.common.base.Optional;
+
 /**
  * A phenotype that has been added to the HPO.
  *
@@ -59,5 +61,14 @@ public class HPOPhenotype extends Phenotype
     {
         /* Forbid submission of something already there, for obvious reasons */
         return false;
+    }
+
+    @Override
+    public Optional<String> getIssueNumber()
+    {
+        /* There's no guarantee that this actually has an issue number, because it
+         * could've just been pulled in from the HPO. However, if it does we want
+         * to return it. */
+        return Optional.fromNullable(forceGetIssueNumber());
     }
 }
