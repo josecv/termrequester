@@ -143,7 +143,6 @@ public abstract class AbstractResourceTest
     public void setUp() throws Exception
     {
         githubApi = mock(GithubAPI.class);
-        System.out.println(folder.getRoot().toString());
         injector = RestletGuice.createInjector(Modules.override(
                     new TermRequesterRESTModule("", "", "", folder.getRoot().toString())).
                 with(new TestModule(null, githubApi)));

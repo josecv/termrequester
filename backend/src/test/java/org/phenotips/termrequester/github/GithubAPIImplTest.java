@@ -152,7 +152,6 @@ public class GithubAPIImplTest extends AbstractGithubTest
         cleanupIssues.add(number);
         Thread.sleep(2000);
         String endpoint = String.format("https://api.github.com/repos/%s/%s/issues/%s", USER, repo, number);
-        System.out.println(endpoint);
         InputStream is = Request.Get(endpoint).
             addHeader("Authorization", "token " + TEST_TOKEN).
             execute().returnContent().asStream();
@@ -281,7 +280,6 @@ public class GithubAPIImplTest extends AbstractGithubTest
         cleanupIssues.add(pt.getIssueNumber().get());
         String etag = pt.getEtag();
         client.patchIssue(pt);
-        System.out.println(pt.getEtag());
         assertEquals(etag, pt.getEtag());
     }
 
