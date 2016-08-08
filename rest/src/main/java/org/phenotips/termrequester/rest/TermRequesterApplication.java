@@ -73,6 +73,11 @@ public class TermRequesterApplication extends Application
     public static final String HOME_DIR_PARAM = "org.phenotips.termrequester.homeDir";
 
     /**
+     * The parameter for how often to sync, in hours.
+     */
+    public static final String SYNC_INTERVAL_PARAM = "org.phenotips.termrequester.syncInterval";
+
+    /**
      * The quartz scheduler.
      * TODO This is probably a bad place for the Scheduler, partly because this
      * is tied down to the rest api
@@ -123,6 +128,8 @@ public class TermRequesterApplication extends Application
         String repoName = getContext().getParameters().getFirstValue(REPO_NAME_PARAM);
         String token = getContext().getParameters().getFirstValue(OAUTH_TOKEN_PARAM);
         String homeDir = getContext().getParameters().getFirstValue(HOME_DIR_PARAM);
+        double interval = Double.parseDouble(getContext().getParameters().
+                getFirstValue(SYNC_INTERVAL_PARAM));
         /* The phenotype manager is a singleton, because stateful (or at least transitively stateful,
          * since the database is for sure stateful), so we're gonna initialize it ourselves and
          * ensure the server resources don't do anything to it by passing @OwnResources as false
@@ -134,7 +141,7 @@ public class TermRequesterApplication extends Application
         sched = StdSchedulerFactory.getDefaultScheduler();
         sched.setJobFactory(injector.getInstance(PTJobFactory.class));
         sched.start();
-        schedulePoll();
+        schedulePoll(interval);
     }
 
     @Override
@@ -162,9 +169,11 @@ public class TermRequesterApplication extends Application
 
     /**
      * Schedule the poll job.
+     *
+     * @param interval how often to update, in hours
      * @throws SchedulerException on scheduler error
      */
-    private void schedulePoll() throws SchedulerException
+    private void schedulePoll(double interval) throws SchedulerException
     {
         String groupName = "termrequester";
         JobDetail job = newJob(PollJob.class).
@@ -174,7 +183,7 @@ public class TermRequesterApplication extends Application
             withIdentity("githubPollTrigger", groupName).
             startNow().
             withSchedule(simpleSchedule().
-                    withIntervalInSeconds(60 * 2).
+                    withIntervalInSeconds((int) Math.floor(3600 * interval)).
                     repeatForever()).
             build();
         sched.scheduleJob(job, trigger);

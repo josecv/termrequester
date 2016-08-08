@@ -46,6 +46,11 @@
       <param-name>org.phenotips.termrequester.homeDir</param-name>
       <param-value></param-value>
     </init-param>
+    <!-- How often to sync our database with the data in github, in hours. -->
+    <init-param>
+      <param-name>org.phenotips.termrequester.syncInterval</param-name>
+      <param-value>2.0</param-value>
+    </init-param>
   </servlet>
 
   <servlet-mapping>
