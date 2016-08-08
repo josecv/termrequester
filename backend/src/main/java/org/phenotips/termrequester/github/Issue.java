@@ -19,7 +19,9 @@ package org.phenotips.termrequester.github;
 
 import org.phenotips.termrequester.Phenotype;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -56,6 +58,16 @@ public class Issue
             /* Newlines are ridiciulously painful to deal with properly so we'll just match
              * through them and trim later */
             Pattern.DOTALL);
+
+    /**
+     * The suffix for any labels assigned to issues.
+     */
+    public static final String LABEL_SUFFIX = "autorequest";
+
+    /**
+     * A pattern to parse out labels.
+     */
+    private static final Pattern LABEL_PATTERN = Pattern.compile("(.*)" + LABEL_SUFFIX);
 
     /**
      * Joins stuff with commas.
@@ -115,6 +127,29 @@ public class Issue
     }
 
     /**
+     * Get an issue title for the phenotype with the name given.
+     * @param name the name
+     * @return the issue title
+     */
+    public static String getIssueTitle(String name)
+    {
+        return "Add term " + name;
+    }
+
+    /**
+     * Get a the json params to open an issue on github for the phenotype given.
+     * @param pt the phenotype
+     * @return the params
+     */
+    public static Map<String, String> getRequestParams(Phenotype pt)
+    {
+        Map<String, String> params = new HashMap<>(2);
+        params.put("title", getIssueTitle(pt.getName()));
+        params.put("body", Issue.describe(pt));
+        return params;
+    }
+
+    /**
      * Read the etag contained in the http response given into the phenotype given.
      *
      * @param pt the phenotype
@@ -164,8 +199,14 @@ public class Issue
      */
     public Phenotype.Status getPTStatus()
     {
-        /* TODO We're assuming no rejection here! Un-assume that */
         if ("closed".equals(state)) {
+            for (String label : labels) {
+                Matcher m = LABEL_PATTERN.matcher(label);
+                m.find();
+                if (m.matches()) {
+                    return Phenotype.Status.valueOf(m.group(1).toUpperCase());
+                }
+            }
             return Phenotype.Status.ACCEPTED;
         } else {
             return Phenotype.Status.SUBMITTED;

@@ -26,8 +26,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
 
 import org.apache.http.HttpResponse;
@@ -192,16 +190,6 @@ class GithubAPIImpl implements GithubAPI
     }
 
     /**
-     * Get an issue title for the phenotype with the name given.
-     * @param name the name
-     * @return the issue title
-     */
-    private String issueTitle(String name)
-    {
-        return "Add term " + name;
-    }
-
-    /**
      * Build a github search (the q= parameter) to find issues related
      * to the phenotype given.
      * @param pt the phenotype
@@ -296,10 +284,7 @@ class GithubAPIImpl implements GithubAPI
      */
     private byte[] buildRequest(Phenotype pt) throws IOException
     {
-        Map<String, String> params = new HashMap<>();
-        params.put("title", issueTitle(pt.getName()));
-        params.put("body", Issue.describe(pt));
-        byte[] body = mapper.writeValueAsBytes(params);
+        byte[] body = mapper.writeValueAsBytes(Issue.getRequestParams(pt));
         return body;
     }
 }
