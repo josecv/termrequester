@@ -133,7 +133,7 @@ public class PhenotypeManagerTest
     /**
      * The HPO id of the test phenotype.
      */
-    private static final String PT_HPO_ID = "HPO_1234";
+    private static final String PT_HPO_ID = "HPO_001234";
 
     /**
      * A temporary folder.
@@ -249,6 +249,26 @@ public class PhenotypeManagerTest
         assertEquals(pt, pt2);
         verify(githubApi).readPhenotype(same(pt));
         verify(databaseService).getPhenotypeById(PT_ID);
+        verify(databaseService).savePhenotype(same(pt));
+    }
+
+    /**
+     * Test the getPhenotypeById method with an hpo id.
+     */
+    @Test
+    public void testGetByHpoId() throws Exception
+    {
+        pt = mock(Phenotype.class);
+        when(databaseService.getPhenotypeByHpoId(PT_HPO_ID)).thenReturn(pt);
+        when(pt.getIssueNumber()).thenReturn(Optional.of(PT_NUM));
+        when(pt.getStatus()).thenReturn(Phenotype.Status.ACCEPTED);
+        when(pt.getHpoId()).thenReturn(Optional.of(PT_HPO_ID));
+        when(pt.getId()).thenReturn(Optional.of(PT_ID));
+        Phenotype pt2 = client.getPhenotypeById(PT_HPO_ID);
+        assertEquals(pt, pt2);
+        verify(githubApi).readPhenotype(same(pt));
+        verify(databaseService, never()).getPhenotypeById(PT_ID);
+        verify(databaseService).getPhenotypeByHpoId(PT_HPO_ID);
         verify(databaseService).savePhenotype(same(pt));
     }
 

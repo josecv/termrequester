@@ -21,6 +21,7 @@ import org.phenotips.termrequester.db.DatabaseService;
 import org.phenotips.termrequester.github.GithubAPI;
 import org.phenotips.termrequester.github.GithubAPIFactory;
 import org.phenotips.termrequester.github.GithubException;
+import org.phenotips.termrequester.utils.IdUtils;
 
 import java.io.IOException;
 
@@ -192,16 +193,22 @@ public class PhenotypeManagerImpl implements PhenotypeManager
     @Override
     public Phenotype getPhenotypeById(String id) throws TermRequesterBackendException
     {
-        Phenotype pt;
+        Phenotype pt = Phenotype.NULL;
         try {
-            pt = db.getPhenotypeById(id);
+            if (IdUtils.isId(id)) {
+                pt = db.getPhenotypeById(id);
+            } else if (IdUtils.isHpoId(id)) {
+                pt = db.getPhenotypeByHpoId(id);
+            } else {
+                throw new IllegalArgumentException(String.format("Id %s is malformed", id));
+            }
             if (pt.getIssueNumber().isPresent()) {
                 syncPhenotype(pt);
             }
+            return pt;
         } catch (IOException | GithubException e) {
             throw new TermRequesterBackendException(e);
         }
-        return pt;
     }
 
     @Override

@@ -503,7 +503,7 @@ public class Phenotype extends AbstractSaveable implements Serializable
     @JsonProperty("issueNumber")
     public String forceGetIssueNumber()
     {
-        return getIssueNumber().orNull();
+        return issueNumber;
     }
 
     /**
