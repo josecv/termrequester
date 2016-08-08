@@ -59,6 +59,12 @@ public class Phenotype extends AbstractSaveable implements Serializable
     public static final String EMPTY_ISSUE = "NOISSUE";
 
     /**
+     * A sensible default empty hpo id.
+     * Will NOT be returned from getHPOId() but can serve for consistency and issue reports.
+     */
+    public static final String EMPTY_HPO_ID = "NONE";
+
+    /**
      * A null phenotype.
      * To be used in the absence of data, instead of just using null.
      */

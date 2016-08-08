@@ -19,7 +19,6 @@ package org.phenotips.termrequester;
 
 /**
  * A phenotype that has been added to the HPO.
- * TODO Is this still a thing we need.
  *
  * @version $Id$
  */
@@ -40,6 +39,7 @@ public class HPOPhenotype extends Phenotype
 
     /**
      * CTOR.
+     *
      * @param name the name
      * @param description the description
      */
