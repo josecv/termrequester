@@ -168,6 +168,7 @@ public class Phenotype extends AbstractSaveable implements Serializable
 
     /**
      * Add all the synonyms given to this phenotype's set of synonyms.
+     *
      * @param synonyms the new syonyms to add
      */
     public void addAllSynonyms(Collection<String> synonyms)
@@ -178,6 +179,7 @@ public class Phenotype extends AbstractSaveable implements Serializable
 
     /**
      * Remove the snyonym given from this phenotype, if present.
+     *
      * @param synonym the synonym to remove.
      * @return whether it was there.
      */
@@ -363,51 +365,9 @@ public class Phenotype extends AbstractSaveable implements Serializable
         this.timeModified = timeModified;
     }
 
-    @Override
-    protected String calculateVersionHash()
-    {
-        return Integer.toString(hashCode());
-    }
-
-    @Override
-    public String toString()
-    {
-        return this.name;
-    }
-
-    @Override
-    public boolean equals(Object o)
-    {
-        if (o == null) {
-            return false;
-        }
-        if (o == this) {
-            return true;
-        }
-        if (!(o instanceof Phenotype)) {
-            return false;
-        }
-        Phenotype other = (Phenotype) o;
-        if (other.getId().isPresent() && getId().isPresent()) {
-            return other.getId().get().equals(getId().get());
-        }
-        /* We're equal if we share at least one name with them */
-        Set<String> theirNames = other.getSynonyms();
-        theirNames.add(other.getName());
-        Set<String> ourNames = getSynonyms();
-        ourNames.add(getName());
-        return !Sets.intersection(theirNames, ourNames).isEmpty();
-    }
-
-    @Override
-    public int hashCode()
-    {
-        return Objects.hash(getId().or(EMPTY_ID), name, description, synonyms,
-                parentIds, getIssueNumber().or(EMPTY_ISSUE), status, hpoId);
-    }
-
     /**
      * Return this phenotype's description as a parent of another.
+     *
      * @return the parent representation
      */
     public String asParent()
@@ -422,6 +382,7 @@ public class Phenotype extends AbstractSaveable implements Serializable
 
     /**
      * Return whether it's okay to submit this phenotype.
+     *
      * @return whether this phenotype should be a candidate for issue submission
      */
     public boolean submittable()
@@ -515,6 +476,49 @@ public class Phenotype extends AbstractSaveable implements Serializable
     public String forceGetHpoId()
     {
         return getHpoId().orNull();
+    }
+
+    @Override
+    protected String calculateVersionHash()
+    {
+        return Integer.toString(hashCode());
+    }
+
+    @Override
+    public String toString()
+    {
+        return this.name;
+    }
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if (o == null) {
+            return false;
+        }
+        if (o == this) {
+            return true;
+        }
+        if (!(o instanceof Phenotype)) {
+            return false;
+        }
+        Phenotype other = (Phenotype) o;
+        if (other.getId().isPresent() && getId().isPresent()) {
+            return other.getId().get().equals(getId().get());
+        }
+        /* We're equal if we share at least one name with them */
+        Set<String> theirNames = other.getSynonyms();
+        theirNames.add(other.getName());
+        Set<String> ourNames = getSynonyms();
+        ourNames.add(getName());
+        return !Sets.intersection(theirNames, ourNames).isEmpty();
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash(getId().or(EMPTY_ID), name, description, synonyms,
+                parentIds, getIssueNumber().or(EMPTY_ISSUE), status, hpoId);
     }
 
     /**
