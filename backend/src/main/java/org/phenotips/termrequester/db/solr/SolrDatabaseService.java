@@ -19,6 +19,7 @@ package org.phenotips.termrequester.db.solr;
 
 import org.phenotips.termrequester.Phenotype;
 import org.phenotips.termrequester.db.DatabaseService;
+import org.phenotips.termrequester.utils.IdUtils;
 import org.phenotips.variantstore.db.DatabaseException;
 import org.phenotips.variantstore.shared.ResourceManager;
 
@@ -31,8 +32,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -73,15 +72,6 @@ public class SolrDatabaseService implements DatabaseService
      */
     public static final String CORE_NAME = "termrequester";
 
-    /**
-     * A pattern to parse our IDs.
-     */
-    private static final Pattern ID_PATTERN = Pattern.compile("NONHPO_(\\d{6})");
-
-    /**
-     * The very fist id to use.
-     */
-    private static final String INITIAL_ID = "NONHPO_000001";
 
     /**
      * A joiner to join different parts of a Solr query with an OR.
@@ -255,16 +245,7 @@ public class SolrDatabaseService implements DatabaseService
                 String.format(FIELD_IS, Schema.STATUS, Phenotype.Status.ACCEPTED.toString()),
                 String.format(FIELD_IS, Schema.HPO_ID, hpoId));
         SolrQuery q = new SolrQuery().setQuery(queryString).setRows(1);
-        try {
-            QueryResponse resp = server.query(q);
-            List<SolrDocument> results = resp.getResults();
-            if (results.size() == 0) {
-                return Phenotype.NULL;
-            }
-            return mapper.fromDoc(results.get(0));
-        } catch (SolrServerException e) {
-            throw new IOException(e);
-        }
+        return runQuery(q);
     }
 
     @Override
@@ -289,19 +270,8 @@ public class SolrDatabaseService implements DatabaseService
                         ClientUtils.escapeQueryChars(name)));
         }
         String queryString = OR_QUERY_JOINER.join(queryPieces);
-        SolrQuery q = new SolrQuery().setQuery(queryString);
-        try {
-            QueryResponse resp = server.query(q);
-            List<SolrDocument> results = resp.getResults();
-            /* TODO: This check might not be the best idea */
-            checkState(results.size() <= 1, "Multiple documents match %s", other);
-            if (results.size() == 0) {
-                return Phenotype.NULL;
-            }
-            return mapper.fromDoc(results.get(0));
-        } catch (SolrServerException e) {
-            throw new IOException(e);
-        }
+        SolrQuery q = new SolrQuery().setQuery(queryString).setRows(1);
+        return runQuery(q);
     }
 
     @Override
@@ -405,6 +375,27 @@ public class SolrDatabaseService implements DatabaseService
     }
 
     /**
+     * Run the query given and return one result from it.
+     *
+     * @param q the query
+     * @throws IOException if solr throws
+     */
+    private Phenotype runQuery(SolrQuery q) throws IOException
+    {
+        try {
+            QueryResponse resp = server.query(q);
+            List<SolrDocument> results = resp.getResults();
+            if (results.size() == 0) {
+                return Phenotype.NULL;
+            }
+            return mapper.fromDoc(results.get(0));
+        } catch (SolrServerException e) {
+            throw new IOException(e);
+        }
+    }
+
+
+    /**
      * Get the next available id.
      * @return the next id
      */
@@ -422,17 +413,10 @@ public class SolrDatabaseService implements DatabaseService
         }
         List<SolrDocument> results = resp.getResults();
         if (results.size() == 0) {
-            return INITIAL_ID;
+            return IdUtils.INITIAL_ID;
         }
         String latestId = (String) results.get(0).getFieldValue(Schema.ID);
-        Matcher m = ID_PATTERN.matcher(latestId);
-        if (!m.matches()) {
-            throw new IllegalStateException("id " + latestId + " does not look like it should");
-        }
-        int number = Integer.parseInt(m.group(1));
-        number++;
-        String newId = String.format("NONHPO_%06d", number);
-        return newId;
+        return IdUtils.incrementId(latestId);
     }
 
     /**

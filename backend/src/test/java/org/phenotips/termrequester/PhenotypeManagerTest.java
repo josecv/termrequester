@@ -38,6 +38,7 @@ import org.phenotips.termrequester.di.TermRequesterBackendModule;
 import org.phenotips.termrequester.github.GithubAPI;
 import org.phenotips.termrequester.github.GithubAPIFactory;
 import org.phenotips.termrequester.testutils.TestModule;
+import org.phenotips.termrequester.utils.IdUtils;
 
 import com.google.common.base.Optional;
 import com.google.inject.AbstractModule;
@@ -53,12 +54,12 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.refEq;
 import static org.mockito.Matchers.same;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -127,7 +128,7 @@ public class PhenotypeManagerTest
     /**
      * The id of the test phenotype.
      */
-    private static final String PT_ID = "NONHPO_123";
+    private static final String PT_ID = String.format(IdUtils.ID_FORMAT, 45);
 
     /**
      * The HPO id of the test phenotype.

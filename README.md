@@ -14,7 +14,7 @@ DATA STRUCTURES
 
 ```javascript
 {
-  'id': 'NONHPO_...',           /* The id of this phenotype within the request service */
+  'id': 'TEMPHPO_...',           /* The id of this phenotype within the request service */
   'name': '...',
   'status': '...', /* See the status below */
   'synonyms': ['...', '...', ],
@@ -32,6 +32,7 @@ One of:
 - `SUBMITTED`
 - `REJECTED`
 - `ACCEPTED`
+- `SYNONYM`
 
 CREATE
 ------
