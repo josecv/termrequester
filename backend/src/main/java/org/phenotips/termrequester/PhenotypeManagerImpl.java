@@ -155,7 +155,9 @@ public class PhenotypeManagerImpl implements PhenotypeManager
      * so throws.
      * @param pt the phenotype to check for
      * @return the existing phenotype or Phenotype.NULL if none existed.
-     * @throws RuntimeException if the phenotype is in github but not in the database.
+     * @throws IllegalStateException if the phenotype is in github but not in the database.
+     * @throws IOException if the database throws
+     * @throws GithubException if github throws
      */
     private Phenotype checkInGithub(Phenotype pt) throws IOException, GithubException
     {

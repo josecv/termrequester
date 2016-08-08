@@ -57,7 +57,9 @@ public class IssueTest extends AbstractGithubTest
     @BeforeClass
     public static void beforeClass() throws Exception
     {
-        repo = initialize("issue");
+        /* Nothing at the moment, since none of these tests need a connection to github yet.
+         * If one is needed later, simply add the creation stuff here and the destruction in
+         * afterClass */
     }
 
     /**
@@ -66,7 +68,6 @@ public class IssueTest extends AbstractGithubTest
     @AfterClass
     public static void afterClass() throws Exception
     {
-        shutdown(repo);
     }
 
     @Before
