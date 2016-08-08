@@ -86,7 +86,7 @@ class SolrMapper
         String description = (String) doc.getFieldValue(Schema.DEFINITION);
         Phenotype.Status status = Phenotype.Status.valueOf((String) doc.getFieldValue(Schema.STATUS));
         Phenotype pt;
-        if (status == Phenotype.Status.ACCEPTED) {
+        if (status == Phenotype.Status.ACCEPTED || status == Phenotype.Status.SYNONYM) {
             pt = new HPOPhenotype(name, description);
             pt.setHpoId((String) doc.getFieldValue(Schema.HPO_ID));
         } else {

@@ -20,6 +20,7 @@ package org.phenotips.termrequester.rest.resources;
 import java.util.List;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -30,6 +31,7 @@ import org.phenotips.termrequester.db.DatabaseService;
 import org.phenotips.termrequester.github.GithubAPI;
 import org.phenotips.termrequester.rest.di.TermRequesterRESTModule;
 import org.phenotips.termrequester.testutils.TestModule;
+import org.phenotips.termrequester.utils.IdUtils;
 
 import org.restlet.Request;
 import org.restlet.Response;
@@ -72,6 +74,15 @@ import static org.mockito.Mockito.when;
  */
 public class PhenotypeResourceTest extends AbstractResourceTest
 {
+    /**
+     * A test hpo id.
+     */
+    private static final String HPO_ID = "HPO_000563";
+
+    /**
+     * A test issue number.
+     */
+    private static final String ISSUE_NUMBER = "123";
 
     @Override
     public void doSetUp() throws Exception
@@ -79,14 +90,13 @@ public class PhenotypeResourceTest extends AbstractResourceTest
         router.attach("/phenotype/{id}", finder.finder(PhenotypeResource.class));
     }
 
-
     /**
      * Test getting by id when there is a phenotype to get.
      */
     @Test
     public void testGetById() throws Exception
     {
-        savePhenotype(pt);
+        saveAndInit(pt);
         Request request = new Request(Method.GET, "/phenotype/" + pt.getId().get());
         Response response = new Response(request);
         router.handle(request, response);
@@ -102,12 +112,83 @@ public class PhenotypeResourceTest extends AbstractResourceTest
     @Test
     public void testGetById404() throws Exception
     {
-        savePhenotype(pt);
+        saveAndInit(pt);
         databaseService.commit();
-        Request request = new Request(Method.GET, "/phenotype/" + pt.getId().get() + "1");
+        String badId = IdUtils.incrementId(pt.getId().get());
+        Request request = new Request(Method.GET, "/phenotype/" + badId);
         Response response = new Response(request);
         router.handle(request, response);
         assertEquals(404, response.getStatus().getCode());
+        assertFalse(response.isEntityAvailable());
+    }
+
+    /**
+     * Test that we can get a phenotype by hpo id.
+     */
+    @Test
+    public void testGetByHpoId() throws Exception
+    {
+        saveAndInit(pt);
+        databaseService.commit();
+        pt.setStatus(Phenotype.Status.ACCEPTED);
+        pt.setIssueNumber(ISSUE_NUMBER);
+        pt.setHpoId(HPO_ID);
+        databaseService.savePhenotype(pt);
+        databaseService.commit();
+        Request request = new Request(Method.GET, "/phenotype/" + HPO_ID);
+        Response response = new Response(request);
+        router.handle(request, response);
+        assertEquals(200, response.getStatus().getCode());
+        assertTrue(response.isEntityAvailable());
+        Phenotype result = mapper.readValue(response.getEntity().getStream(), Phenotype.class);
+        assertEquals(pt, result);
+    }
+
+    /**
+     * Test that synonyms return a working redirect.
+     */
+    @Test
+    public void testRedirect() throws Exception
+    {
+        saveAndInit(pt);
+        databaseService.commit();
+        pt.setStatus(Phenotype.Status.ACCEPTED);
+        pt.setHpoId(HPO_ID);
+        pt.setIssueNumber(ISSUE_NUMBER);
+        databaseService.savePhenotype(pt);
+
+        Phenotype pt2 = new Phenotype("Sibelius", "hooray");
+        pt2.setStatus(Phenotype.Status.SYNONYM);
+        pt2.setHpoId(HPO_ID);
+        pt2.setIssueNumber(ISSUE_NUMBER + "1");
+        manager.createRequest(pt2);
+        databaseService.commit();
+
+        Request request = new Request(Method.GET, "/phenotype/" + pt2.getId().get());
+        Response response = new Response(request);
+        router.handle(request, response);
+        assertEquals(301, response.getStatus().getCode());
+
+        String reference = response.getLocationRef().toString();
+        request = new Request(Method.GET, reference);
+        response = new Response(request);
+        router.handle(request, response);
+        assertEquals(200, response.getStatus().getCode());
+        assertTrue(response.isEntityAvailable());
+        Phenotype result = mapper.readValue(response.getEntity().getStream(), Phenotype.class);
+        assertEquals(pt, result);
+    }
+
+    /**
+     * Test that we get a 400 on a malformed id.
+     */
+    @Test
+    public void testMalformedId() throws Exception
+    {
+        Request request = new Request(Method.GET, "/phenotype/yes_lad");
+        Response response = new Response(request);
+        router.handle(request, response);
+        assertEquals(400, response.getStatus().getCode());
         assertFalse(response.isEntityAvailable());
     }
 }

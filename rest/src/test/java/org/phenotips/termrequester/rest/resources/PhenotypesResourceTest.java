@@ -102,7 +102,7 @@ public class PhenotypesResourceTest extends AbstractResourceTest
     @Test
     public void testSearch() throws Exception
     {
-        savePhenotype(pt);
+        saveAndInit(pt);
         Request request = new Request(Method.GET, "/phenotypes?text=liszt");
         Response response = new Response(request);
         router.handle(request, response);

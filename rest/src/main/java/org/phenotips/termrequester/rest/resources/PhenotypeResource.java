@@ -25,7 +25,9 @@ import org.phenotips.termrequester.rest.resources.annotations.OAuthToken;
 import org.phenotips.termrequester.rest.resources.annotations.OwnResources;
 import org.phenotips.termrequester.rest.resources.annotations.RepositoryName;
 import org.phenotips.termrequester.rest.resources.annotations.RepositoryOwner;
+import org.phenotips.termrequester.utils.IdUtils;
 
+import org.restlet.data.Reference;
 import org.restlet.data.Status;
 import org.restlet.resource.Get;
 import org.restlet.resource.ResourceException;
@@ -72,17 +74,24 @@ public class PhenotypeResource extends AbstractTermRequesterResource
     public Phenotype getById()
     {
         String id = (String) getRequest().getAttributes().get(ID_ATTRIBUTE);
-        Phenotype pt;
+        if (!(IdUtils.isId(id) || IdUtils.isHpoId(id))) {
+            getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST);
+            return null;
+        }
         try {
-            pt = ptManager.getPhenotypeById(id);
+            Phenotype pt = ptManager.getPhenotypeById(id);
             if (Phenotype.NULL.equals(pt)) {
                 getResponse().setStatus(Status.CLIENT_ERROR_NOT_FOUND);
                 return null;
             }
+            if (Phenotype.Status.SYNONYM.equals(pt.getStatus())) {
+                getResponse().setStatus(Status.REDIRECTION_PERMANENT);
+                redirectPermanent(new Reference(getRequest().getRootRef(), "/phenotype/" + pt.getHpoId().get()));
+                return null;
+            }
+            return pt;
         } catch (TermRequesterBackendException e) {
             throw new ResourceException(e);
         }
-        getResponse().setStatus(Status.SUCCESS_OK);
-        return pt;
     }
 }

@@ -121,6 +121,11 @@ public abstract class AbstractResourceTest
     protected FinderFactory finder;
 
     /**
+     * The phenotype manager.
+     */
+    protected PhenotypeManager manager;
+
+    /**
      * A temporary folder.
      */
     @Rule
@@ -148,7 +153,7 @@ public abstract class AbstractResourceTest
         mapper = injector.getInstance(ObjectMapper.class);
         databaseService = injector.getInstance(DatabaseService.class);
         databaseService.setAutocommit(true);
-        when(githubApi.searchForIssue(refEq(pt))).thenReturn(Optional.<String>absent());
+        when(githubApi.searchForIssue(any(Phenotype.class))).thenReturn(Optional.<String>absent());
         doSetUp();
     }
 
@@ -156,9 +161,9 @@ public abstract class AbstractResourceTest
      * Store the phenotype given into the db as part of set up.
      * @param pt the phenotype
      */
-    protected void savePhenotype(Phenotype pt) throws Exception
+    protected void saveAndInit(Phenotype pt) throws Exception
     {
-        PhenotypeManager manager = injector.getInstance(PhenotypeManager.class);
+        manager = injector.getInstance(PhenotypeManager.class);
         manager.init(new GithubAPI.Repository("", "", ""), folder.getRoot().toPath());
         manager.createRequest(pt);
     }

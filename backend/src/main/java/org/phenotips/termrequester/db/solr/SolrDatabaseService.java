@@ -241,8 +241,10 @@ public class SolrDatabaseService implements DatabaseService
     public Phenotype getPhenotypeByHpoId(String hpoId) throws IOException
     {
         checkUp();
-        String queryString = String.format("%s AND %s",
-                String.format(FIELD_IS, Schema.STATUS, Phenotype.Status.ACCEPTED.toString()),
+        String queryString = String.format("(%s) AND %s",
+                OR_QUERY_JOINER.join(
+                    String.format(FIELD_IS, Schema.STATUS, Phenotype.Status.ACCEPTED.toString()),
+                    String.format(FIELD_IS, Schema.STATUS, Phenotype.Status.SYNONYM.toString())),
                 String.format(FIELD_IS, Schema.HPO_ID, hpoId));
         SolrQuery q = new SolrQuery().setQuery(queryString).setRows(1);
         return runQuery(q);

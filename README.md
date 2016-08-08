@@ -68,9 +68,14 @@ READ
 
 ### `GET /phenotype/{id}`
 
+Where `id` is either a `TEMPHPO_` style id or an `HPO_` type id.
+
 ###### Response
 
-Returns the phenotype with the id given (see above for object format) or an empty `HTTP 404` if none exists.
+If the phenotype exists and is in any status other than `SYNONYM`, it will be returned.
+If the phenotype exists but is in `SYNONYM` status, a redirect will be returned to the now-accepted term.
+If the phenotype does not exist, an `HTTP 404` will be returned.
+If the id is malformed, an `HTTP 400` will be returned.
 
 ### `GET /phenotypes`
 
