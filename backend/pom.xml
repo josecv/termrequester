@@ -33,6 +33,7 @@
   <packaging>jar</packaging>
   <properties>
     <checkstyle.suppressions.location>${basedir}/src/checkstyle/checkstyle-suppressions.xml</checkstyle.suppressions.location>
+    <coverage.instructionRatio>0.80</coverage.instructionRatio>
   </properties>
 
   <dependencies>
@@ -82,6 +83,21 @@
       <version>1.0-SNAPSHOT</version>
     </dependency>
   </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>com.mycila</groupId>
+        <artifactId>license-maven-plugin</artifactId>
+        <version>2.11</version>
+        <configuration>
+          <excludes>
+            <exclude>src/main/resources/solr/solr.xml</exclude>
+          </excludes>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 
 </project>
 
