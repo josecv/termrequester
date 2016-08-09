@@ -289,9 +289,10 @@ class SolrDatabaseService implements DatabaseService
                         Schema.NAME, Schema.NAME_SPELL, Schema.NAME_EXACT, Schema.NAME_PREFIX,
                         Schema.SYNONYM, Schema.SYNONYM_SPELL, Schema.SYNONYM_EXACT, Schema.SYNONYM_PREFIX,
                         Schema.TEXT, Schema.TEXT_SPELL));
-            q.add(DisMaxParams.QF, "%s^10 %s^18 %s^5 %s^6 %s^10 %s^3 %s^1 %s^2 %s^0.5",
+            String qstring = String.format("%s^10 %s^18 %s^5 %s^6 %s^10 %s^3 %s^1 %s^2 %s^0.5",
                     Schema.NAME, Schema.NAME_SPELL, Schema.NAME_STUB, Schema.SYNONYM, Schema.SYNONYM_SPELL,
                     Schema.SYNONYM_STUB, Schema.TEXT, Schema.TEXT, Schema.TEXT_SPELL, Schema.TEXT_STUB);
+            q.add(DisMaxParams.QF, qstring);
             q.add("spellcheck", Boolean.toString(true));
             q.add(SpellingParams.SPELLCHECK_COLLATE, Boolean.toString(true));
             q.add(SpellingParams.SPELLCHECK_COUNT, "100");
