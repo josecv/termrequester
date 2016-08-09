@@ -366,21 +366,6 @@ public class Phenotype extends AbstractSaveable implements Serializable
     }
 
     /**
-     * Return this phenotype's description as a parent of another.
-     *
-     * @return the parent representation
-     */
-    public String asParent()
-    {
-        if (getIssueNumber().isPresent()) {
-            return "#" + issueNumber;
-        } else if (getId().isPresent()) {
-            return getId().get();
-        }
-        return name;
-    }
-
-    /**
      * Return whether it's okay to submit this phenotype.
      *
      * @return whether this phenotype should be a candidate for issue submission
@@ -527,6 +512,7 @@ public class Phenotype extends AbstractSaveable implements Serializable
     public enum Status {
         /**
          * The phenotype hasn't been submitted yet.
+         * This is an internal status that shoudln't be relayed back to users.
          */
         UNSUBMITTED,
         /**
@@ -543,7 +529,12 @@ public class Phenotype extends AbstractSaveable implements Serializable
         ACCEPTED,
         /**
          * The phenotype has been accepted as a synonym of another.
+         * This is an internal status that shoudln't be relayed back to users.
          */
-        SYNONYM
+        SYNONYM,
+        /**
+         * The phenotype has been accepted and is in available in a release of the HPO.
+         */
+        PUBLISHED
     }
 }

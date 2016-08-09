@@ -51,12 +51,6 @@ public class HPOPhenotype extends Phenotype
     }
 
     @Override
-    public String asParent()
-    {
-        return getHpoId().get();
-    }
-
-    @Override
     public boolean submittable()
     {
         /* Forbid submission of something already there, for obvious reasons */

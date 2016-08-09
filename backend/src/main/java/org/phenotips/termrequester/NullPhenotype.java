@@ -83,13 +83,6 @@ final class NullPhenotype extends Phenotype
     }
 
     @Override
-    public String asParent()
-    {
-        /* TODO IS THIS REASONABLE */
-        return "";
-    }
-
-    @Override
     public String toString()
     {
         return NAME;
@@ -98,7 +91,7 @@ final class NullPhenotype extends Phenotype
     @Override
     public boolean equals(Object o)
     {
-        /* This class is finals and there should only ever be one instance,
+        /* This class is final and there should only ever be one instance,
          * so this is probably okay */
         return this == o;
     }
