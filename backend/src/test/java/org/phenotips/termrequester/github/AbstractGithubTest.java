@@ -28,7 +28,7 @@ import org.apache.http.client.fluent.Request;
 import org.apache.http.entity.ContentType;
 
 
-import org.phenotips.termrequester.di.TermRequesterBackendModule;
+import org.phenotips.termrequester.TermRequesterBackendModule;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 

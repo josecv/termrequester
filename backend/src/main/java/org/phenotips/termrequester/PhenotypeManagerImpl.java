@@ -43,7 +43,7 @@ import static com.google.common.base.Preconditions.checkState;
  * @version $Id$
  */
 @Singleton
-public class PhenotypeManagerImpl implements PhenotypeManager
+class PhenotypeManagerImpl implements PhenotypeManager
 {
     /**
      * The github api factory.
@@ -71,7 +71,7 @@ public class PhenotypeManagerImpl implements PhenotypeManager
      * @param db the database service
      */
     @Inject
-    public PhenotypeManagerImpl(GithubAPIFactory factory, DatabaseService db)
+    PhenotypeManagerImpl(GithubAPIFactory factory, DatabaseService db)
     {
         this.factory = factory;
         this.db = db;

@@ -17,40 +17,18 @@
  */
 package org.phenotips.termrequester.github;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import com.google.inject.Inject;
-
+import com.google.inject.AbstractModule;
 
 /**
- * Constructs GithubAPI objects.
+ * The module for interaction with github.
  *
  * @version $Id$
  */
-class GithubAPIFactoryImpl implements GithubAPIFactory
+public class GithubModule extends AbstractModule
 {
-    private ObjectMapper mapper;
-
-    /**
-     * CTOR.
-     * @param mapper the object mapper
-     */
-    @Inject
-    GithubAPIFactoryImpl(ObjectMapper mapper)
-    {
-        this.mapper = mapper;
-    }
-
     @Override
-    public GithubAPI create(GithubAPI.Repository repo)
+    public void configure()
     {
-        return new GithubAPIImpl(mapper, repo);
-    }
-
-    @Override
-    public GithubAPI create(String user, String repository, String oauthToken)
-    {
-        GithubAPI.Repository repo = new GithubAPI.Repository(user, repository, oauthToken);
-        return create(repo);
+        bind(GithubAPIFactory.class).to(GithubAPIFactoryImpl.class);
     }
 }

@@ -15,9 +15,9 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see http://www.gnu.org/licenses/
  */
-package org.phenotips.termrequester.rest.di;
+package org.phenotips.termrequester.rest;
 
-import org.phenotips.termrequester.di.TermRequesterBackendModule;
+import org.phenotips.termrequester.TermRequesterBackendModule;
 import org.phenotips.termrequester.rest.resources.annotations.HomeDir;
 import org.phenotips.termrequester.rest.resources.annotations.OAuthToken;
 import org.phenotips.termrequester.rest.resources.annotations.OwnResources;

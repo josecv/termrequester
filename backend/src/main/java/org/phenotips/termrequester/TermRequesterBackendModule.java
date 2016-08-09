@@ -15,14 +15,10 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see http://www.gnu.org/licenses/
  */
-package org.phenotips.termrequester.di;
+package org.phenotips.termrequester;
 
-import org.phenotips.termrequester.PhenotypeManager;
-import org.phenotips.termrequester.PhenotypeManagerImpl;
-import org.phenotips.termrequester.db.DatabaseService;
-import org.phenotips.termrequester.db.solr.SolrDatabaseService;
-import org.phenotips.termrequester.github.GithubAPIFactory;
-import org.phenotips.termrequester.github.GithubAPIFactoryImpl;
+import org.phenotips.termrequester.db.solr.SolrModule;
+import org.phenotips.termrequester.github.GithubModule;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -42,8 +38,8 @@ public class TermRequesterBackendModule extends AbstractModule
     @Override
     public void configure()
     {
-        bind(GithubAPIFactory.class).to(GithubAPIFactoryImpl.class);
-        bind(DatabaseService.class).to(SolrDatabaseService.class);
+        install(new GithubModule());
+        install(new SolrModule());
         bind(PhenotypeManager.class).to(PhenotypeManagerImpl.class);
     }
 

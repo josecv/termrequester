@@ -34,7 +34,7 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import org.phenotips.termrequester.db.DatabaseService;
-import org.phenotips.termrequester.di.TermRequesterBackendModule;
+import org.phenotips.termrequester.TermRequesterBackendModule;
 import org.phenotips.termrequester.github.GithubAPI;
 import org.phenotips.termrequester.github.GithubAPIFactory;
 import org.phenotips.termrequester.testutils.TestModule;

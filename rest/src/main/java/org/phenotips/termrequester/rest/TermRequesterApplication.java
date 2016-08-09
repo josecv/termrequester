@@ -20,7 +20,6 @@ package org.phenotips.termrequester.rest;
 import org.phenotips.termrequester.PhenotypeManager;
 import org.phenotips.termrequester.TermRequesterBackendException;
 import org.phenotips.termrequester.github.GithubAPI;
-import org.phenotips.termrequester.rest.di.TermRequesterRESTModule;
 import org.phenotips.termrequester.rest.resources.PhenotypeResource;
 import org.phenotips.termrequester.rest.resources.PhenotypesResource;
 

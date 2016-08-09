@@ -45,7 +45,7 @@ import org.junit.rules.TemporaryFolder;
 
 import org.phenotips.termrequester.Phenotype;
 import org.phenotips.termrequester.db.DatabaseService;
-import org.phenotips.termrequester.di.TermRequesterBackendModule;
+import org.phenotips.termrequester.TermRequesterBackendModule;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;

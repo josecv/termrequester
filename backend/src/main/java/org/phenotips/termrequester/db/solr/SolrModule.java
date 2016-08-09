@@ -15,42 +15,22 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see http://www.gnu.org/licenses/
  */
-package org.phenotips.termrequester.github;
+package org.phenotips.termrequester.db.solr;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.phenotips.termrequester.db.DatabaseService;
 
-import com.google.inject.Inject;
-
+import com.google.inject.AbstractModule;
 
 /**
- * Constructs GithubAPI objects.
+ * A module for interaction with solr.
  *
  * @version $Id$
  */
-class GithubAPIFactoryImpl implements GithubAPIFactory
+public class SolrModule extends AbstractModule
 {
-    private ObjectMapper mapper;
-
-    /**
-     * CTOR.
-     * @param mapper the object mapper
-     */
-    @Inject
-    GithubAPIFactoryImpl(ObjectMapper mapper)
-    {
-        this.mapper = mapper;
-    }
-
     @Override
-    public GithubAPI create(GithubAPI.Repository repo)
+    public void configure()
     {
-        return new GithubAPIImpl(mapper, repo);
-    }
-
-    @Override
-    public GithubAPI create(String user, String repository, String oauthToken)
-    {
-        GithubAPI.Repository repo = new GithubAPI.Repository(user, repository, oauthToken);
-        return create(repo);
+        bind(DatabaseService.class).to(SolrDatabaseService.class);
     }
 }

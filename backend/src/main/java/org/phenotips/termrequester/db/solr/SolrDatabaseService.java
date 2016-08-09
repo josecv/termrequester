@@ -58,7 +58,7 @@ import static com.google.common.base.Preconditions.checkState;
  * @version $Id : $
  */
 @Singleton
-public class SolrDatabaseService implements DatabaseService
+class SolrDatabaseService implements DatabaseService
 {
     /* Lots of this came from org.phenotips.variantstore.db.solr.SolrController */
 
