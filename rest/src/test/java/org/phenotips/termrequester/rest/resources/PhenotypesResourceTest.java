@@ -81,11 +81,13 @@ public class PhenotypesResourceTest extends AbstractResourceTest
     public void testCreate() throws Exception
     {
         doNothing().when(githubApi).openIssue(refEq(pt));
+        String syn1 = "syn1";
+        String syn2 = "syn2";
         String requestUri = "/phenotypes";
         String createJson = String.format("{ \"name\": \"%s\", " +
                 "\"description\": \"%s\", " +
-                "\"synonyms\": [], " +
-                "\"parents\": [] }", PT_NAME, PT_DESC);
+                "\"synonyms\": [\"%s\", \"%s\"], " +
+                "\"parents\": [] }", PT_NAME, PT_DESC, syn1, syn2);
         StringRepresentation entity = new StringRepresentation(createJson, MediaType.APPLICATION_JSON);
         Request request = new Request(Method.POST, requestUri, entity);
         Response response = new Response(request);
@@ -97,6 +99,11 @@ public class PhenotypesResourceTest extends AbstractResourceTest
         verify(githubApi).openIssue(eq(pt));
         assertTrue(result.getId().isPresent());
         assertEquals(pt, result);
+        assertEquals(PT_NAME, result.getName());
+        assertEquals(PT_DESC, result.getDescription());
+        assertTrue(result.getSynonyms().contains(syn1));
+        assertTrue(result.getSynonyms().contains(syn2));
+        assertEquals(2, result.getSynonyms().size());
     }
 
     @Test
