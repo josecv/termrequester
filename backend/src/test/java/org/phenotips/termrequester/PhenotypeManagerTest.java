@@ -33,8 +33,8 @@ import org.junit.rules.TemporaryFolder;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
-import org.phenotips.termrequester.db.DatabaseService;
 import org.phenotips.termrequester.TermRequesterBackendModule;
+import org.phenotips.termrequester.db.DatabaseService;
 import org.phenotips.termrequester.github.GithubAPI;
 import org.phenotips.termrequester.github.GithubAPIFactory;
 import org.phenotips.termrequester.testutils.TestModule;
@@ -282,7 +282,7 @@ public class PhenotypeManagerTest
         pt.setId(PT_ID);
         pt.setStatus(Phenotype.Status.SUBMITTED);
         pt.setIssueNumber(PT_NUM);
-        Phenotype existing = spy(new Phenotype("Already there", "yes"));
+        Phenotype existing = spy(new HPOPhenotype("Already there", "yes"));
         existing.setStatus(Phenotype.Status.ACCEPTED);
         existing.setHpoId(PT_HPO_ID);
         when(databaseService.getPhenotypeByHpoId(PT_HPO_ID)).thenReturn(existing);
@@ -296,8 +296,8 @@ public class PhenotypeManagerTest
             }
         }).when(githubApi).readPhenotype(same(pt));
         Phenotype pt2 = client.getPhenotypeById(PT_ID);
-        assertEquals(pt, pt2);
-        verify(databaseService).getPhenotypeByHpoId(PT_HPO_ID);
+        assertTrue("Wrong value returned", pt2 == existing);
+        verify(databaseService, times(2)).getPhenotypeByHpoId(PT_HPO_ID);
         verify(existing).mergeWith(same(pt));
         verify(databaseService).savePhenotype(same(existing));
     }

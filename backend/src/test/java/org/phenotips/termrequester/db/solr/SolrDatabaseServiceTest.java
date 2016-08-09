@@ -44,8 +44,8 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import org.phenotips.termrequester.Phenotype;
-import org.phenotips.termrequester.db.DatabaseService;
 import org.phenotips.termrequester.TermRequesterBackendModule;
+import org.phenotips.termrequester.db.DatabaseService;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -72,6 +72,11 @@ public class SolrDatabaseServiceTest
      * The description of the test phenotype.
      */
     private static final String PT_DESC = "Descriptions are cool";
+
+    /**
+     * The test hpo id.
+     */
+    private static final String PT_HPO_ID = "HPO_000101";
 
     /**
      * The issue number of the test phenotype.
@@ -217,7 +222,7 @@ public class SolrDatabaseServiceTest
         assertEquals(newName, doc.getFieldValue(Schema.NAME));
 
     }
-    
+
     /**
      * Test the get by id method.
      */
@@ -297,7 +302,7 @@ public class SolrDatabaseServiceTest
          *  pt2 has pt1 as synonym
          *  pt1 has pt3 as synonym
          *  pt1 and pt4 have the same name
-         *  pt1 and pt5 have the same id 
+         *  pt1 and pt5 have the same id
          *  pt1 and pt6 have the same issueNumber
          */
         Phenotype pt1 = new Phenotype(PT_NAME, PT_DESC);
@@ -369,6 +374,23 @@ public class SolrDatabaseServiceTest
         assertSetEquals(results, pt7);
         results = client.searchPhenotypes(s5);
         assertSetEquals(results);
+    }
+
+    /**
+     * Test the getByHpoId method.
+     */
+    @Test
+    public void testGetByHpoId() throws IOException
+    {
+        Phenotype pt1 = new Phenotype("one", "two");
+        pt1.setStatus(Phenotype.Status.ACCEPTED);
+        pt1.setHpoId(PT_HPO_ID);
+        pt1.setIssueNumber(PT_NUM);
+        client.savePhenotype(pt1);
+        Phenotype result = client.getPhenotypeByHpoId(PT_HPO_ID);
+        assertEquals(pt1, result);
+        assertEquals(Phenotype.Status.ACCEPTED, result.getStatus());
+        assertEquals(PT_HPO_ID, result.getHpoId().get());
     }
 
     private void assertSetEquals(Collection<Phenotype> results, Phenotype... expected)

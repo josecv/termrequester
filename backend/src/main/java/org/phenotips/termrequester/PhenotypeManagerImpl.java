@@ -207,6 +207,9 @@ class PhenotypeManagerImpl implements PhenotypeManager
             if (pt.getIssueNumber().isPresent()) {
                 syncPhenotype(pt);
             }
+            if (Phenotype.Status.SYNONYM.equals(pt.getStatus())) {
+                return getPhenotypeById(pt.getHpoId().get());
+            }
             return pt;
         } catch (IOException | GithubException e) {
             throw new TermRequesterBackendException(e);

@@ -145,10 +145,10 @@ public class PhenotypeResourceTest extends AbstractResourceTest
     }
 
     /**
-     * Test that synonyms return a working redirect.
+     * Test that lookups by synonym work okay.
      */
     @Test
-    public void testRedirect() throws Exception
+    public void testSynonym() throws Exception
     {
         saveAndInit(pt);
         databaseService.commit();
@@ -167,16 +167,34 @@ public class PhenotypeResourceTest extends AbstractResourceTest
         Request request = new Request(Method.GET, "/phenotype/" + pt2.getId().get());
         Response response = new Response(request);
         router.handle(request, response);
-        assertEquals(301, response.getStatus().getCode());
-
-        String reference = response.getLocationRef().toString();
-        request = new Request(Method.GET, reference);
-        response = new Response(request);
-        router.handle(request, response);
         assertEquals(200, response.getStatus().getCode());
         assertTrue(response.isEntityAvailable());
         Phenotype result = mapper.readValue(response.getEntity().getStream(), Phenotype.class);
         assertEquals(pt, result);
+    }
+
+    /**
+     * Test that we can perform a lookup when something is accepted
+     * as a synonym of a term that is published but not in the database.
+     */
+    @Test
+    public void testAcceptedSynonym() throws Exception
+    {
+        saveAndInit(pt);
+        databaseService.commit();
+        pt.setStatus(Phenotype.Status.SYNONYM);
+        pt.setHpoId(HPO_ID);
+        pt.setIssueNumber(ISSUE_NUMBER);
+        databaseService.savePhenotype(pt);
+
+        Request request = new Request(Method.GET, "/phenotype/" + pt.getId().get());
+        Response response = new Response(request);
+        router.handle(request, response);
+        assertEquals(200, response.getStatus().getCode());
+        assertTrue(response.isEntityAvailable());
+        Phenotype result = mapper.readValue(response.getEntity().getStream(), Phenotype.class);
+        assertEquals(HPO_ID, result.getHpoId().get());
+        assertEquals(Phenotype.Status.PUBLISHED, result.getStatus());
     }
 
     /**
