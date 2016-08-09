@@ -28,10 +28,6 @@
   </parent>
   <artifactId>phenotips-term-requester-rest</artifactId>
 
-  <properties>
-    <coverage.instructionRatio>0.40</coverage.instructionRatio>
-  </properties>
-
   <name>PhenoTips - Term Requester Rest interface</name>
   <description>Sets up the restlet api for the Term requester</description>
   <packaging>jar</packaging>
