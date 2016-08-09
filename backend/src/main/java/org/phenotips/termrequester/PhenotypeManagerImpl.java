@@ -208,7 +208,13 @@ class PhenotypeManagerImpl implements PhenotypeManager
                 syncPhenotype(pt);
             }
             if (Phenotype.Status.SYNONYM.equals(pt.getStatus())) {
-                return getPhenotypeById(pt.getHpoId().get());
+                String hpoId = pt.getHpoId().get();
+                pt = getPhenotypeById(hpoId);
+                if (Phenotype.NULL.equals(pt)) {
+                    pt = new HPOPhenotype(pt.getName(), pt.getDescription());
+                    pt.setStatus(Phenotype.Status.PUBLISHED);
+                    pt.setHpoId(hpoId);
+                }
             }
             return pt;
         } catch (IOException | GithubException e) {
@@ -261,7 +267,9 @@ class PhenotypeManagerImpl implements PhenotypeManager
         if (newStatus.equals(Phenotype.Status.SYNONYM) && !newStatus.equals(oldStatus)) {
             String hpoId = pt.getHpoId().get();
             /* Check if it's been added as a synonym : because it's just been accepted, and we
-             * haven't synced yet, we can be sure this is ok */
+             * haven't synced yet, we can be sure this is ok.
+             * Also note that because we use the null object pattern, it's perfectly okay to go
+             * through with the merge and save here */
             Phenotype existing = db.getPhenotypeByHpoId(hpoId);
             existing.mergeWith(pt);
             db.savePhenotype(existing);

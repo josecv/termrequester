@@ -112,6 +112,9 @@ public interface DatabaseService
 
     /**
      * Get the phenotype with the hpo id given.
+     * This will not return phenotypes that were marked as synonyms, for evident reasons:
+     * there may be many of them, all pointing to one "canonical" form, so we're not interested
+     * in the copies.
      *
      * @param hpoId the hpoid
      * @return the phenotype, or Phenotype.NULL if there isn't one
@@ -121,6 +124,7 @@ public interface DatabaseService
 
     /**
      * Search the database for the text given.
+     * Will not return any phenotypes marked as synonyms.
      *
      * @param text the text to search for.
      * @return the list of results.

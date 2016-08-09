@@ -27,7 +27,6 @@ import org.phenotips.termrequester.rest.resources.annotations.RepositoryName;
 import org.phenotips.termrequester.rest.resources.annotations.RepositoryOwner;
 import org.phenotips.termrequester.utils.IdUtils;
 
-import org.restlet.data.Reference;
 import org.restlet.data.Status;
 import org.restlet.resource.Get;
 import org.restlet.resource.ResourceException;
@@ -80,13 +79,11 @@ public class PhenotypeResource extends AbstractTermRequesterResource
         }
         try {
             Phenotype pt = ptManager.getPhenotypeById(id);
+            if (pt.getStatus().equals(Phenotype.Status.PUBLISHED)) {
+                pt = PublishedPhenotype.from(pt);
+            }
             if (Phenotype.NULL.equals(pt)) {
                 getResponse().setStatus(Status.CLIENT_ERROR_NOT_FOUND);
-                return null;
-            }
-            if (Phenotype.Status.SYNONYM.equals(pt.getStatus())) {
-                getResponse().setStatus(Status.REDIRECTION_PERMANENT);
-                redirectPermanent(new Reference(getRequest().getRootRef(), "/phenotype/" + pt.getHpoId().get()));
                 return null;
             }
             return pt;

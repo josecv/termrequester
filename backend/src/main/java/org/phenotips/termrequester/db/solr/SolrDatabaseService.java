@@ -241,11 +241,12 @@ class SolrDatabaseService implements DatabaseService
     public Phenotype getPhenotypeByHpoId(String hpoId) throws IOException
     {
         checkUp();
-        String queryString = String.format("(%s) AND %s",
+        String queryString = String.format("(%s) AND (%s)",
                 OR_QUERY_JOINER.join(
                     String.format(FIELD_IS, Schema.STATUS, Phenotype.Status.ACCEPTED.toString()),
                     String.format(FIELD_IS, Schema.STATUS, Phenotype.Status.SYNONYM.toString())),
                 String.format(FIELD_IS, Schema.HPO_ID, hpoId));
+        queryString = addStatusFilter(queryString, Phenotype.Status.SYNONYM);
         SolrQuery q = new SolrQuery().setQuery(queryString).setRows(1);
         return runQuery(q);
     }
@@ -292,6 +293,7 @@ class SolrDatabaseService implements DatabaseService
             String qstring = String.format("%s^10 %s^18 %s^5 %s^6 %s^10 %s^3 %s^1 %s^2 %s^0.5",
                     Schema.NAME, Schema.NAME_SPELL, Schema.NAME_STUB, Schema.SYNONYM, Schema.SYNONYM_SPELL,
                     Schema.SYNONYM_STUB, Schema.TEXT, Schema.TEXT, Schema.TEXT_SPELL, Schema.TEXT_STUB);
+            qstring = addStatusFilter(qstring, Phenotype.Status.SYNONYM);
             q.add(DisMaxParams.QF, qstring);
             q.add("spellcheck", Boolean.toString(true));
             q.add(SpellingParams.SPELLCHECK_COLLATE, Boolean.toString(true));
@@ -328,6 +330,19 @@ class SolrDatabaseService implements DatabaseService
     public void setAutocommit(boolean autocommit)
     {
         this.autocommit = autocommit;
+    }
+
+    /**
+     * Add a filter preventing the query given from returning phenotypes with the given status.
+     *
+     * @param qstring the query
+     * @param status the status
+     * @return the updated query
+     */
+    private String addStatusFilter(String qstring, Phenotype.Status status)
+    {
+        return String.format("( %s ) AND -( %s )", qstring,
+                String.format(FIELD_IS, Schema.STATUS, status.toString()));
     }
 
     /**
@@ -396,7 +411,6 @@ class SolrDatabaseService implements DatabaseService
             throw new IOException(e);
         }
     }
-
 
     /**
      * Get the next available id.

@@ -277,7 +277,7 @@ public class PhenotypeManagerTest
      * synonym.
      */
     @Test
-    public void testAcceptedAsSynonym() throws Exception
+    public void testAsSynonym() throws Exception
     {
         pt.setId(PT_ID);
         pt.setStatus(Phenotype.Status.SUBMITTED);
@@ -300,6 +300,32 @@ public class PhenotypeManagerTest
         verify(databaseService, times(2)).getPhenotypeByHpoId(PT_HPO_ID);
         verify(existing).mergeWith(same(pt));
         verify(databaseService).savePhenotype(same(existing));
+    }
+
+    /**
+     * Test that things work out when the phenotype is accepted as a previously
+     * published synoynm that is not in the database.
+     */
+    @Test
+    public void testAsPublishedSynonym() throws Exception
+    {
+        pt.setId(PT_ID);
+        pt.setStatus(Phenotype.Status.SUBMITTED);
+        pt.setIssueNumber(PT_NUM);
+        when(databaseService.getPhenotypeByHpoId(PT_HPO_ID)).thenReturn(Phenotype.NULL);
+        when(databaseService.getPhenotypeById(PT_ID)).thenReturn(pt);
+        doAnswer(new Answer<Void>() {
+            public Void answer(InvocationOnMock invocation) {
+                Phenotype arg = (Phenotype) invocation.getArguments()[0];
+                arg.setStatus(Phenotype.Status.SYNONYM);
+                arg.setHpoId(PT_HPO_ID);
+                return null;
+            }
+        }).when(githubApi).readPhenotype(same(pt));
+        Phenotype pt2 = client.getPhenotypeById(PT_ID);
+        verify(databaseService, times(2)).getPhenotypeByHpoId(PT_HPO_ID);
+        assertEquals(Phenotype.Status.PUBLISHED, pt2.getStatus());
+        assertEquals(PT_HPO_ID, pt2.getHpoId().get());
     }
 
     /**
