@@ -242,11 +242,8 @@ class SolrDatabaseService implements DatabaseService
     {
         checkUp();
         String queryString = String.format("(%s) AND (%s)",
-                OR_QUERY_JOINER.join(
-                    String.format(FIELD_IS, Schema.STATUS, Phenotype.Status.ACCEPTED.toString()),
-                    String.format(FIELD_IS, Schema.STATUS, Phenotype.Status.SYNONYM.toString())),
+                String.format(FIELD_IS, Schema.STATUS, Phenotype.Status.ACCEPTED.toString()),
                 String.format(FIELD_IS, Schema.HPO_ID, hpoId));
-        queryString = addStatusFilter(queryString, Phenotype.Status.SYNONYM);
         SolrQuery q = new SolrQuery().setQuery(queryString).setRows(1);
         return runQuery(q);
     }
