@@ -28,7 +28,7 @@ import org.phenotips.termrequester.Phenotype;
 import org.phenotips.termrequester.PhenotypeManager;
 import org.phenotips.termrequester.db.DatabaseService;
 import org.phenotips.termrequester.github.GithubAPI;
-import org.phenotips.termrequester.rest.TermRequesterRESTModule;
+import org.phenotips.termrequester.rest.resources.RESTResourcesModule;
 import org.phenotips.termrequester.testutils.TestModule;
 
 import org.restlet.Request;
@@ -144,7 +144,7 @@ public abstract class AbstractResourceTest
     {
         githubApi = mock(GithubAPI.class);
         injector = RestletGuice.createInjector(Modules.override(
-                    new TermRequesterRESTModule("", "", "", folder.getRoot().toString())).
+                    new RESTResourcesModule("", "", "", folder.getRoot().toString())).
                 with(new TestModule(null, githubApi)));
         finder = injector.getInstance(FinderFactory.class);
         router = new Router();

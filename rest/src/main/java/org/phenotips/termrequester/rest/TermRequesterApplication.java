@@ -22,6 +22,7 @@ import org.phenotips.termrequester.TermRequesterBackendException;
 import org.phenotips.termrequester.github.GithubAPI;
 import org.phenotips.termrequester.rest.resources.PhenotypeResource;
 import org.phenotips.termrequester.rest.resources.PhenotypesResource;
+import org.phenotips.termrequester.rest.resources.RESTResourcesModule;
 
 import java.nio.file.Paths;
 
@@ -133,7 +134,7 @@ public class TermRequesterApplication extends Application
          * since the database is for sure stateful), so we're gonna initialize it ourselves and
          * ensure the server resources don't do anything to it by passing @OwnResources as false
          */
-        injector = RestletGuice.createInjector(new TermRequesterRESTModule(repoOwner, repoName,
+        injector = RestletGuice.createInjector(new RESTResourcesModule(repoOwner, repoName,
                     token, homeDir, false));
         startPhenotypeManager(repoOwner, repoName, token, homeDir);
         super.start();

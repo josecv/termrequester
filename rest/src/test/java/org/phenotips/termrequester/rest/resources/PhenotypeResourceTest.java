@@ -29,7 +29,6 @@ import org.phenotips.termrequester.Phenotype;
 import org.phenotips.termrequester.PhenotypeManager;
 import org.phenotips.termrequester.db.DatabaseService;
 import org.phenotips.termrequester.github.GithubAPI;
-import org.phenotips.termrequester.rest.TermRequesterRESTModule;
 import org.phenotips.termrequester.testutils.TestModule;
 import org.phenotips.termrequester.utils.IdUtils;
 

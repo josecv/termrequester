@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see http://www.gnu.org/licenses/
  */
-package org.phenotips.termrequester.rest;
+package org.phenotips.termrequester.rest.resources;
 
 import org.phenotips.termrequester.TermRequesterBackendModule;
 import org.phenotips.termrequester.rest.resources.annotations.HomeDir;
@@ -31,7 +31,7 @@ import com.google.inject.AbstractModule;
  *
  * @version $Id$
  */
-public class TermRequesterRESTModule extends AbstractModule
+public class RESTResourcesModule extends AbstractModule
 {
     /**
      * The repository owner.
@@ -67,7 +67,7 @@ public class TermRequesterRESTModule extends AbstractModule
      * @param homeDir the directory for permanent files
      * @param ownResources whether ServerResources own their own resources
      */
-    public TermRequesterRESTModule(String repositoryOwner, String repositoryName,
+    public RESTResourcesModule(String repositoryOwner, String repositoryName,
             String oauthToken, String homeDir, boolean ownResources)
     {
         this.repositoryOwner = repositoryOwner;
@@ -84,7 +84,7 @@ public class TermRequesterRESTModule extends AbstractModule
      * @param oauthToken the oauth token we'll use to access github
      * @param homeDir the directory for permanent files
      */
-    public TermRequesterRESTModule(String repositoryOwner, String repositoryName,
+    public RESTResourcesModule(String repositoryOwner, String repositoryName,
             String oauthToken, String homeDir)
     {
         this(repositoryOwner, repositoryName, oauthToken, homeDir, true);
@@ -94,6 +94,8 @@ public class TermRequesterRESTModule extends AbstractModule
     public void configure()
     {
         install(new TermRequesterBackendModule());
+        bind(PhenotypeResource.class).to(PhenotypeResourceImpl.class);
+        bind(PhenotypesResource.class).to(PhenotypesResourceImpl.class);
         bindConstant().annotatedWith(HomeDir.class).to(homeDir);
         bindConstant().annotatedWith(OAuthToken.class).to(oauthToken);
         bindConstant().annotatedWith(RepositoryName.class).to(repositoryName);

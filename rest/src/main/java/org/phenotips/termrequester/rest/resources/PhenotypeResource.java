@@ -18,51 +18,16 @@
 package org.phenotips.termrequester.rest.resources;
 
 import org.phenotips.termrequester.Phenotype;
-import org.phenotips.termrequester.PhenotypeManager;
-import org.phenotips.termrequester.TermRequesterBackendException;
-import org.phenotips.termrequester.rest.resources.annotations.HomeDir;
-import org.phenotips.termrequester.rest.resources.annotations.OAuthToken;
-import org.phenotips.termrequester.rest.resources.annotations.OwnResources;
-import org.phenotips.termrequester.rest.resources.annotations.RepositoryName;
-import org.phenotips.termrequester.rest.resources.annotations.RepositoryOwner;
-import org.phenotips.termrequester.utils.IdUtils;
 
-import org.restlet.data.Status;
 import org.restlet.resource.Get;
-import org.restlet.resource.ResourceException;
-
-import com.google.inject.Inject;
 
 /**
  * Manages one single phenotype, as dictated by an id encoded in the uri.
  *
  * @version $Id$
  */
-public class PhenotypeResource extends AbstractTermRequesterResource
+public interface PhenotypeResource
 {
-    /**
-     * The attribute that identifies the id in the URI.
-     */
-    private static final String ID_ATTRIBUTE = "id";
-
-    /**
-     * CTOR.
-     *
-     * @param ptManager the injected phenotype manager.
-     * @param homeDir the directory to store files in
-     * @param token the oauth token
-     * @param repoName the name of the repo
-     * @param repoOwner the owner of the repo
-     * @param owned whether we should own the resources needed
-     */
-    @Inject
-    public PhenotypeResource(PhenotypeManager ptManager, @HomeDir String homeDir,
-            @OAuthToken String token, @RepositoryName String repoName,
-            @RepositoryOwner String repoOwner, @OwnResources Boolean owned)
-    {
-        super(ptManager, homeDir, token, repoName, repoOwner, owned);
-    }
-
     /**
      * Get the phenotype that matches the id at the end of the requested uri.
      * Will return an empty 404 if nothing is found.
@@ -70,25 +35,5 @@ public class PhenotypeResource extends AbstractTermRequesterResource
      * @return the phenotype
      */
     @Get("json")
-    public Phenotype getById()
-    {
-        String id = (String) getRequest().getAttributes().get(ID_ATTRIBUTE);
-        if (!(IdUtils.isId(id) || IdUtils.isHpoId(id))) {
-            getResponse().setStatus(Status.CLIENT_ERROR_BAD_REQUEST);
-            return null;
-        }
-        try {
-            Phenotype pt = ptManager.getPhenotypeById(id);
-            if (pt.getStatus().equals(Phenotype.Status.PUBLISHED)) {
-                pt = PublishedPhenotype.from(pt);
-            }
-            if (Phenotype.NULL.equals(pt)) {
-                getResponse().setStatus(Status.CLIENT_ERROR_NOT_FOUND);
-                return null;
-            }
-            return pt;
-        } catch (TermRequesterBackendException e) {
-            throw new ResourceException(e);
-        }
-    }
+    Phenotype getById();
 }
