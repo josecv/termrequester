@@ -186,7 +186,7 @@ public class Issue
         pt.setDescription(m.group("description").trim());
         pt.setIssueNumber(Integer.toString(number));
         pt.setStatus(getPTStatus());
-        String hpoId = m.group("hpoid").trim();
+        String hpoId = m.group("hpoid").replace(":", "_").trim();
         if (!Phenotype.EMPTY_HPO_ID.equals(hpoId)) {
             pt.setHpoId(hpoId);
         }

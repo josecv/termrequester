@@ -133,7 +133,7 @@ public class PhenotypeManagerTest
     /**
      * The HPO id of the test phenotype.
      */
-    private static final String PT_HPO_ID = "HPO_001234";
+    private static final String PT_HPO_ID = "HP_0001234";
 
     /**
      * A temporary folder.

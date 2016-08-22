@@ -76,7 +76,7 @@ public class SolrDatabaseServiceTest
     /**
      * The test hpo id.
      */
-    private static final String PT_HPO_ID = "HPO_000101";
+    private static final String PT_HPO_ID = "HP_0000101";
 
     /**
      * The issue number of the test phenotype.

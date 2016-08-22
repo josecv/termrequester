@@ -76,7 +76,7 @@ public class PhenotypeResourceTest extends AbstractResourceTest
     /**
      * A test hpo id.
      */
-    private static final String HPO_ID = "HPO_000563";
+    private static final String HPO_ID = "HP_0000563";
 
     /**
      * A test issue number.

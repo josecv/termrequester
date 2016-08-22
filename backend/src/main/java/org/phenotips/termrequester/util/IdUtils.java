@@ -35,12 +35,12 @@ public final class IdUtils
     /**
      * A pattern to parse our IDs.
      */
-    public static final Pattern ID_PATTERN = Pattern.compile(ID_PREFIX + "(\\d{6})");
+    public static final Pattern ID_PATTERN = Pattern.compile(ID_PREFIX + "(\\d{7})");
 
     /**
      * The format of our ids.
      */
-    public static final String ID_FORMAT = ID_PREFIX + "%06d";
+    public static final String ID_FORMAT = ID_PREFIX + "%07d";
 
     /**
      * The very fist id to use.
@@ -50,7 +50,7 @@ public final class IdUtils
     /**
      * A pattern to parse hpo ids.
      */
-    public static final Pattern HPO_ID_PATTERN = Pattern.compile("HPO_(\\d{6})");
+    public static final Pattern HPO_ID_PATTERN = Pattern.compile("HP_(\\d{7})");
 
     /**
      * CTOR.

@@ -45,12 +45,12 @@ public class IdUtilsTest
     /**
      * A test id.
      */
-    private static final String ID = IdUtils.ID_PREFIX + "000052";
+    private static final String ID = IdUtils.ID_PREFIX + "0000052";
 
     /**
      * A test hpo id.
      */
-    private static final String HPO_ID = "HPO_000004";
+    private static final String HPO_ID = "HP_0000004";
 
     /**
      * Test the incrementId method.
@@ -58,7 +58,7 @@ public class IdUtilsTest
     @Test
     public void testIncrement()
     {
-        String expect = IdUtils.ID_PREFIX + "000053";
+        String expect = IdUtils.ID_PREFIX + "0000053";
         String actual = IdUtils.incrementId(ID);
         assertEquals(expect, actual);
     }
