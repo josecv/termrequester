@@ -45,7 +45,7 @@ created, and the previously existing one will be returned.
 
 ###### Parameters
 
-These are an exact match of the phenotype data type, only missing the `status`, `id` and `issue_num`.
+A Phenotype object, missing the `id`, `status`, `issueNumber` and `hpoId` fields.
 
 ```javascript
 {
@@ -59,6 +59,7 @@ These are an exact match of the phenotype data type, only missing the `status`, 
 ###### Response
 
 If the phenotype has already been requested, the response code will be `HTTP 409`.
+Otherwise it will be `HTTP 201`.
 
 In either case the new (or previously existing) phenotype will be returned
 (see above for phenotype object format).
@@ -68,14 +69,21 @@ READ
 
 ### `GET /phenotype/{id}`
 
-Where `id` is either a `TEMPHPO_` style id or an `HPO_` type id.
+Where `id` is either a `TEMPHPO_` style id or an `HP_` type id.
 
 ###### Response
 
-If the phenotype exists and is in any status other than `SYNONYM`, it will be returned.
-If the phenotype exists but is in `SYNONYM` status, a redirect will be returned to the now-accepted term.
+If the phenotype exists and is not in `PUBLISHED` status, it will be returned.
+
+If the phenotype exists but is in `PUBLISHED` status, a truncated version of it will be returned,
+containing only the `hpoId` of the phenotype.
+
 If the phenotype does not exist, an `HTTP 404` will be returned.
+
 If the id is malformed, an `HTTP 400` will be returned.
+
+Note that the returned Phenotype may have a different `id` or `hpoId` than that requested,
+since it might have been accepted as a synonym of a different phenotype.
 
 ### `GET /phenotypes`
 
