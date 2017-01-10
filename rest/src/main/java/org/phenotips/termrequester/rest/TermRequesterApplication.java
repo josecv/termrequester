@@ -117,7 +117,7 @@ public class TermRequesterApplication extends Application
         FinderFactory finder = injector.getInstance(FinderFactory.class);
         Router router = new Router(getContext());
         router.attach("/phenotypes", finder.finder(PhenotypesResource.class));
-        router.attach("/phenotype/{id}", finder.finder(PhenotypeResource.class));
+        router.attach("/phenotypes/{id}", finder.finder(PhenotypeResource.class));
         return router;
     }
 

@@ -86,7 +86,7 @@ public class PhenotypeResourceTest extends AbstractResourceTest
     @Override
     public void doSetUp() throws Exception
     {
-        router.attach("/phenotype/{id}", finder.finder(PhenotypeResource.class));
+        router.attach("/phenotypes/{id}", finder.finder(PhenotypeResource.class));
     }
 
     /**
@@ -96,7 +96,7 @@ public class PhenotypeResourceTest extends AbstractResourceTest
     public void testGetById() throws Exception
     {
         saveAndInit(pt);
-        Request request = new Request(Method.GET, "/phenotype/" + pt.getId().get());
+        Request request = new Request(Method.GET, "/phenotypes/" + pt.getId().get());
         Response response = new Response(request);
         router.handle(request, response);
         assertEquals(200, response.getStatus().getCode());
@@ -114,7 +114,7 @@ public class PhenotypeResourceTest extends AbstractResourceTest
         saveAndInit(pt);
         databaseService.commit();
         String badId = IdUtils.incrementId(pt.getId().get());
-        Request request = new Request(Method.GET, "/phenotype/" + badId);
+        Request request = new Request(Method.GET, "/phenotypes/" + badId);
         Response response = new Response(request);
         router.handle(request, response);
         assertEquals(404, response.getStatus().getCode());
@@ -134,7 +134,7 @@ public class PhenotypeResourceTest extends AbstractResourceTest
         pt.setHpoId(HPO_ID);
         databaseService.savePhenotype(pt);
         databaseService.commit();
-        Request request = new Request(Method.GET, "/phenotype/" + HPO_ID);
+        Request request = new Request(Method.GET, "/phenotypes/" + HPO_ID);
         Response response = new Response(request);
         router.handle(request, response);
         assertEquals(200, response.getStatus().getCode());
@@ -163,7 +163,7 @@ public class PhenotypeResourceTest extends AbstractResourceTest
         manager.createRequest(pt2);
         databaseService.commit();
 
-        Request request = new Request(Method.GET, "/phenotype/" + pt2.getId().get());
+        Request request = new Request(Method.GET, "/phenotypes/" + pt2.getId().get());
         Response response = new Response(request);
         router.handle(request, response);
         assertEquals(200, response.getStatus().getCode());
@@ -186,7 +186,7 @@ public class PhenotypeResourceTest extends AbstractResourceTest
         pt.setIssueNumber(ISSUE_NUMBER);
         databaseService.savePhenotype(pt);
 
-        Request request = new Request(Method.GET, "/phenotype/" + pt.getId().get());
+        Request request = new Request(Method.GET, "/phenotypes/" + pt.getId().get());
         Response response = new Response(request);
         router.handle(request, response);
         assertEquals(200, response.getStatus().getCode());
@@ -202,7 +202,7 @@ public class PhenotypeResourceTest extends AbstractResourceTest
     @Test
     public void testMalformedId() throws Exception
     {
-        Request request = new Request(Method.GET, "/phenotype/yes_lad");
+        Request request = new Request(Method.GET, "/phenotypes/yes_lad");
         Response response = new Response(request);
         router.handle(request, response);
         assertEquals(400, response.getStatus().getCode());
