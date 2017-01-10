@@ -17,7 +17,7 @@
  */
 package org.phenotips.termrequester;
 
-import org.phenotips.termrequester.util.TitleCaseSet;
+import org.phenotips.termrequester.utils.TitleCaseSet;
 
 import java.io.Serializable;
 

@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see http://www.gnu.org/licenses/
  */
-package org.phenotips.termrequester.util;
+package org.phenotips.termrequester.utils;
 
 import java.util.ArrayList;
 import java.util.Collection;
