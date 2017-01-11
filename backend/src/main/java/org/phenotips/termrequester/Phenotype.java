@@ -169,7 +169,7 @@ public class Phenotype extends AbstractSaveable implements Serializable
     /**
      * Add all the synonyms given to this phenotype's set of synonyms.
      *
-     * @param synonyms the new syonyms to add
+     * @param synonyms the new synonyms to add
      */
     public void addAllSynonyms(Collection<String> synonyms)
     {
