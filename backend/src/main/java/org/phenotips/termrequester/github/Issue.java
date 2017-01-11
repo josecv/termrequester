@@ -104,7 +104,7 @@ public class Issue
     /**
      * The labels.
      */
-    private List<String> labels;
+    private List<Label> labels;
 
     /**
      * This issue's description.
@@ -202,8 +202,8 @@ public class Issue
     public Phenotype.Status getPTStatus()
     {
         if ("closed".equals(state)) {
-            for (String label : labels) {
-                Matcher m = LABEL_PATTERN.matcher(label);
+            for (Label label : labels) {
+                Matcher m = LABEL_PATTERN.matcher(label.getName());
                 m.find();
                 if (m.matches()) {
                     return Phenotype.Status.valueOf(m.group(1).toUpperCase());
@@ -300,7 +300,7 @@ public class Issue
      *
      * @return the labels
      */
-    public List<String> getLabels()
+    public List<Label> getLabels()
     {
         return labels;
     }
@@ -310,7 +310,7 @@ public class Issue
      *
      * @param labels the labels
      */
-    public void setLabels(List<String> labels)
+    public void setLabels(List<Label> labels)
     {
         this.labels = labels;
     }
