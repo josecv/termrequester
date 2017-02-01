@@ -2,7 +2,7 @@ Phenotips HPO TermRequester
 ===========================
 
 This service is designed to request that new phenotypes be added to the HPO and give a handle
-to requested phenotypes whilst they're being considered for inclusion.
+to requested phenotypes whilst they're being considered for inclusion. Each request is posted to the Github repo via Github API in a form of a separate issue that will be automatically tagged as “autorequested” tag and `SUBMITTED` status. Decisions may be made regarding the inclusion/exclusion of the submitted term via follow-up manual review, which should be done by editing the payload of the ticket, i.e. applying one of the available tags.
 
 REST API
 ========
@@ -127,6 +127,13 @@ be set on the TermRequester servlet:
       <param-value></param-value>
     </init-param>
 ```
+The `repositoryOwner` is the owner of the repo issues will be posted to. For example, if posting to `https://github.com/phenotips/termrequester/` the owner would be set to `phenotips`.
+
+The `repositoryName` is the name of the repo; in this example `termrequester`.
+
+The `oauthToken` is the token for the account that will be opening the issue. (Can be obtained from https://github.com/settings/tokens).
+
+The `homeDir` is a path on the server to store local data for example `/var/lib/termRequester`).
 
 DEVELOPMENT
 ===========
